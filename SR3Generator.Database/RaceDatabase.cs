@@ -61,7 +61,7 @@ namespace SR3Generator.Database
                         new(AttributeName.Quickness, -1),
                         new(AttributeName.Strength, 4),
                         new(AttributeName.Intelligence, -2),
-                        new(AttributeName.Charisma, -1),
+                        new(AttributeName.Charisma, -2),
                     }, 
                     Extras = new List<string>()
                     {

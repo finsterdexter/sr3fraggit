@@ -1,9 +1,21 @@
+using Microsoft.Extensions.Options;
 using SR3Generator.Data.Character;
+using SR3Generator.Database;
+using SR3Generator.Database.Connection;
+using SR3Generator.Database.Queries;
 
 namespace SR3Generator.Creation.Test
 {
     public class CharacterBuilderTests
     {
+        private static SkillDatabase CreateSkillDatabase()
+        {
+            var options = Options.Create(new DatabaseOptions());
+            var dbConnectionFactory = new DbConnectionFactory(options);
+            var queryHandler = new ReadSkillsQueryHandler();
+            return new SkillDatabase(dbConnectionFactory, queryHandler);
+        }
+
         // AwardKarma
         [Theory]
         [InlineData(5, 0, 10, 14, 2)]
@@ -14,7 +26,7 @@ namespace SR3Generator.Creation.Test
         [InlineData(12, 1, 9, 19, 2)] // Brynn example
         public void AwardKarma_ToHuman_ShouldHaveCorrectKarmaAmounts(int totalKarma, int spentKarma, int awardedKarma, int newRemainingKarma, int newKarmaPool)
         {
-            var builder = new CharacterBuilder();
+            var builder = new CharacterBuilder(CreateSkillDatabase());
             var character = builder
                 .WithRace(RaceDatabase.PlayerRaces.First(r => r.Name == RaceName.Human))
                 .Build();
@@ -36,7 +48,7 @@ namespace SR3Generator.Creation.Test
         [InlineData(5, 0, 20, 24, 2)]
         public void AwardKarma_ToNonHuman_ShouldHaveCorrectKarmaAmounts(int totalKarma, int spentKarma, int awardedKarma, int newRemainingKarma, int newKarmaPool)
         {
-            var builder = new CharacterBuilder();
+            var builder = new CharacterBuilder(CreateSkillDatabase());
             var character = builder
                 .WithRace(RaceDatabase.PlayerRaces.First(r => r.Name != RaceName.Human))
                 .Build();

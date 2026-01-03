@@ -5,6 +5,7 @@ using SR3Generator.Data.Gear;
 using System.Diagnostics;
 using System;
 using Attribute = SR3Generator.Data.Character.Attribute;
+using AttributeName = SR3Generator.Data.Character.Attribute.AttributeName;
 using SR3Generator.Database;
 
 namespace SR3Generator.Creation
@@ -12,6 +13,7 @@ namespace SR3Generator.Creation
     public class CharacterBuilder
     {
         private CharacterPriorityValidator _characterValidator = new CharacterPriorityValidator();
+        private readonly SkillDatabase _skillDatabase;
 
         public Character Character { get; set; }
         public List<ValidationIssue> ValidationIssues { get; set; } = new List<ValidationIssue>();
@@ -21,8 +23,9 @@ namespace SR3Generator.Creation
         public List<Race> RacesAllowed { get; set; }
         public List<MagicAspect> MagicAspectsAllowed { get; set; }
 
-        public CharacterBuilder()
+        public CharacterBuilder(SkillDatabase skillDatabase)
         {
+            _skillDatabase = skillDatabase;
             Character = new Character();
             var initialPriorities = new List<Priority>
             {
@@ -355,7 +358,7 @@ namespace SR3Generator.Creation
         {
             // get skill from SkillDatabase by name
             Skill? skill;
-            if (SkillDatabase.ActiveSkills.TryGetValue(name, out skill) == false && SkillDatabase.KnowledgeSkills.TryGetValue(name, out skill) == false)
+            if (_skillDatabase.ActiveSkills.TryGetValue(name, out skill) == false && _skillDatabase.KnowledgeSkills.TryGetValue(name, out skill) == false)
             {
                 return this;
             }
@@ -435,8 +438,8 @@ namespace SR3Generator.Creation
             var vcr = Character.Gear.Values.FirstOrDefault(g => g is VehicleControlRig && g.IsEquipped);
             if (vcr != null && vcr.Rating.HasValue)
             {
-                Character.DicePools[DicePoolType.Control].Value = 
-                    (Character.Attributes[AttributeName.Reaction].BaseValue + vcr.Rating.Value * 2) / 3;
+                Character.DicePools[DicePoolType.Control].Value =
+                    Character.Attributes[AttributeName.Reaction].BaseValue + (vcr.Rating.Value * 2);
             }
             Character.DicePools[DicePoolType.AstralCombat].Value = 
                 (Character.Attributes[AttributeName.Intelligence].BaseValue + Character.Attributes[AttributeName.Willpower].BaseValue + Character.Attributes[AttributeName.Charisma].BaseValue) / 2;

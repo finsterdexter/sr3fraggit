@@ -38,6 +38,14 @@ namespace SR3Generator.Database.Queries
                         newSkill = new Skill(skill.name, Attribute.AttributeName.Intelligence);
                         newSkill.Type = SkillType.Language;
                         break;
+                    case null or "" when skill.id == 393: // IN:Roleplaying Games of 20th Cen - missing atr in db
+                        newSkill = new Skill(skill.name, Attribute.AttributeName.Intelligence);
+                        newSkill.Type = SkillType.Knowledge;
+                        break;
+                    case " Lewis" when skill.id == 408: // AK:Ft Lewis - corrupt atr in db (name got split)
+                        newSkill = new Skill("AK:Ft Lewis", Attribute.AttributeName.Intelligence);
+                        newSkill.Type = SkillType.Knowledge;
+                        break;
                     default:
                         var atr = (Attribute.AttributeAbbr)Enum.Parse(typeof(Attribute.AttributeAbbr), skill.atr);
                         newSkill = new Skill(skill.name, Attribute.GetName(atr));

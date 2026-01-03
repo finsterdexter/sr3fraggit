@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AttributeName = SR3Generator.Data.Character.Attribute.AttributeName;
+using AttributeType = SR3Generator.Data.Character.Attribute.AttributeType;
 
 namespace SR3Generator.Creation.Validation
 {

@@ -16,7 +16,7 @@ namespace SR3Generator.Database
         public Dictionary<string, Skill> ActiveSkills { get; set; } = new Dictionary<string, Skill>();
         public Dictionary<string, Skill> KnowledgeSkills { get; set; } = new Dictionary<string, Skill>();
 
-        SkillDatabase(DbConnectionFactory dbConnectionFactory,
+        internal SkillDatabase(DbConnectionFactory dbConnectionFactory,
             ReadSkillsQueryHandler readSkillsQueryHandler)
         {
             _readSkillsQueryHandler = readSkillsQueryHandler;
