@@ -8,7 +8,7 @@ namespace SR3Generator.Data.Character
 {
     public class Skill
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public SkillType Type { get; set; }
         public Attribute.AttributeName Attribute { get; set; }
         public int BaseValue { get; set; }
@@ -23,6 +23,11 @@ namespace SR3Generator.Data.Character
         {
             Name = name;
             Attribute = attribute;
+
+            // non-required
+            Book = null!;
+            Page = null!;
+            Notes = "";
         }
 
         public int GetAugmentedValue(Character character)
