@@ -120,7 +120,6 @@ As starting characters, full magicians receive 25 Spell Points.
 Spell Points are used to purchase spells, at a rate of 1 Spell Point
 per point of the spell’s Force. As a benefit to starting characters,
 full magicians can bond foci by using their Spell Points instead of
-George Walker (order #29842224)
 Karma during character creation (again, at a rate of 1 Spell Point
 per point of Karma). After character creation, magicians must use
 Karma to learn spells and bond foci. More information on choos­
@@ -234,7 +233,7 @@ Attributes are the character’s natural Attributes, and will be
 written on your character’s record sheet. Any changes to these
 55
  Shadowrun, Third Edition
-George Walker (order #29842224)
+
 Race
 Dwarf
 Elf
@@ -407,7 +406,7 @@ Skills represent what your character knows and how well
 he or she can perform certain actions. In the shadows, what
 56
  Shadowrun, Third Edition
-George Walker (order #29842224)
+
 you can do is more important than what you may know.
 Therefore, the Skill Points given to purchase skills at character
 creation are for use in purchasing Active Skills only. As with
@@ -519,7 +518,7 @@ Cost per point of skill rating
 2 Skill Points
 57
  Shadowrun, Third Edition
-George Walker (order #29842224)
+
 Class
 Street
 Academia
@@ -584,7 +583,7 @@ Systems under Electronics. Maglocks are the most com­
 mon security device, after all. That leaves us with
 58
  Shadowrun, Third Edition
-George Walker (order #29842224)
+
 Electronics 3 and Maglock Systems 5. We spend our last 4
 Skill Points giving the elf Pistols 4; this skill costs 4 points
 because its rating is less than that of its linked Attribute,
@@ -788,7 +787,7 @@ Triad Politics
  2
 59
  Shadowrun, Third Edition
-George Walker (order #29842224)
+
 ASSIGNING RESOURCES
 The last category, Resources, provides your character with
 the starting cash to gear up for street-level warfare. As with all
@@ -910,7 +909,7 @@ In addition to the nuyen cost, each item of cyberware also
 has a secondary cost in Essence. This Essence Cost is the
 60
  Shadowrun, Third Edition
-George Walker (order #29842224)
+
 amount by which the character’s Essence is reduced when the
 cyberware is installed. Starting characters cannot have an
 Essence of 0, but any fraction above zero is fine. Some cyber-
@@ -1025,7 +1024,7 @@ wash the stink off, however. It also encompasses your living
 conditions and possessions. In other words, lifestyle covers all
 61
  Shadowrun, Third Edition
-George Walker (order #29842224)
+
 the everyday tasks and costs, such as
 food, laundry, utility bills and so on.
 STARTING CHARACTERThe higher the lifestyle, the less you
@@ -1169,7 +1168,7 @@ Charisma
 5
 3
 6
-George Walker (order #29842224)
+
 Intelligence
  4
  starting cash. For example, if you had 5,000¥ left from character
@@ -1293,7 +1292,7 @@ ation, divide that amount by
 10 and keep the result as
 63
  Shadowrun, Third Edition
-George Walker (order #29842224)
+
 • Write down a quick outline of
 how your character got started. This
 exercise puts a fictional background on

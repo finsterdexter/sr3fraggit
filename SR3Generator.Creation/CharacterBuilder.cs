@@ -194,6 +194,66 @@ namespace SR3Generator.Creation
             return this;
         }
 
+        public CharacterBuilder BindFocus(Guid focusId)
+        {
+            if (!Character.Gear.TryGetValue(focusId, out var item))
+            {
+                _logger.LogWarning("BindFocus: Equipment {FocusId} not found", focusId);
+                return this;
+            }
+            if (item is not Focus focus)
+            {
+                _logger.LogWarning("BindFocus: Equipment {FocusId} is not a Focus", focusId);
+                return this;
+            }
+            if (focus.IsBound)
+            {
+                _logger.LogWarning("BindFocus: Focus {FocusId} is already bound", focusId);
+                return this;
+            }
+            var karmaCost = focus.BindingKarmaCost;
+            if (Character.RemainingKarma < karmaCost)
+            {
+                _logger.LogWarning("BindFocus: Insufficient karma to bind focus. Need {KarmaCost}, have {RemainingKarma}", karmaCost, Character.RemainingKarma);
+                return this;
+            }
+
+            var karmaOp = new KarmaOperation
+            {
+                Type = KarmaOperationType.Spend,
+                KarmaChangeValue = karmaCost,
+                Description = $"Bind Focus: {focus.Name} (Force {focus.Rating})"
+            };
+            Character.KarmaOperations.Add(karmaOp);
+            Character.SpentKarma += karmaCost;
+            focus.IsBound = true;
+
+            return this;
+        }
+
+        public CharacterBuilder UnbindFocus(Guid focusId)
+        {
+            if (!Character.Gear.TryGetValue(focusId, out var item))
+            {
+                _logger.LogWarning("UnbindFocus: Equipment {FocusId} not found", focusId);
+                return this;
+            }
+            if (item is not Focus focus)
+            {
+                _logger.LogWarning("UnbindFocus: Equipment {FocusId} is not a Focus", focusId);
+                return this;
+            }
+            if (!focus.IsBound)
+            {
+                _logger.LogWarning("UnbindFocus: Focus {FocusId} is not bound", focusId);
+                return this;
+            }
+
+            focus.IsBound = false;
+
+            return this;
+        }
+
         public CharacterBuilder AddNaturalAugmentation(Augmentation item)
         {
             Character.NaturalAugmentations.Add(item.Name, item);

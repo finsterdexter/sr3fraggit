@@ -12,7 +12,7 @@
 
 [x] Add Contacts
 
-[] Add Foci
+[x] Add Foci
 
 [] Add Spells (validations?)
 
@@ -26,7 +26,7 @@
 [] Data loading from json in Database classes
 	When ingesting vehicles, be mindful of differing stats, and ignore vehicles from sr2
 
-[] Add logs for all unexpected returns in CharacterBuilder
+[x] Add logs for all unexpected returns in CharacterBuilder
 
 ## Phase 2 features
 
