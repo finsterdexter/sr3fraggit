@@ -8,7 +8,7 @@ namespace SR3Generator.Data.Character
 {
     public class Skill
     {
-        public required string Name { get; set; }
+        public string Name { get; set; }
         public SkillType Type { get; set; }
         public Attribute.AttributeName Attribute { get; set; }
         public int BaseValue { get; set; }

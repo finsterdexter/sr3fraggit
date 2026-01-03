@@ -1,8 +1,8 @@
-﻿using SR3Generator.Creation.Validation;
+﻿using Microsoft.Extensions.Logging;
+using SR3Generator.Creation.Validation;
 using SR3Generator.Data.Character;
 using SR3Generator.Data.Character.Creation;
 using SR3Generator.Data.Gear;
-using System.Diagnostics;
 using System;
 using Attribute = SR3Generator.Data.Character.Attribute;
 using AttributeName = SR3Generator.Data.Character.Attribute.AttributeName;
@@ -14,6 +14,7 @@ namespace SR3Generator.Creation
     {
         private CharacterPriorityValidator _characterValidator = new CharacterPriorityValidator();
         private readonly SkillDatabase _skillDatabase;
+        private readonly ILogger<CharacterBuilder> _logger;
 
         public Character Character { get; set; }
         public List<ValidationIssue> ValidationIssues { get; set; } = new List<ValidationIssue>();
@@ -23,9 +24,10 @@ namespace SR3Generator.Creation
         public List<Race> RacesAllowed { get; set; }
         public List<MagicAspect> MagicAspectsAllowed { get; set; }
 
-        public CharacterBuilder(SkillDatabase skillDatabase)
+        public CharacterBuilder(SkillDatabase skillDatabase, ILogger<CharacterBuilder> logger)
         {
             _skillDatabase = skillDatabase;
+            _logger = logger;
             Character = new Character();
             var initialPriorities = new List<Priority>
             {
@@ -36,6 +38,8 @@ namespace SR3Generator.Creation
                 new Priority(PriorityType.Resources, PriorityRank.E)
             };
             this.WithPriorities(initialPriorities);
+            RacesAllowed = initialPriorities.First(p => p.Type == PriorityType.Race).GetAllowedRaces();
+            MagicAspectsAllowed = initialPriorities.First(p => p.Type == PriorityType.Magic).GetAllowedMagicAspects();
         }
 
         public CharacterBuilder WithPriorities(List<Priority> priorities)
@@ -128,6 +132,7 @@ namespace SR3Generator.Creation
         {
             if (Character.Contacts.TryGetValue(contactId, out var contact) == false)
             {
+                _logger.LogWarning("SellContact: Contact {ContactId} not found", contactId);
                 return this;
             }
             var cost = contact.Level switch
@@ -151,6 +156,7 @@ namespace SR3Generator.Creation
         {
             if (Character.Gear.TryGetValue(equipmentId, out var item) == false)
             {
+                _logger.LogWarning("RemoveGear: Equipment {EquipmentId} not found", equipmentId);
                 return this;
             }
             Character.Gear.Remove(equipmentId);
@@ -178,6 +184,7 @@ namespace SR3Generator.Creation
         {
             if (Character.Gear.TryGetValue(equipmentId, out var item) == false)
             {
+                _logger.LogWarning("SellGear: Equipment {EquipmentId} not found", equipmentId);
                 return this;
             }
             var costm = item.Cost * (useStreetIndex ? item.StreetIndex : 1);
@@ -196,6 +203,7 @@ namespace SR3Generator.Creation
         {
             if (Character.NaturalAugmentations.TryGetValue(name, out var item) == false)
             {
+                _logger.LogWarning("RemoveNaturalAugmentation: Augmentation {Name} not found", name);
                 return this;
             }
             Character.NaturalAugmentations.Remove(name);
@@ -252,10 +260,12 @@ namespace SR3Generator.Creation
             var maximum = Character.Attributes[name].GetRacialAttributeMaximum(Character);
             if (newValue > maximum)
             {
+                _logger.LogWarning("ImproveAttribute: {Attribute} value {NewValue} exceeds maximum {Maximum}", name, newValue, maximum);
                 return this;
             }
             if (newValue > Character.Attributes[name].BaseValue + 1)
             {
+                _logger.LogWarning("ImproveAttribute: {Attribute} value {NewValue} exceeds current base value {BaseValue} by more than 1", name, newValue, Character.Attributes[name].BaseValue);
                 return this;
             }
             if (newValue <= maximum)
@@ -268,6 +278,7 @@ namespace SR3Generator.Creation
             }
             if (Character.RemainingKarma < karmaCost)
             {
+                _logger.LogWarning("ImproveAttribute: Insufficient karma for {Attribute}. Need {KarmaCost}, have {RemainingKarma}", name, karmaCost, Character.RemainingKarma);
                 return this;
             }
 
@@ -289,6 +300,7 @@ namespace SR3Generator.Creation
             Skill? skill;
             if (!Character.ActiveSkills.TryGetValue(name, out skill) && !Character.KnowledgeSkills.TryGetValue(name, out skill))
             {
+                _logger.LogWarning("ImproveExistingSkill: Skill {SkillName} not found on character", name);
                 return this;
             }
             var attribute = Character.Attributes[skill.Attribute];
@@ -300,10 +312,12 @@ namespace SR3Generator.Creation
                 Skill? baseSkill;
                 if (!Character.ActiveSkills.TryGetValue(name, out baseSkill) && !Character.KnowledgeSkills.TryGetValue(name, out baseSkill))
                 {
+                    _logger.LogWarning("ImproveExistingSkill: Base skill for specialization {SkillName} not found", name);
                     return this;
                 }
                 if (newValue > 2 * baseSkill.BaseValue && baseSkill.BaseValue > 1 || newValue > 3 && baseSkill.BaseValue == 1)
                 {
+                    _logger.LogWarning("ImproveExistingSkill: Specialization {SkillName} value {NewValue} violates base skill constraint (base: {BaseValue})", name, newValue, baseSkill.BaseValue);
                     return this;
                 }
             }
@@ -311,6 +325,7 @@ namespace SR3Generator.Creation
             var karmaCost = GetImproveSkillCost(newValue, attribute.BaseValue, skill.IsSpecialization, skill.Type);
             if (Character.RemainingKarma < karmaCost)
             {
+                _logger.LogWarning("ImproveExistingSkill: Insufficient karma for {SkillName}. Need {KarmaCost}, have {RemainingKarma}", name, karmaCost, Character.RemainingKarma);
                 return this;
             }
 
@@ -360,16 +375,23 @@ namespace SR3Generator.Creation
             Skill? skill;
             if (_skillDatabase.ActiveSkills.TryGetValue(name, out skill) == false && _skillDatabase.KnowledgeSkills.TryGetValue(name, out skill) == false)
             {
+                _logger.LogWarning("ImproveNewSkill: Skill {SkillName} not found in database", name);
                 return this;
             }
 
             if (skill.IsSpecialization)
             {
+                if (skill.BaseSkillName == null)
+                {
+                    _logger.LogWarning("ImproveNewSkill: Specialization {SkillName} has no base skill defined", name);
+                    return this;
+                }
                 var baseSkill = skill.Type == SkillType.Active ? Character.ActiveSkills[skill.BaseSkillName] : Character.KnowledgeSkills[skill.BaseSkillName];
                 var attribute = Character.Attributes[skill.Attribute];
                 var karmaCost = GetImproveSkillCost(baseSkill.BaseValue + 1, attribute.BaseValue, skill.IsSpecialization, skill.Type);
                 if (Character.RemainingKarma < karmaCost)
                 {
+                    _logger.LogWarning("ImproveNewSkill: Insufficient karma for specialization {SkillName}. Need {KarmaCost}, have {RemainingKarma}", name, karmaCost, Character.RemainingKarma);
                     return this;
                 }
                 var karmaOp = new KarmaOperation()
@@ -394,6 +416,7 @@ namespace SR3Generator.Creation
             {
                 if (Character.RemainingKarma < 1)
                 {
+                    _logger.LogWarning("ImproveNewSkill: Insufficient karma for new skill {SkillName}. Need 1, have {RemainingKarma}", name, Character.RemainingKarma);
                     return this;
                 }
                 var karmaOp = new KarmaOperation()

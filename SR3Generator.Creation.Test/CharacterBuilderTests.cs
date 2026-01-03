@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SR3Generator.Data.Character;
 using SR3Generator.Database;
@@ -26,7 +27,7 @@ namespace SR3Generator.Creation.Test
         [InlineData(12, 1, 9, 19, 2)] // Brynn example
         public void AwardKarma_ToHuman_ShouldHaveCorrectKarmaAmounts(int totalKarma, int spentKarma, int awardedKarma, int newRemainingKarma, int newKarmaPool)
         {
-            var builder = new CharacterBuilder(CreateSkillDatabase());
+            var builder = new CharacterBuilder(CreateSkillDatabase(), NullLogger<CharacterBuilder>.Instance);
             var character = builder
                 .WithRace(RaceDatabase.PlayerRaces.First(r => r.Name == RaceName.Human))
                 .Build();
@@ -48,7 +49,7 @@ namespace SR3Generator.Creation.Test
         [InlineData(5, 0, 20, 24, 2)]
         public void AwardKarma_ToNonHuman_ShouldHaveCorrectKarmaAmounts(int totalKarma, int spentKarma, int awardedKarma, int newRemainingKarma, int newKarmaPool)
         {
-            var builder = new CharacterBuilder(CreateSkillDatabase());
+            var builder = new CharacterBuilder(CreateSkillDatabase(), NullLogger<CharacterBuilder>.Instance);
             var character = builder
                 .WithRace(RaceDatabase.PlayerRaces.First(r => r.Name != RaceName.Human))
                 .Build();
