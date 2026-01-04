@@ -14,7 +14,7 @@
 
 [x] Add Foci
 
-[] Add Spells (validations?)
+[x] Add Spells (validations?)
 
 [] Add other magic stuff?
 

@@ -3,6 +3,7 @@ using SR3Generator.Creation.Validation;
 using SR3Generator.Data.Character;
 using SR3Generator.Data.Character.Creation;
 using SR3Generator.Data.Gear;
+using SR3Generator.Data.Magic;
 using System;
 using Attribute = SR3Generator.Data.Character.Attribute;
 using AttributeName = SR3Generator.Data.Character.Attribute.AttributeName;
@@ -21,6 +22,9 @@ namespace SR3Generator.Creation
         public int AttributePointsAllowance { get; set; }
         public int SkillPointsAllowance { get; set; }
         public int ResourcesAllowance { get; set; }
+        public int SpellPointsAllowance { get; set; }
+        public int SpellPointsSpent { get; set; }
+        public int SpellPointsRemaining => SpellPointsAllowance - SpellPointsSpent;
         public List<Race> RacesAllowed { get; set; }
         public List<MagicAspect> MagicAspectsAllowed { get; set; }
 
@@ -95,6 +99,31 @@ namespace SR3Generator.Creation
             else
             {
                 this.RemoveNaturalAugmentation("Dermal Armor");
+            }
+
+            return this;
+        }
+
+        public CharacterBuilder WithMagicAspect(MagicAspect magicAspect)
+        {
+            if (!MagicAspectsAllowed.Any(m => m.Name == magicAspect.Name))
+            {
+                _logger.LogWarning("WithMagicAspect: Magic aspect {AspectName} is not allowed with current priorities", magicAspect.Name);
+                return this;
+            }
+
+            Character.MagicAspect = magicAspect;
+            SpellPointsAllowance = magicAspect.StartingSpellPoints;
+            SpellPointsSpent = 0;
+
+            // Set Magic attribute to 6 for magical characters
+            if (magicAspect.Name != AspectName.Mundane)
+            {
+                Character.Attributes[AttributeName.Magic].BaseValue = 6;
+            }
+            else
+            {
+                Character.Attributes[AttributeName.Magic].BaseValue = 0;
             }
 
             return this;
@@ -250,6 +279,167 @@ namespace SR3Generator.Creation
             }
 
             focus.IsBound = false;
+
+            return this;
+        }
+
+        // Spell methods
+        private const int MaxStartingSpellForce = 6;
+        private const int SpellPointCostPerNuyen = 25000;
+
+        public CharacterBuilder AddSpell(Spell spell)
+        {
+            if (Character.MagicAspect == null || !Character.MagicAspect.HasSorcery)
+            {
+                _logger.LogWarning("AddSpell: Character does not have sorcery ability");
+                return this;
+            }
+            if (spell.Force > MaxStartingSpellForce)
+            {
+                _logger.LogWarning("AddSpell: Spell force {Force} exceeds maximum starting force of {MaxForce}", spell.Force, MaxStartingSpellForce);
+                return this;
+            }
+            if (spell.Force < 1)
+            {
+                _logger.LogWarning("AddSpell: Spell force must be at least 1");
+                return this;
+            }
+
+            var spellPointCost = spell.Force;
+            // Exclusive spells reduce cost by 2 (minimum 1)
+            if (spell.IsExclusive)
+            {
+                spellPointCost = Math.Max(1, spellPointCost - 2);
+            }
+
+            if (SpellPointsRemaining < spellPointCost)
+            {
+                _logger.LogWarning("AddSpell: Insufficient spell points. Need {Cost}, have {Remaining}", spellPointCost, SpellPointsRemaining);
+                return this;
+            }
+
+            Character.Spells.Add(spell.Name, spell);
+            SpellPointsSpent += spellPointCost;
+
+            return this;
+        }
+
+        public CharacterBuilder RemoveSpell(string spellName)
+        {
+            if (!Character.Spells.TryGetValue(spellName, out var spell))
+            {
+                _logger.LogWarning("RemoveSpell: Spell {SpellName} not found", spellName);
+                return this;
+            }
+
+            var spellPointCost = spell.Force;
+            if (spell.IsExclusive)
+            {
+                spellPointCost = Math.Max(1, spellPointCost - 2);
+            }
+
+            Character.Spells.Remove(spellName);
+            SpellPointsSpent -= spellPointCost;
+
+            return this;
+        }
+
+        public CharacterBuilder BuySpellPoints(int points)
+        {
+            if (Character.MagicAspect == null)
+            {
+                _logger.LogWarning("BuySpellPoints: Character has no magic aspect set");
+                return this;
+            }
+            if (points < 1)
+            {
+                _logger.LogWarning("BuySpellPoints: Must buy at least 1 spell point");
+                return this;
+            }
+
+            var newTotal = SpellPointsAllowance + points;
+            if (newTotal > Character.MagicAspect.MaximumSpellPoints)
+            {
+                _logger.LogWarning("BuySpellPoints: Cannot exceed maximum of {Max} spell points. Current: {Current}, Requested: {Requested}",
+                    Character.MagicAspect.MaximumSpellPoints, SpellPointsAllowance, points);
+                return this;
+            }
+
+            var cost = points * SpellPointCostPerNuyen;
+            if (Character.Nuyen < cost)
+            {
+                _logger.LogWarning("BuySpellPoints: Insufficient nuyen. Need {Cost}, have {Nuyen}", cost, Character.Nuyen);
+                return this;
+            }
+
+            RemoveNuyen(cost);
+            SpellPointsAllowance += points;
+
+            return this;
+        }
+
+        public CharacterBuilder LearnSpell(Spell spell)
+        {
+            // Post-creation spell learning costs karma equal to the spell's Force
+            if (Character.MagicAspect == null || !Character.MagicAspect.HasSorcery)
+            {
+                _logger.LogWarning("LearnSpell: Character does not have sorcery ability");
+                return this;
+            }
+            if (spell.Force < 1)
+            {
+                _logger.LogWarning("LearnSpell: Spell force must be at least 1");
+                return this;
+            }
+
+            var karmaCost = spell.Force;
+            if (Character.RemainingKarma < karmaCost)
+            {
+                _logger.LogWarning("LearnSpell: Insufficient karma. Need {Cost}, have {Remaining}", karmaCost, Character.RemainingKarma);
+                return this;
+            }
+
+            var karmaOp = new KarmaOperation
+            {
+                Type = KarmaOperationType.Spend,
+                KarmaChangeValue = karmaCost,
+                Description = $"Learn Spell: {spell.Name} (Force {spell.Force})"
+            };
+            Character.KarmaOperations.Add(karmaOp);
+            Character.SpentKarma += karmaCost;
+            Character.Spells.Add(spell.Name, spell);
+
+            return this;
+        }
+
+        public CharacterBuilder BindFocusWithSpellPoints(Guid focusId)
+        {
+            // At character creation, foci can be bound with spell points instead of karma
+            if (!Character.Gear.TryGetValue(focusId, out var item))
+            {
+                _logger.LogWarning("BindFocusWithSpellPoints: Equipment {FocusId} not found", focusId);
+                return this;
+            }
+            if (item is not Focus focus)
+            {
+                _logger.LogWarning("BindFocusWithSpellPoints: Equipment {FocusId} is not a Focus", focusId);
+                return this;
+            }
+            if (focus.IsBound)
+            {
+                _logger.LogWarning("BindFocusWithSpellPoints: Focus {FocusId} is already bound", focusId);
+                return this;
+            }
+
+            var spellPointCost = focus.BindingKarmaCost; // 1 spell point = 1 karma for bonding
+            if (SpellPointsRemaining < spellPointCost)
+            {
+                _logger.LogWarning("BindFocusWithSpellPoints: Insufficient spell points. Need {Cost}, have {Remaining}", spellPointCost, SpellPointsRemaining);
+                return this;
+            }
+
+            SpellPointsSpent += spellPointCost;
+            focus.IsBound = true;
 
             return this;
         }

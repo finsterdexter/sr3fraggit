@@ -18,6 +18,9 @@ namespace SR3Generator.Data.Magic
         public string Notes { get; set; }
         public string Book { get; set; }
         public int Page { get; set; }
+        public int Force { get; set; }
+        public bool IsExclusive { get; set; }
+        public bool IsFetishLimited { get; set; }
 
     }
 

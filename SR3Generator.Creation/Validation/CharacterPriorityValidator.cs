@@ -17,6 +17,7 @@ namespace SR3Generator.Creation.Validation
                 .ValidateAttributes(builder)
                 .ValidateRace(builder)
                 .ValidateMagicAspect(builder)
+                .ValidateSpells(builder)
                 ;
             return IssueCheck();
         }
@@ -88,6 +89,38 @@ namespace SR3Generator.Creation.Validation
             {
                 Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = "Magic aspect is not allowed by priority." });
             }
+            return this;
+        }
+
+        private CharacterPriorityValidator ValidateSpells(CharacterBuilder builder)
+        {
+            var character = builder.Character;
+
+            // Check if character has spells but no sorcery ability
+            if (character.Spells.Count > 0)
+            {
+                if (character.MagicAspect == null || !character.MagicAspect.HasSorcery)
+                {
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = "Character has spells but does not have sorcery ability." });
+                }
+            }
+
+            // Validate each spell
+            foreach (var (name, spell) in character.Spells)
+            {
+                // Force must be between 1 and 6 at character creation
+                if (spell.Force < 1 || spell.Force > 6)
+                {
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = $"Spell '{name}' has invalid force {spell.Force}. Must be between 1 and 6 at character creation." });
+                }
+            }
+
+            // Validate spell points spent doesn't exceed allowance
+            if (builder.SpellPointsSpent > builder.SpellPointsAllowance)
+            {
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = $"Spell points spent ({builder.SpellPointsSpent}) exceeds allowance ({builder.SpellPointsAllowance})." });
+            }
+
             return this;
         }
 
