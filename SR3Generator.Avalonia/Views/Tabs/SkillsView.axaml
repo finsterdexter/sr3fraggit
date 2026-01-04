@@ -1,0 +1,142 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.SkillsView"
+             x:DataType="vm:SkillsViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="16">
+            <TextBlock Text="Skills" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="Purchase active skills with your skill points. Knowledge skills use separate points based on Intelligence."
+                       TextWrapping="Wrap" Foreground="Gray"/>
+
+            <!-- Active Skills Section -->
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="16">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Active Skills" FontWeight="SemiBold" FontSize="16"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="{Binding ActivePointsSpent, StringFormat='Spent: {0}'}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ActivePointsAllowance, StringFormat='/ {0}'}" Foreground="Gray" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ActivePointsRemaining, StringFormat='Remaining: {0}'}" FontWeight="Bold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+                        <!-- Available Skills -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
+                            <TextBlock Text="Available Skills" Foreground="Gray"/>
+                            <TextBox Text="{Binding FilterText}" Watermark="Filter skills..." Margin="0,0,0,8"/>
+                        </StackPanel>
+                        <ListBox Grid.Row="1" Grid.Column="0"
+                                 ItemsSource="{Binding AvailableActiveSkills}"
+                                 SelectedItem="{Binding SelectedAvailableSkill}"
+                                 MinHeight="200" MaxHeight="300">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding Name}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding AttributeDisplay}"
+                                                   Foreground="Gray" FontSize="12" Margin="8,0,0,0"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <!-- Add/Remove Buttons -->
+                        <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Spacing="8" Margin="16,0">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Rating:" VerticalAlignment="Center"/>
+                                <NumericUpDown Value="{Binding NewSkillRating}" Minimum="1" Maximum="6" Width="60"/>
+                            </StackPanel>
+                            <Button Content="Add" Command="{Binding AddActiveSkillCommand}" HorizontalAlignment="Stretch"/>
+                            <Button Content="Remove" Command="{Binding RemoveActiveSkillCommand}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <!-- Purchased Skills -->
+                        <StackPanel Grid.Row="0" Grid.Column="2" Spacing="4">
+                            <TextBlock Text="Purchased Skills" Foreground="Gray"/>
+                        </StackPanel>
+                        <ListBox Grid.Row="1" Grid.Column="2"
+                                 ItemsSource="{Binding PurchasedActiveSkills}"
+                                 SelectedItem="{Binding SelectedPurchasedSkill}"
+                                 MinHeight="200" MaxHeight="300" Margin="0,30,0,0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*,Auto,Auto">
+                                        <TextBlock Text="{Binding Name}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Rating}" FontWeight="Bold" Margin="8,0"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding AttributeDisplay}"
+                                                   Foreground="Gray" FontSize="12"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Knowledge Skills Section -->
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="16">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Knowledge &amp; Language Skills" FontWeight="SemiBold" FontSize="16"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="{Binding KnowledgePointsSpent, StringFormat='Spent: {0}'}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding KnowledgePointsAllowance, StringFormat='/ {0}'}" Foreground="Gray" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding KnowledgePointsRemaining, StringFormat='Remaining: {0}'}" FontWeight="Bold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Knowledge skill points = Intelligence (total) x 5" Foreground="Gray" FontSize="12"/>
+
+                    <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+                        <!-- Available Knowledge Skills -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Available Skills" Foreground="Gray" Margin="0,0,0,4"/>
+                        <ListBox Grid.Row="1" Grid.Column="0"
+                                 ItemsSource="{Binding AvailableKnowledgeSkills}"
+                                 SelectedItem="{Binding SelectedAvailableKnowledgeSkill}"
+                                 MinHeight="150" MaxHeight="200">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+
+                        <!-- Add/Remove Buttons -->
+                        <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Spacing="8" Margin="16,0">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Rating:" VerticalAlignment="Center"/>
+                                <NumericUpDown Value="{Binding NewKnowledgeSkillRating}" Minimum="1" Maximum="6" Width="60"/>
+                            </StackPanel>
+                            <Button Content="Add" Command="{Binding AddKnowledgeSkillCommand}" HorizontalAlignment="Stretch"/>
+                            <Button Content="Remove" Command="{Binding RemoveKnowledgeSkillCommand}" HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <!-- Purchased Knowledge Skills -->
+                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Purchased Skills" Foreground="Gray" Margin="0,0,0,4"/>
+                        <ListBox Grid.Row="1" Grid.Column="2"
+                                 ItemsSource="{Binding PurchasedKnowledgeSkills}"
+                                 SelectedItem="{Binding SelectedPurchasedKnowledgeSkill}"
+                                 MinHeight="150" MaxHeight="200">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding Name}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Rating}" FontWeight="Bold" Margin="8,0"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:SR3Generator.Avalonia.ViewModels"
+        xmlns:views="using:SR3Generator.Avalonia.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
@@ -27,12 +28,6 @@
         </Menu>
 
         <!-- Main Content -->
-        <Grid Margin="16">
-            <TextBlock Text="SR3 Character Generator - Avalonia UI"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"/>
-        </Grid>
+        <views:CharacterShellView DataContext="{Binding CharacterShell}" Margin="8"/>
     </DockPanel>
 </Window>

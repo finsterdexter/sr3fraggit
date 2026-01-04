@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SR3Generator.Avalonia.Services;
 using SR3Generator.Avalonia.ViewModels;
+using SR3Generator.Avalonia.ViewModels.Tabs;
 using SR3Generator.Avalonia.Views;
 using SR3Generator.Database;
 using SR3Generator.Database.Connection;
@@ -63,7 +64,19 @@ public partial class App : Application
         // Character builder service
         services.AddSingleton<ICharacterBuilderService, CharacterBuilderService>();
 
-        // ViewModels
+        // Tab ViewModels
+        services.AddTransient<PrioritiesViewModel>();
+        services.AddTransient<RaceViewModel>();
+        services.AddTransient<MagicViewModel>();
+        services.AddTransient<AttributesViewModel>();
+        services.AddTransient<SkillsViewModel>();
+        services.AddTransient<SpellsViewModel>();
+        services.AddTransient<GearViewModel>();
+        services.AddTransient<ContactsViewModel>();
+        services.AddTransient<SummaryViewModel>();
+
+        // Shell and Main ViewModels
+        services.AddTransient<CharacterShellViewModel>();
         services.AddTransient<MainWindowViewModel>();
     }
 }

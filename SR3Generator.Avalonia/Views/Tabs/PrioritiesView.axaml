@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.PrioritiesView"
+             x:DataType="vm:PrioritiesViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="16">
+            <TextBlock Text="Priority Selection" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="Assign priorities A through E to each category. Each priority can only be used once. When you select a priority that's already in use, the categories will automatically swap."
+                       TextWrapping="Wrap" Foreground="Gray"/>
+
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="16" Margin="0,16,0,0">
+                <Grid ColumnDefinitions="150,120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                    <!-- Headers -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Category" FontWeight="Bold" Margin="0,0,0,12"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Priority" FontWeight="Bold" Margin="0,0,0,12"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Benefits" FontWeight="Bold" Margin="0,0,0,12"/>
+
+                    <!-- Race -->
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Race" VerticalAlignment="Center" Margin="0,8"/>
+                    <ComboBox Grid.Row="1" Grid.Column="1"
+                              ItemsSource="{Binding AvailableRanks}"
+                              SelectedItem="{Binding RacePriority}"
+                              Width="80" Margin="0,8"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding RaceBenefits}"
+                               VerticalAlignment="Center" TextWrapping="Wrap" Margin="8,8,0,8"/>
+
+                    <!-- Magic -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Magic" VerticalAlignment="Center" Margin="0,8"/>
+                    <ComboBox Grid.Row="2" Grid.Column="1"
+                              ItemsSource="{Binding AvailableRanks}"
+                              SelectedItem="{Binding MagicPriority}"
+                              Width="80" Margin="0,8"/>
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding MagicBenefits}"
+                               VerticalAlignment="Center" TextWrapping="Wrap" Margin="8,8,0,8"/>
+
+                    <!-- Attributes -->
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Attributes" VerticalAlignment="Center" Margin="0,8"/>
+                    <ComboBox Grid.Row="3" Grid.Column="1"
+                              ItemsSource="{Binding AvailableRanks}"
+                              SelectedItem="{Binding AttributesPriority}"
+                              Width="80" Margin="0,8"/>
+                    <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding AttributesBenefits}"
+                               VerticalAlignment="Center" Margin="8,8,0,8"/>
+
+                    <!-- Skills -->
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Skills" VerticalAlignment="Center" Margin="0,8"/>
+                    <ComboBox Grid.Row="4" Grid.Column="1"
+                              ItemsSource="{Binding AvailableRanks}"
+                              SelectedItem="{Binding SkillsPriority}"
+                              Width="80" Margin="0,8"/>
+                    <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding SkillsBenefits}"
+                               VerticalAlignment="Center" Margin="8,8,0,8"/>
+
+                    <!-- Resources -->
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Resources" VerticalAlignment="Center" Margin="0,8"/>
+                    <ComboBox Grid.Row="5" Grid.Column="1"
+                              ItemsSource="{Binding AvailableRanks}"
+                              SelectedItem="{Binding ResourcesPriority}"
+                              Width="80" Margin="0,8"/>
+                    <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding ResourcesBenefits}"
+                               VerticalAlignment="Center" Margin="8,8,0,8"/>
+                </Grid>
+            </Border>
+
+            <!-- Reference Table -->
+            <TextBlock Text="Priority Reference" FontSize="18" FontWeight="SemiBold" Margin="0,24,0,8"/>
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="16">
+                <Grid ColumnDefinitions="60,*,*,*,*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                    <!-- Headers -->
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Rank" FontWeight="Bold"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Race" FontWeight="Bold"/>
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="Magic" FontWeight="Bold"/>
+                    <TextBlock Grid.Row="0" Grid.Column="3" Text="Attributes" FontWeight="Bold"/>
+                    <TextBlock Grid.Row="0" Grid.Column="4" Text="Skills" FontWeight="Bold"/>
+                    <TextBlock Grid.Row="0" Grid.Column="5" Text="Resources" FontWeight="Bold"/>
+
+                    <!-- A -->
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="A" FontWeight="SemiBold" Margin="0,4"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="Any" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Full Magician" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="1" Grid.Column="3" Text="30 pts" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="1" Grid.Column="4" Text="50 pts" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="1" Grid.Column="5" Text="1,000,000¥" Margin="0,4" FontSize="12"/>
+
+                    <!-- B -->
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="B" FontWeight="SemiBold" Margin="0,4"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="Any" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Adept/Aspected" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="2" Grid.Column="3" Text="27 pts" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="2" Grid.Column="4" Text="40 pts" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="2" Grid.Column="5" Text="400,000¥" Margin="0,4" FontSize="12"/>
+
+                    <!-- C -->
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="C" FontWeight="SemiBold" Margin="0,4"/>
+                    <TextBlock Grid.Row="3" Grid.Column="1" Text="Any" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="3" Grid.Column="2" Text="Mundane" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="3" Grid.Column="3" Text="24 pts" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="3" Grid.Column="4" Text="34 pts" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="3" Grid.Column="5" Text="90,000¥" Margin="0,4" FontSize="12"/>
+
+                    <!-- D -->
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="D" FontWeight="SemiBold" Margin="0,4"/>
+                    <TextBlock Grid.Row="4" Grid.Column="1" Text="Dwarf/Ork/Human" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="4" Grid.Column="2" Text="Mundane" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="4" Grid.Column="3" Text="21 pts" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="4" Grid.Column="4" Text="30 pts" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="4" Grid.Column="5" Text="20,000¥" Margin="0,4" FontSize="12"/>
+
+                    <!-- E -->
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="E" FontWeight="SemiBold" Margin="0,4"/>
+                    <TextBlock Grid.Row="5" Grid.Column="1" Text="Human only" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="5" Grid.Column="2" Text="Mundane" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="5" Grid.Column="3" Text="18 pts" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="5" Grid.Column="4" Text="27 pts" Margin="0,4" FontSize="12"/>
+                    <TextBlock Grid.Row="5" Grid.Column="5" Text="5,000¥" Margin="0,4" FontSize="12"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

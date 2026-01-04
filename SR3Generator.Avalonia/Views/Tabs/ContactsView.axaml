@@ -1,0 +1,109 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.ContactsView"
+             x:DataType="vm:ContactsViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="16">
+            <TextBlock Text="Contacts" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="You get 2 free Level 1 contacts. Additional contacts can be purchased with nuyen."
+                       TextWrapping="Wrap" Foreground="Gray"/>
+
+            <!-- Free Contacts Section -->
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="16">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Free Contacts" FontWeight="SemiBold" FontSize="16"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding FreeContactsUsed, StringFormat='Used: {0} / 2'}"
+                                   Foreground="Gray"/>
+                    </Grid>
+
+                    <TextBlock Text="Level 1 contacts only. Enter a name for your contact (e.g., 'Fixer', 'Street Doc', 'Talismonger')."
+                               Foreground="Gray" FontSize="12" TextWrapping="Wrap"/>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Text="{Binding NewContactName}"
+                                 Watermark="Contact name..."
+                                 Margin="0,0,8,0"/>
+                        <Button Grid.Column="1"
+                                Content="Add Free Contact"
+                                Command="{Binding AddFreeContactCommand}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Purchase Contacts Section -->
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="16">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Purchase Additional Contacts" FontWeight="SemiBold" FontSize="16"/>
+
+                    <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Level 1" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Contact - 5,000¥" Foreground="Gray"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Level 2" VerticalAlignment="Center" Margin="0,4"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="Buddy - 10,000¥" Foreground="Gray" Margin="0,4"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Level 3" VerticalAlignment="Center" Margin="0,4"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="Friend for Life - 200,000¥" Foreground="Gray" Margin="0,4"/>
+                    </Grid>
+
+                    <Separator Margin="0,8"/>
+
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding NewContactName}"
+                                 Watermark="Contact name..."
+                                 Margin="0,0,8,0"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding AvailableLevels}"
+                                  SelectedItem="{Binding NewContactLevel}"
+                                  Width="150" Margin="0,0,8,0"/>
+                        <Button Grid.Column="2"
+                                Content="Buy Contact"
+                                Command="{Binding BuyContactCommand}"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Contact List -->
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="16">
+                <StackPanel Spacing="12">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Your Contacts" FontWeight="SemiBold" FontSize="16"/>
+                        <Button Grid.Column="1"
+                                Content="Remove"
+                                Command="{Binding RemoveContactCommand}"/>
+                    </Grid>
+
+                    <ListBox ItemsSource="{Binding Contacts}"
+                             SelectedItem="{Binding SelectedContact}"
+                             MinHeight="150">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding LevelDisplay}"
+                                               Foreground="Gray" Margin="16,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding CostDisplay}"
+                                               Foreground="Green"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <TextBlock Text="{Binding NuyenSpentOnContacts, StringFormat='Total spent on contacts: {0:N0}¥'}"
+                               Foreground="Gray" FontSize="12"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

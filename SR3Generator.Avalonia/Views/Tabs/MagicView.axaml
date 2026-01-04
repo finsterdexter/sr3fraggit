@@ -1,0 +1,88 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.MagicView"
+             x:DataType="vm:MagicViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="16">
+            <TextBlock Text="Magic Aspect" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="Choose your magical tradition, if any. Available options depend on your Magic priority."
+                       TextWrapping="Wrap" Foreground="Gray"/>
+
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="16" Margin="0,16,0,0">
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,*">
+                    <!-- Aspect Selection -->
+                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="8" Margin="0,0,16,0">
+                        <TextBlock Text="Available Aspects" FontWeight="SemiBold"/>
+                        <ListBox ItemsSource="{Binding AvailableAspects}"
+                                 SelectedItem="{Binding SelectedAspect}"
+                                 MinHeight="200">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" Margin="4"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+
+                    <!-- Aspect Details -->
+                    <Border Grid.Row="0" Grid.Column="1"
+                            Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
+                            CornerRadius="8" Padding="16">
+                        <StackPanel Spacing="12">
+                            <TextBlock Text="Aspect Details" FontWeight="SemiBold" FontSize="16"/>
+
+                            <TextBlock Text="{Binding AspectDescription}"
+                                       TextWrapping="Wrap"
+                                       Foreground="Gray"/>
+
+                            <Separator Margin="0,8"/>
+
+                            <!-- Capabilities -->
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Sorcery"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Text="{Binding HasSorcery}"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Conjuring"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1"
+                                           Text="{Binding HasConjuring}"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Adept Powers"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1"
+                                           Text="{Binding HasAdeptPowers}"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Starting Spell Points" Margin="0,8,0,0"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1"
+                                           Text="{Binding StartingSpellPoints}"
+                                           Margin="0,8,0,0" FontWeight="Bold"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Maximum Spell Points"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1"
+                                           Text="{Binding MaximumSpellPoints}"
+                                           FontWeight="Bold"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Non-magical info -->
+            <Border Background="#20FFAA00"
+                    CornerRadius="4"
+                    Padding="12"
+                    IsVisible="{Binding !IsMagical}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="ℹ" FontWeight="Bold" Foreground="Orange"/>
+                    <TextBlock Text="This character has no magical abilities. To gain magic, set your Magic priority to A or B."
+                               TextWrapping="Wrap" Foreground="Orange"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,124 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.SpellsView"
+             x:DataType="vm:SpellsViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="16">
+            <TextBlock Text="Spells" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="Purchase spells with spell points. Only available for magical characters with Sorcery."
+                       TextWrapping="Wrap" Foreground="Gray"/>
+
+            <!-- No Magic Warning -->
+            <Border Background="#20FF0000"
+                    CornerRadius="4"
+                    Padding="12"
+                    IsVisible="{Binding !HasSorcery}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="⚠" FontWeight="Bold" Foreground="Orange"/>
+                    <TextBlock Text="This character cannot cast spells. To gain Sorcery, select a magical aspect with spellcasting ability."
+                               TextWrapping="Wrap" Foreground="Orange"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Spell Points Summary -->
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="16"
+                    IsVisible="{Binding HasSorcery}">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                    <TextBlock Grid.Column="0" Text="Spell Points" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="{Binding SpellPointsSpent, StringFormat='Spent: {0}'}" Margin="16,0" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="{Binding SpellPointsAllowance, StringFormat='/ {0}'}" Foreground="Gray" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="3"
+                               Text="{Binding SpellPointsRemaining, StringFormat='Remaining: {0}'}"
+                               FontWeight="Bold"
+                               Margin="24,0,0,0" VerticalAlignment="Center"/>
+                    <Button Grid.Column="4"
+                            Content="Buy Point (25,000¥)"
+                            Command="{Binding BuySpellPointsCommand}"
+                            Margin="16,0,0,0"/>
+                </Grid>
+            </Border>
+
+            <!-- Spell Browser and Selection -->
+            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="16"
+                    IsVisible="{Binding HasSorcery}">
+                <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
+                    <!-- Available Spells -->
+                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="8">
+                        <TextBlock Text="Available Spells" FontWeight="SemiBold"/>
+                        <ComboBox ItemsSource="{Binding AvailableCategories}"
+                                  SelectedItem="{Binding SelectedCategory}"
+                                  Width="150"/>
+                    </StackPanel>
+
+                    <TreeView Grid.Row="1" Grid.Column="0"
+                              ItemsSource="{Binding SpellCategories}"
+                              MinHeight="300" MaxHeight="400" Margin="0,8,0,0">
+                        <TreeView.ItemTemplate>
+                            <TreeDataTemplate ItemsSource="{Binding Spells}">
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                            </TreeDataTemplate>
+                        </TreeView.ItemTemplate>
+                        <TreeView.Styles>
+                            <Style Selector="TreeViewItem">
+                                <Setter Property="IsExpanded" Value="True"/>
+                            </Style>
+                        </TreeView.Styles>
+                    </TreeView>
+
+                    <!-- Add Controls -->
+                    <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Spacing="12" Margin="16,0">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Force" Foreground="Gray"/>
+                            <NumericUpDown Value="{Binding NewSpellForce}" Minimum="1" Maximum="6" Width="80"/>
+                        </StackPanel>
+                        <CheckBox Content="Exclusive (-2 cost)" IsChecked="{Binding NewSpellExclusive}"/>
+                        <Button Content="Add" HorizontalAlignment="Stretch"/>
+                        <Button Content="Remove" Command="{Binding RemoveSpellCommand}" HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <!-- Purchased Spells -->
+                    <StackPanel Grid.Row="0" Grid.Column="2">
+                        <TextBlock Text="Purchased Spells" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <ListBox Grid.Row="1" Grid.Column="2"
+                             ItemsSource="{Binding PurchasedSpells}"
+                             SelectedItem="{Binding SelectedPurchasedSpell}"
+                             MinHeight="300" MaxHeight="400" Margin="0,8,0,0">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
+                                    <TextBlock Text="{Binding Name}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding TypeDisplay}"
+                                               Foreground="Gray" Margin="8,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Force, StringFormat='F{0}'}"
+                                               FontWeight="Bold" Margin="8,0"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding CostDisplay}"
+                                               Foreground="Gray" FontSize="12"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <!-- Spell Cost Reference -->
+            <Border Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
+                    CornerRadius="8" Padding="12"
+                    IsVisible="{Binding HasSorcery}">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Spell Cost Reference" FontWeight="SemiBold"/>
+                    <TextBlock Text="• Base cost equals Force (1-6 points)" Foreground="Gray" FontSize="12"/>
+                    <TextBlock Text="• Exclusive spells cost 2 less (minimum 1 point)" Foreground="Gray" FontSize="12"/>
+                    <TextBlock Text="• Additional spell points can be purchased for 25,000¥ each" Foreground="Gray" FontSize="12"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

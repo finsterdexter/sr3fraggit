@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels"
+             xmlns:tabs="using:SR3Generator.Avalonia.Views.Tabs"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+             x:Class="SR3Generator.Avalonia.Views.CharacterShellView"
+             x:DataType="vm:CharacterShellViewModel">
+
+    <Grid ColumnDefinitions="*, 280">
+        <!-- Main Tab Content -->
+        <TabControl Grid.Column="0"
+                    SelectedIndex="{Binding SelectedTabIndex}"
+                    Margin="0,0,8,0">
+            <TabItem Header="1. Priorities">
+                <tabs:PrioritiesView DataContext="{Binding PrioritiesVM}"/>
+            </TabItem>
+
+            <TabItem Header="2. Race">
+                <tabs:RaceView DataContext="{Binding RaceVM}"/>
+            </TabItem>
+
+            <TabItem Header="3. Magic">
+                <tabs:MagicView DataContext="{Binding MagicVM}"/>
+            </TabItem>
+
+            <TabItem Header="4. Attributes">
+                <tabs:AttributesView DataContext="{Binding AttributesVM}"/>
+            </TabItem>
+
+            <TabItem Header="5. Skills">
+                <tabs:SkillsView DataContext="{Binding SkillsVM}"/>
+            </TabItem>
+
+            <TabItem Header="6. Spells">
+                <tabs:SpellsView DataContext="{Binding SpellsVM}"/>
+            </TabItem>
+
+            <TabItem Header="7. Gear">
+                <tabs:GearView DataContext="{Binding GearVM}"/>
+            </TabItem>
+
+            <TabItem Header="8. Contacts">
+                <tabs:ContactsView DataContext="{Binding ContactsVM}"/>
+            </TabItem>
+
+            <TabItem Header="Summary">
+                <tabs:SummaryView DataContext="{Binding SummaryVM}"/>
+            </TabItem>
+        </TabControl>
+
+        <!-- Right Sidebar - Points Summary -->
+        <Border Grid.Column="1"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                CornerRadius="8"
+                Padding="16">
+            <ScrollViewer>
+                <StackPanel Spacing="20">
+                    <TextBlock Text="Character Summary"
+                               FontSize="18"
+                               FontWeight="Bold"/>
+
+                    <!-- Race -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Race" FontWeight="SemiBold" Foreground="Gray"/>
+                        <TextBlock Text="{Binding SelectedRace}" FontSize="16"/>
+                    </StackPanel>
+
+                    <!-- Magic Aspect -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Magic Aspect" FontWeight="SemiBold" Foreground="Gray"/>
+                        <TextBlock Text="{Binding SelectedMagicAspect}" FontSize="16"/>
+                    </StackPanel>
+
+                    <Separator/>
+
+                    <!-- Attribute Points -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Attribute Points" FontWeight="SemiBold" Foreground="Gray"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{Binding AttributePointsRemaining, StringFormat='Remaining: {0}'}"
+                                       FontSize="16" FontWeight="Bold"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding AttributePointsAllowance, StringFormat='/ {0}'}"
+                                       Foreground="Gray"/>
+                        </Grid>
+                        <ProgressBar Minimum="0"
+                                     Maximum="{Binding AttributePointsAllowance}"
+                                     Value="{Binding AttributePointsSpent}"
+                                     Height="8"
+                                     CornerRadius="4"/>
+                    </StackPanel>
+
+                    <!-- Skill Points -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Skill Points" FontWeight="SemiBold" Foreground="Gray"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{Binding SkillPointsRemaining, StringFormat='Remaining: {0}'}"
+                                       FontSize="16" FontWeight="Bold"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding SkillPointsAllowance, StringFormat='/ {0}'}"
+                                       Foreground="Gray"/>
+                        </Grid>
+                        <ProgressBar Minimum="0"
+                                     Maximum="{Binding SkillPointsAllowance}"
+                                     Value="{Binding SkillPointsSpent}"
+                                     Height="8"
+                                     CornerRadius="4"/>
+                    </StackPanel>
+
+                    <!-- Spell Points (conditional) -->
+                    <StackPanel Spacing="4" IsVisible="{Binding HasMagic}">
+                        <TextBlock Text="Spell Points" FontWeight="SemiBold" Foreground="Gray"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{Binding SpellPointsRemaining, StringFormat='Remaining: {0}'}"
+                                       FontSize="16" FontWeight="Bold"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding SpellPointsAllowance, StringFormat='/ {0}'}"
+                                       Foreground="Gray"/>
+                        </Grid>
+                        <ProgressBar Minimum="0"
+                                     Maximum="{Binding SpellPointsAllowance}"
+                                     Value="{Binding SpellPointsSpent}"
+                                     Height="8"
+                                     CornerRadius="4"/>
+                    </StackPanel>
+
+                    <!-- Nuyen -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Resources (Nuyen)" FontWeight="SemiBold" Foreground="Gray"/>
+                        <TextBlock Text="{Binding NuyenRemaining, StringFormat=\{0:N0\}¥}"
+                                   FontSize="16" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding NuyenAllowance, StringFormat=Starting: \{0:N0\}¥}"
+                                   Foreground="Gray" FontSize="12"/>
+                    </StackPanel>
+
+                    <Separator/>
+
+                    <!-- Validation / Status -->
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Status" FontWeight="SemiBold" Foreground="Gray"/>
+                        <Border Background="#2000FF00"
+                                CornerRadius="4"
+                                Padding="8">
+                            <TextBlock Text="Ready to build character"
+                                       Foreground="Green"
+                                       TextWrapping="Wrap"/>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>
