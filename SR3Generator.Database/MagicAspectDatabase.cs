@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SR3Generator.Database
 {
-    internal static class MagicAspectDatabase
+    public static class MagicAspectDatabase
     {
         public static List<MagicAspect> PlayerMagicAspects { get; set; }
 

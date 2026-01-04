@@ -1,4 +1,5 @@
-﻿using SR3Generator.Data.Character;
+using Microsoft.Extensions.Options;
+using SR3Generator.Data.Character;
 using SR3Generator.Database.Connection;
 using SR3Generator.Database.Queries;
 using System;
@@ -11,26 +12,41 @@ namespace SR3Generator.Database
 {
     public class SkillDatabase
     {
-        private readonly ReadSkillsQueryHandler _readSkillsQueryHandler;
-
         public Dictionary<string, Skill> ActiveSkills { get; set; } = new Dictionary<string, Skill>();
         public Dictionary<string, Skill> KnowledgeSkills { get; set; } = new Dictionary<string, Skill>();
 
+        /// <summary>
+        /// Public constructor for external consumers (DI registration).
+        /// </summary>
+        public SkillDatabase(IOptions<DatabaseOptions> options)
+            : this(new DbConnectionFactory(options), new ReadSkillsQueryHandler())
+        {
+        }
+
+        /// <summary>
+        /// Internal constructor for testing with mocked dependencies.
+        /// </summary>
         internal SkillDatabase(DbConnectionFactory dbConnectionFactory,
             ReadSkillsQueryHandler readSkillsQueryHandler)
         {
-            _readSkillsQueryHandler = readSkillsQueryHandler;
-
-            // TODO: preload skill data from json
-
-            // validate data: all specializations must have a base skill name
-
-            // connect to sqlite db
-            // read skills and specs from db
-            // load results into ActiveSkills and KnowledgeSkills
-
             var conn = dbConnectionFactory.CreateConnection();
-            var (skills, specs) = _readSkillsQueryHandler.HandleAsync(new ReadSkillsQuery(), conn, null).Result;
+            var (skills, specs) = readSkillsQueryHandler.HandleAsync(new ReadSkillsQuery(), conn, null).Result;
+
+            foreach (var skill in skills)
+            {
+                if (skill.Type == SkillType.Active)
+                    ActiveSkills[skill.Name] = skill;
+                else
+                    KnowledgeSkills[skill.Name] = skill;
+            }
+
+            foreach (var spec in specs)
+            {
+                if (spec.Type == SkillType.Active)
+                    ActiveSkills[spec.Name] = spec;
+                else
+                    KnowledgeSkills[spec.Name] = spec;
+            }
         }
     }
 }
