@@ -55,11 +55,12 @@ public partial class App : Application
         {
             options.DatabasePath = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
-                "data", "data_6cee37608.db");
+                "data", "data_6d7b26801.db");
         });
 
         // Database services - uses the public constructor
         services.AddSingleton<SkillDatabase>();
+        services.AddSingleton<GearDatabase>();
 
         // Character builder service
         services.AddSingleton<ICharacterBuilderService, CharacterBuilderService>();

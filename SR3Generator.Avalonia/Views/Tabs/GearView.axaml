@@ -7,103 +7,185 @@
              x:Class="SR3Generator.Avalonia.Views.Tabs.GearView"
              x:DataType="vm:GearViewModel">
 
-    <ScrollViewer>
-        <StackPanel Margin="16" Spacing="16">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,16">
             <TextBlock Text="Gear &amp; Equipment" FontSize="24" FontWeight="Bold"/>
             <TextBlock Text="Purchase weapons, armor, cyberware, and other equipment with your starting nuyen."
                        TextWrapping="Wrap" Foreground="Gray"/>
+        </StackPanel>
 
-            <!-- Nuyen Summary -->
-            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                    CornerRadius="8" Padding="16">
-                <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Nuyen" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <CheckBox Content="Use Street Index (1.5x cost)" IsChecked="{Binding UseStreetIndex}"/>
+        <!-- Nuyen Summary -->
+        <Border Grid.Row="1" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                CornerRadius="8" Padding="16" Margin="0,0,0,16">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Nuyen" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <CheckBox Content="Use Street Index (1.5x cost)" IsChecked="{Binding UseStreetIndex}"/>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding NuyenSpent, StringFormat='Spent: {0:N0}¥'}" Margin="16,0" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="2" Text="{Binding NuyenAllowance, StringFormat='/ {0:N0}¥'}" Foreground="Gray" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="3"
+                           Text="{Binding NuyenRemaining, StringFormat='Remaining: {0:N0}¥'}"
+                           FontWeight="Bold"
+                           Margin="24,0,0,0" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content: Facets + Gear List + Owned -->
+        <Grid Grid.Row="2" ColumnDefinitions="200,*,Auto,280">
+            <!-- Faceted Navigation Panel -->
+            <Border Grid.Column="0" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="12" Margin="0,0,8,0">
+                <DockPanel>
+                    <!-- Breadcrumb and controls -->
+                    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+                        <TextBlock Text="Browse Categories" FontWeight="SemiBold"/>
+
+                        <!-- Breadcrumb -->
+                        <Border Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
+                                CornerRadius="4" Padding="8,4">
+                            <TextBlock Text="{Binding Breadcrumb}" TextWrapping="Wrap" FontSize="12"/>
+                        </Border>
+
+                        <!-- Navigation buttons -->
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button Content="Up" Command="{Binding NavigateUpCommand}"
+                                    Padding="8,4" FontSize="12"/>
+                            <Button Content="Clear All" Command="{Binding ClearFiltersCommand}"
+                                    Padding="8,4" FontSize="12"/>
+                        </StackPanel>
+
+                        <!-- Text filter -->
+                        <TextBox Text="{Binding FilterText}" Watermark="Search by name..."
+                                 Margin="0,4,0,0"/>
+
+                        <TextBlock Text="{Binding FilteredCount, StringFormat='{}{0} items'}"
+                                   Foreground="Gray" FontSize="12"/>
                     </StackPanel>
-                    <TextBlock Grid.Column="1" Text="{Binding NuyenSpent, StringFormat='Spent: {0:N0}¥'}" Margin="16,0" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="2" Text="{Binding NuyenAllowance, StringFormat='/ {0:N0}¥'}" Foreground="Gray" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="3"
-                               Text="{Binding NuyenRemaining, StringFormat='Remaining: {0:N0}¥'}"
-                               FontWeight="Bold"
-                               Margin="24,0,0,0" VerticalAlignment="Center"/>
-                </Grid>
+
+                    <!-- Category Facets -->
+                    <ScrollViewer>
+                        <ItemsControl ItemsSource="{Binding CategoryFacets}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:FacetValue">
+                                    <Button Padding="6,4" Margin="0,2"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Left"
+                                            Command="{Binding $parent[UserControl].((vm:GearViewModel)DataContext).SelectCategoryCommand}"
+                                            CommandParameter="{Binding}">
+                                        <Button.Styles>
+                                            <Style Selector="Button">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                            </Style>
+                                            <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                                <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
+                                            </Style>
+                                        </Button.Styles>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat='({0})'}"
+                                                       Foreground="Gray" FontSize="11" Margin="4,0,0,0"/>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
             </Border>
 
-            <!-- Gear Browser and Inventory -->
-            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                    CornerRadius="8" Padding="16">
-                <Grid ColumnDefinitions="*,Auto,*" RowDefinitions="Auto,*">
-                    <!-- Available Gear -->
-                    <StackPanel Grid.Row="0" Grid.Column="0" Spacing="4">
-                        <TextBlock Text="Available Gear" FontWeight="SemiBold"/>
-                        <TextBox Text="{Binding FilterText}" Watermark="Filter gear..." Margin="0,0,0,8"/>
-                    </StackPanel>
-
-                    <TreeView Grid.Row="1" Grid.Column="0"
-                              ItemsSource="{Binding GearCategories}"
-                              SelectedItem="{Binding SelectedGearItem}"
-                              MinHeight="350" MaxHeight="450">
-                        <TreeView.ItemTemplate>
-                            <TreeDataTemplate ItemsSource="{Binding Items}">
-                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                            </TreeDataTemplate>
-                        </TreeView.ItemTemplate>
-                        <TreeView.Styles>
-                            <Style Selector="TreeViewItem">
-                                <Setter Property="IsExpanded" Value="False"/>
-                            </Style>
-                        </TreeView.Styles>
-                    </TreeView>
-
-                    <!-- Buy/Sell Controls -->
-                    <StackPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Spacing="12" Margin="16,0">
-                        <Button Content="Buy" Command="{Binding BuyGearCommand}" HorizontalAlignment="Stretch"/>
-                        <Button Content="Sell" Command="{Binding SellGearCommand}" HorizontalAlignment="Stretch"/>
-                    </StackPanel>
-
-                    <!-- Owned Gear -->
-                    <StackPanel Grid.Row="0" Grid.Column="2">
-                        <TextBlock Text="Owned Gear" FontWeight="SemiBold"/>
-                    </StackPanel>
-                    <ListBox Grid.Row="1" Grid.Column="2"
-                             ItemsSource="{Binding OwnedGear}"
-                             SelectedItem="{Binding SelectedOwnedGear}"
-                             MinHeight="350" MaxHeight="450" Margin="0,30,0,0">
+            <!-- Gear List -->
+            <Border Grid.Column="1" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Available Gear" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <ListBox ItemsSource="{Binding FilteredGear}"
+                             SelectedItem="{Binding SelectedGearItem}"
+                             SelectionMode="Single">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Grid ColumnDefinitions="*,Auto,Auto">
-                                    <TextBlock Text="{Binding Name}"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Category}"
-                                               Foreground="Gray" FontSize="12" Margin="8,0"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding CostDisplay}"
-                                               Foreground="Gray"/>
+                                <Grid ColumnDefinitions="*,80,80,70">
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding PrimaryStat}" Foreground="Orange" Margin="8,0"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding CostDisplay}" Margin="8,0"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding Availability}" Foreground="Gray"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                </Grid>
+                </DockPanel>
             </Border>
 
-            <!-- Selected Item Details -->
-            <Border Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
-                    CornerRadius="8" Padding="12"
-                    IsVisible="{Binding SelectedGearItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <!-- Buy/Sell Controls -->
+            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="12" Margin="12,0">
+                <Button Content="Buy" Command="{Binding BuyGearCommand}" Width="60"/>
+                <Button Content="Sell" Command="{Binding SellGearCommand}" Width="60"/>
+            </StackPanel>
+
+            <!-- Owned Gear -->
+            <Border Grid.Column="3" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Owned Gear" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <ListBox ItemsSource="{Binding OwnedGear}"
+                             SelectedItem="{Binding SelectedOwnedGear}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding CostDisplay}"
+                                               Foreground="Gray" Margin="8,0,0,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- Selected Item Details -->
+        <Border Grid.Row="3" Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
+                CornerRadius="8" Padding="12" Margin="0,16,0,0"
+                IsVisible="{Binding SelectedGearItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Grid RowDefinitions="Auto,Auto">
+                <!-- Header row -->
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                    <TextBlock Grid.Column="0"
-                               Text="{Binding SelectedGearItem.Name}"
-                               FontWeight="SemiBold"/>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="{Binding SelectedGearItem.Name}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding SelectedGearItem.CategoryDisplay}" Foreground="Gray" FontSize="12"/>
+                    </StackPanel>
                     <TextBlock Grid.Column="1"
                                Text="{Binding SelectedGearItem.CostDisplay}"
+                               VerticalAlignment="Center"
                                Margin="16,0"/>
                     <TextBlock Grid.Column="2"
                                Text="{Binding SelectedGearItem.Availability, StringFormat='Avail: {0}'}"
-                               Foreground="Gray" Margin="16,0"/>
+                               Foreground="Gray" VerticalAlignment="Center" Margin="16,0"/>
                     <TextBlock Grid.Column="3"
-                               Text="{Binding SelectedGearItem.EssenceDisplay, StringFormat='Essence: {0}'}"
-                               Foreground="Gray"/>
+                               Text="{Binding SelectedGearItem.Concealability, StringFormat='Conceal: {0}'}"
+                               Foreground="Gray" VerticalAlignment="Center"/>
                 </Grid>
-            </Border>
-        </StackPanel>
-    </ScrollViewer>
+                <!-- Stats row -->
+                <ItemsControl Grid.Row="1" ItemsSource="{Binding SelectedGearItem.Stats}" Margin="0,8,0,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:StatDisplay">
+                            <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                                    CornerRadius="4" Padding="8,4" Margin="0,0,8,4">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="{Binding Label}" FontWeight="SemiBold" FontSize="12"/>
+                                    <TextBlock Text="{Binding Value}" Foreground="Orange" FontSize="12"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>

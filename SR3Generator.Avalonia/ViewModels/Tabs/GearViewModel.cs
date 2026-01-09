@@ -2,7 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SR3Generator.Avalonia.Services;
 using SR3Generator.Data.Gear;
+using SR3Generator.Database;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -11,12 +13,18 @@ namespace SR3Generator.Avalonia.ViewModels.Tabs;
 public partial class GearViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
+    private readonly GearDatabase _gearDatabase;
+    private List<GearItem> _allGearItems = new();
+    private List<string> _selectedCategoryPath = new();
 
     [ObservableProperty]
-    private ObservableCollection<GearCategoryItem> _gearCategories = new();
+    private ObservableCollection<GearItem> _filteredGear = new();
 
     [ObservableProperty]
     private ObservableCollection<OwnedGearItem> _ownedGear = new();
+
+    [ObservableProperty]
+    private ObservableCollection<FacetValue> _categoryFacets = new();
 
     [ObservableProperty]
     private GearItem? _selectedGearItem;
@@ -39,11 +47,20 @@ public partial class GearViewModel : ViewModelBase
     [ObservableProperty]
     private string _filterText = string.Empty;
 
-    public GearViewModel(ICharacterBuilderService characterService)
+    [ObservableProperty]
+    private string _breadcrumb = "All Gear";
+
+    [ObservableProperty]
+    private int _filteredCount;
+
+    public GearViewModel(ICharacterBuilderService characterService, GearDatabase gearDatabase)
     {
         _characterService = characterService;
+        _gearDatabase = gearDatabase;
         _characterService.CharacterChanged += OnCharacterChanged;
-        LoadGearCategories();
+        LoadAllGear();
+        BuildFacets();
+        ApplyFilters();
         RefreshFromBuilder();
     }
 
@@ -52,69 +69,96 @@ public partial class GearViewModel : ViewModelBase
         RefreshFromBuilder();
     }
 
-    private void LoadGearCategories()
+    private void LoadAllGear()
     {
-        // Sample gear data - in a real app this would come from database
-        GearCategories.Add(new GearCategoryItem("Weapons", new[]
-        {
-            new GearItem("Ares Predator II", 450, "4/24 hrs", new[] { "Weapons", "Pistols" }),
-            new GearItem("Colt Manhunter", 400, "3/24 hrs", new[] { "Weapons", "Pistols" }),
-            new GearItem("Browning Max-Power", 350, "2/24 hrs", new[] { "Weapons", "Pistols" }),
-            new GearItem("Remington Roomsweeper", 300, "3/24 hrs", new[] { "Weapons", "Shotguns" }),
-            new GearItem("AK-97", 400, "4/48 hrs", new[] { "Weapons", "Rifles" }),
-            new GearItem("FN HAR", 1200, "8/14 days", new[] { "Weapons", "Rifles" }),
-            new GearItem("Katana", 1000, "Always", new[] { "Weapons", "Melee" }),
-            new GearItem("Combat Knife", 50, "Always", new[] { "Weapons", "Melee" }),
-        }));
+        _allGearItems = _gearDatabase.AllGear.Select(e => new GearItem(e)).ToList();
+    }
 
-        GearCategories.Add(new GearCategoryItem("Armor", new[]
-        {
-            new GearItem("Armor Jacket", 900, "4/48 hrs", new[] { "Armor", "Jackets" }),
-            new GearItem("Armor Vest", 600, "4/24 hrs", new[] { "Armor", "Vests" }),
-            new GearItem("Lined Coat", 700, "4/24 hrs", new[] { "Armor", "Coats" }),
-            new GearItem("Secure Clothing", 450, "5/36 hrs", new[] { "Armor", "Clothing" }),
-            new GearItem("Form-Fitting Body Armor", 1200, "8/14 days", new[] { "Armor", "Body Armor" }),
-        }));
+    private void BuildFacets()
+    {
+        CategoryFacets.Clear();
 
-        GearCategories.Add(new GearCategoryItem("Electronics", new[]
-        {
-            new GearItem("Pocket Secretary", 1000, "Always", new[] { "Electronics", "Computers" }),
-            new GearItem("Cyberdeck (Rating 3)", 30000, "6/7 days", new[] { "Electronics", "Cyberdecks" }),
-            new GearItem("Commlink (Rating 3)", 2000, "4/24 hrs", new[] { "Electronics", "Communication" }),
-            new GearItem("Headware Radio", 500, "Always", new[] { "Electronics", "Communication" }),
-            new GearItem("Bug Scanner (Rating 4)", 400, "4/24 hrs", new[] { "Electronics", "Security" }),
-        }));
+        // Build facets for the current level based on selected path
+        var relevantItems = _allGearItems.Where(g => MatchesCategoryPath(g, _selectedCategoryPath)).ToList();
 
-        GearCategories.Add(new GearCategoryItem("Cyberware", new[]
-        {
-            new GearItem("Datajack", 1000, "Always", new[] { "Cyberware", "Headware" }, 0.2m),
-            new GearItem("Smartlink", 3500, "4/24 hrs", new[] { "Cyberware", "Headware" }, 0.5m),
-            new GearItem("Wired Reflexes 1", 55000, "6/14 days", new[] { "Cyberware", "Bodyware" }, 2.0m),
-            new GearItem("Wired Reflexes 2", 165000, "8/30 days", new[] { "Cyberware", "Bodyware" }, 3.0m),
-            new GearItem("Boosted Reflexes 1", 15000, "4/7 days", new[] { "Cyberware", "Bodyware" }, 0.5m),
-            new GearItem("Dermal Plating 1", 6000, "4/48 hrs", new[] { "Cyberware", "Bodyware" }, 0.5m),
-            new GearItem("Cyberarm (Obvious)", 20000, "4/36 hrs", new[] { "Cyberware", "Cyberlimbs" }, 1.0m),
-            new GearItem("Cyber Eyes (Rating 2)", 5000, "4/24 hrs", new[] { "Cyberware", "Headware" }, 0.2m),
-        }));
+        // Group by the next level in the category tree
+        var nextLevel = _selectedCategoryPath.Count;
+        var groups = relevantItems
+            .Where(g => g.CategoryPath.Length > nextLevel)
+            .GroupBy(g => g.CategoryPath[nextLevel])
+            .OrderBy(g => g.Key)
+            .ToList();
 
-        GearCategories.Add(new GearCategoryItem("Vehicles", new[]
+        foreach (var group in groups)
         {
-            new GearItem("Harley Scorpion", 9500, "Always", new[] { "Vehicles", "Bikes" }),
-            new GearItem("Yamaha Rapier", 8000, "Always", new[] { "Vehicles", "Bikes" }),
-            new GearItem("Ford Americar", 16000, "Always", new[] { "Vehicles", "Cars" }),
-            new GearItem("Eurocar Westwind 2000", 100000, "Always", new[] { "Vehicles", "Cars" }),
-            new GearItem("GMC Bulldog", 35000, "4/7 days", new[] { "Vehicles", "Trucks" }),
-        }));
+            CategoryFacets.Add(new FacetValue(group.Key, group.Count(), nextLevel));
+        }
+    }
 
-        GearCategories.Add(new GearCategoryItem("Miscellaneous", new[]
+    private bool MatchesCategoryPath(GearItem item, List<string> path)
+    {
+        if (path.Count == 0) return true;
+        if (item.CategoryPath.Length < path.Count) return false;
+
+        for (int i = 0; i < path.Count; i++)
         {
-            new GearItem("Medkit (Rating 3)", 300, "Always", new[] { "Misc", "Medical" }),
-            new GearItem("Doc Wagon Contract (Basic)", 5000, "Always", new[] { "Misc", "Services" }),
-            new GearItem("Lifestyle (Low, 1 month)", 1000, "Always", new[] { "Misc", "Lifestyle" }),
-            new GearItem("Lifestyle (Medium, 1 month)", 5000, "Always", new[] { "Misc", "Lifestyle" }),
-            new GearItem("Lifestyle (High, 1 month)", 10000, "Always", new[] { "Misc", "Lifestyle" }),
-            new GearItem("Fake SIN (Rating 3)", 6000, "6/14 days", new[] { "Misc", "Identity" }),
-        }));
+            if (!item.CategoryPath[i].Equals(path[i], StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+        return true;
+    }
+
+    private bool MatchesTextFilter(GearItem item)
+    {
+        if (string.IsNullOrWhiteSpace(FilterText)) return true;
+        return item.Name.Contains(FilterText, StringComparison.OrdinalIgnoreCase);
+    }
+
+    partial void OnFilterTextChanged(string value)
+    {
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        var filtered = _allGearItems
+            .Where(g => MatchesCategoryPath(g, _selectedCategoryPath))
+            .Where(g => MatchesTextFilter(g))
+            .OrderBy(g => g.Name)
+            .ToList();
+
+        FilteredGear = new ObservableCollection<GearItem>(filtered);
+
+        FilteredCount = filtered.Count;
+        Breadcrumb = _selectedCategoryPath.Count == 0 ? "All Gear" : string.Join(" > ", _selectedCategoryPath);
+    }
+
+    [RelayCommand]
+    private void ClearFilters()
+    {
+        FilterText = string.Empty;
+        _selectedCategoryPath.Clear();
+        BuildFacets();
+        ApplyFilters();
+    }
+
+    [RelayCommand]
+    private void NavigateUp()
+    {
+        if (_selectedCategoryPath.Count > 0)
+        {
+            _selectedCategoryPath.RemoveAt(_selectedCategoryPath.Count - 1);
+            BuildFacets();
+            ApplyFilters();
+        }
+    }
+
+    [RelayCommand]
+    private void SelectCategory(FacetValue facetValue)
+    {
+        _selectedCategoryPath.Add(facetValue.Name);
+        BuildFacets();
+        ApplyFilters();
     }
 
     private void RefreshFromBuilder()
@@ -143,20 +187,7 @@ public partial class GearViewModel : ViewModelBase
     {
         if (SelectedGearItem == null) return;
 
-        var equipment = new Equipment
-        {
-            Name = SelectedGearItem.Name,
-            Cost = SelectedGearItem.Cost,
-            CategoryTree = SelectedGearItem.CategoryPath.ToList(),
-            StreetIndex = UseStreetIndex ? 1.5m : 1.0m,
-            Availability = new Availability { TargetNumber = 0, Interval = "" },
-            Book = "SR3",
-            Page = 0,
-            Legality = "",
-            Notes = ""
-        };
-
-        _characterService.BuyGear(equipment, UseStreetIndex);
+        _characterService.BuyGear(SelectedGearItem.Equipment, UseStreetIndex);
     }
 
     [RelayCommand]
@@ -174,15 +205,17 @@ public partial class GearViewModel : ViewModelBase
     }
 }
 
-public class GearCategoryItem
+public class FacetValue
 {
     public string Name { get; }
-    public ObservableCollection<GearItem> Items { get; }
+    public int Count { get; }
+    public int Level { get; }
 
-    public GearCategoryItem(string name, GearItem[] items)
+    public FacetValue(string name, int count, int level)
     {
         Name = name;
-        Items = new ObservableCollection<GearItem>(items);
+        Count = count;
+        Level = level;
     }
 }
 
@@ -193,16 +226,79 @@ public class GearItem
     public string CostDisplay => $"{Cost:N0}¥";
     public string Availability { get; }
     public string[] CategoryPath { get; }
-    public decimal EssenceCost { get; }
-    public string EssenceDisplay => EssenceCost > 0 ? EssenceCost.ToString("0.0") : "-";
+    public string CategoryDisplay { get; }
+    public string Concealability { get; }
+    public Equipment Equipment { get; }
 
-    public GearItem(string name, int cost, string availability, string[] categoryPath, decimal essenceCost = 0)
+    /// <summary>
+    /// Dynamic stats from child tables, formatted for display.
+    /// </summary>
+    public List<StatDisplay> Stats { get; }
+
+    /// <summary>
+    /// Primary stat to show in the list view (damage, armor rating, etc.)
+    /// </summary>
+    public string PrimaryStat { get; }
+
+    public GearItem(Equipment equipment)
     {
-        Name = name;
-        Cost = cost;
-        Availability = availability;
-        CategoryPath = categoryPath;
-        EssenceCost = essenceCost;
+        Equipment = equipment;
+        Name = equipment.Name;
+        Cost = equipment.Cost;
+        Availability = FormatAvailability(equipment.Availability);
+        CategoryPath = equipment.CategoryTree?.ToArray() ?? Array.Empty<string>();
+        CategoryDisplay = CategoryPath.Length > 0 ? string.Join(" > ", CategoryPath) : "Uncategorized";
+        Concealability = equipment.Concealability;
+
+        // Build display stats from equipment's Stats dictionary
+        Stats = equipment.Stats
+            .Select(kvp => new StatDisplay(FormatStatName(kvp.Key), kvp.Value))
+            .ToList();
+
+        // Determine primary stat for list display
+        PrimaryStat = DeterminePrimaryStat(equipment.Stats);
+    }
+
+    private static string FormatStatName(string key)
+    {
+        // Convert snake_case to Title Case
+        return string.Join(" ", key.Split('_').Select(w =>
+            string.IsNullOrEmpty(w) ? w : char.ToUpper(w[0]) + w.Substring(1)));
+    }
+
+    private static string DeterminePrimaryStat(Dictionary<string, string> stats)
+    {
+        // Priority order for primary stat display
+        if (stats.TryGetValue("damage", out var damage))
+            return damage;
+        if (stats.TryGetValue("ballistic", out var ballistic) && stats.TryGetValue("impact", out var impact))
+            return $"{ballistic}/{impact}";
+        if (stats.TryGetValue("rating", out var rating))
+            return $"R{rating}";
+        if (stats.TryGetValue("mode", out var mode))
+            return mode;
+        return string.Empty;
+    }
+
+    private static string FormatAvailability(Availability? availability)
+    {
+        if (availability == null)
+            return "Always";
+        if (availability.TargetNumber == 0)
+            return "Always";
+        return $"{availability.TargetNumber}/{availability.Interval}";
+    }
+}
+
+public class StatDisplay
+{
+    public string Label { get; }
+    public string Value { get; }
+
+    public StatDisplay(string label, string value)
+    {
+        Label = label;
+        Value = value;
     }
 }
 
