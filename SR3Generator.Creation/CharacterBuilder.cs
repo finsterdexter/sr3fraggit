@@ -569,6 +569,50 @@ namespace SR3Generator.Creation
             return this;
         }
 
+        // Adept Power methods
+        public CharacterBuilder AddAdeptPower(AdeptPower power)
+        {
+            if (Character.MagicAspect == null || !Character.MagicAspect.HasPhysicalAdept)
+            {
+                _logger.LogWarning("AddAdeptPower: Character does not have physical adept ability");
+                return this;
+            }
+
+            var magicRating = Character.Attributes[Attribute.AttributeName.Magic].BaseValue;
+            var currentPowerPoints = Character.AdeptPowers.Values.Sum(p => p.TotalCost);
+
+            if (currentPowerPoints + power.TotalCost > magicRating)
+            {
+                _logger.LogWarning("AddAdeptPower: Insufficient power points. Need {Cost}, have {Remaining}",
+                    power.TotalCost, magicRating - currentPowerPoints);
+                return this;
+            }
+
+            // Use a key that includes level for leveled powers
+            var key = power.IsLeveled ? $"{power.Name}_{power.Level}" : power.Name;
+
+            if (Character.AdeptPowers.ContainsKey(key))
+            {
+                _logger.LogWarning("AddAdeptPower: Power {PowerName} already purchased", key);
+                return this;
+            }
+
+            Character.AdeptPowers.Add(key, power);
+            return this;
+        }
+
+        public CharacterBuilder RemoveAdeptPower(string powerKey)
+        {
+            if (!Character.AdeptPowers.ContainsKey(powerKey))
+            {
+                _logger.LogWarning("RemoveAdeptPower: Power {PowerKey} not found", powerKey);
+                return this;
+            }
+
+            Character.AdeptPowers.Remove(powerKey);
+            return this;
+        }
+
         public CharacterBuilder AddNaturalAugmentation(Augmentation item)
         {
             Character.NaturalAugmentations.Add(item.Name, item);

@@ -1,0 +1,125 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.FociView"
+             x:DataType="vm:FociViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,16">
+            <TextBlock Text="Foci" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="Foci are magical items that enhance a magician's abilities. They must be bonded (bound) to use."
+                       TextWrapping="Wrap" Foreground="Gray"/>
+        </StackPanel>
+
+        <!-- Resources Summary -->
+        <Border Grid.Row="1" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                CornerRadius="8" Padding="16" Margin="0,0,0,16">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <CheckBox Content="Use Street Index" IsChecked="{Binding UseStreetIndex}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0">
+                    <TextBlock Text="Nuyen: " VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}¥'}" FontWeight="Bold" Foreground="Gold" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <TextBlock Text="Spell Points: " VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding SpellPointsRemaining}" FontWeight="Bold" Foreground="Violet" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,300">
+            <!-- Available Foci -->
+            <Border Grid.Column="0" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="12">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+                        <TextBlock Text="Available Foci" FontWeight="SemiBold"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Text="{Binding FilterText}" Watermark="Search foci..." />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding FocusTypes}"
+                                      SelectedItem="{Binding SelectedFocusType}"
+                                      MinWidth="150" Margin="8,0,0,0">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding, TargetNullValue='All Types'}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                    </StackPanel>
+                    <ListBox ItemsSource="{Binding AvailableFoci}"
+                             SelectedItem="{Binding SelectedAvailableFocus}"
+                             SelectionMode="Single">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:FocusItem">
+                                <Grid ColumnDefinitions="*,60,80,80" Margin="0,2">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding FocusTypeDisplay}" Foreground="Gray" FontSize="11"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding RatingDisplay}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding CostDisplay}"
+                                               Foreground="Gold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding Availability}"
+                                               Foreground="Gray" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Buy/Sell/Bind Controls -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="12" Margin="12,0">
+                <Button Content="Buy" Command="{Binding BuyFocusCommand}" Width="80"/>
+                <Button Content="Sell" Command="{Binding SellFocusCommand}" Width="80"/>
+                <Separator Margin="0,8"/>
+                <Button Content="Bind" Command="{Binding BindFocusCommand}" Width="80"
+                        ToolTip.Tip="Bind focus using karma"/>
+                <Button Content="Bind (SP)" Command="{Binding BindFocusWithSpellPointsCommand}" Width="80"
+                        ToolTip.Tip="Bind focus using spell points (creation only)"/>
+            </StackPanel>
+
+            <!-- Owned Foci -->
+            <Border Grid.Column="2" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Owned Foci" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <ListBox ItemsSource="{Binding OwnedFoci}"
+                             SelectedItem="{Binding SelectedOwnedFocus}"
+                             SelectionMode="Single">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:OwnedFocusItem">
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding FocusTypeDisplay}" Foreground="Gray" FontSize="11"/>
+                                            <TextBlock Text="{Binding BoundStatus}" FontSize="11">
+                                                <TextBlock.Styles>
+                                                    <Style Selector="TextBlock">
+                                                        <Setter Property="Foreground" Value="Orange"/>
+                                                    </Style>
+                                                </TextBlock.Styles>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding BindingCostDisplay}"
+                                               Foreground="Gray" FontSize="11" VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

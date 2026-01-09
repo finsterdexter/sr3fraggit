@@ -33,19 +33,27 @@
                 <tabs:SkillsView DataContext="{Binding SkillsVM}"/>
             </TabItem>
 
-            <TabItem Header="6. Spells">
+            <TabItem Header="6. Spells" IsVisible="{Binding HasSorcery}">
                 <tabs:SpellsView DataContext="{Binding SpellsVM}"/>
             </TabItem>
 
-            <TabItem Header="7. Gear">
+            <TabItem Header="6. Adept Powers" IsVisible="{Binding IsAdept}">
+                <tabs:AdeptPowersView DataContext="{Binding AdeptPowersVM}"/>
+            </TabItem>
+
+            <TabItem Header="7. Foci" IsVisible="{Binding HasMagic}">
+                <tabs:FociView DataContext="{Binding FociVM}"/>
+            </TabItem>
+
+            <TabItem Header="8. Gear">
                 <tabs:GearView DataContext="{Binding GearVM}"/>
             </TabItem>
 
-            <TabItem Header="8. Augmentations">
+            <TabItem Header="9. Augmentations">
                 <tabs:AugmentationsView DataContext="{Binding AugmentationsVM}"/>
             </TabItem>
 
-            <TabItem Header="9. Contacts">
+            <TabItem Header="10. Contacts">
                 <tabs:ContactsView DataContext="{Binding ContactsVM}"/>
             </TabItem>
 

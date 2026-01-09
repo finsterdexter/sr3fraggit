@@ -55,6 +55,16 @@ public interface ICharacterBuilderService
     void InstallBioware(Bioware bioware, bool useStreetIndex = false);
     void RemoveBioware(Guid biowareId, bool useStreetIndex = false);
 
+    // Adept Power methods
+    void AddAdeptPower(AdeptPower power);
+    void RemoveAdeptPower(string powerKey);
+
+    // Focus methods
+    void BuyFocus(Focus focus, bool useStreetIndex = false);
+    void SellFocus(Guid focusId, bool useStreetIndex = false);
+    void BindFocus(Guid focusId);
+    void BindFocusWithSpellPoints(Guid focusId);
+
     // Contact methods
     void AddContact(Contact contact);
     void RemoveContact(Guid contactId);

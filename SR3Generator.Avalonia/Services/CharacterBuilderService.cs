@@ -136,6 +136,42 @@ public class CharacterBuilderService : ICharacterBuilderService
         OnCharacterChanged();
     }
 
+    public void AddAdeptPower(AdeptPower power)
+    {
+        _builder.AddAdeptPower(power);
+        OnCharacterChanged();
+    }
+
+    public void RemoveAdeptPower(string powerKey)
+    {
+        _builder.RemoveAdeptPower(powerKey);
+        OnCharacterChanged();
+    }
+
+    public void BuyFocus(Focus focus, bool useStreetIndex = false)
+    {
+        _builder.BuyGear(focus, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void SellFocus(Guid focusId, bool useStreetIndex = false)
+    {
+        _builder.SellGear(focusId, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void BindFocus(Guid focusId)
+    {
+        _builder.BindFocus(focusId);
+        OnCharacterChanged();
+    }
+
+    public void BindFocusWithSpellPoints(Guid focusId)
+    {
+        _builder.BindFocusWithSpellPoints(focusId);
+        OnCharacterChanged();
+    }
+
     public void AddContact(Contact contact)
     {
         _builder.AddContact(contact);

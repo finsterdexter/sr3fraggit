@@ -22,6 +22,8 @@ public partial class CharacterShellViewModel : ViewModelBase
     public AttributesViewModel AttributesVM { get; }
     public SkillsViewModel SkillsVM { get; }
     public SpellsViewModel SpellsVM { get; }
+    public AdeptPowersViewModel AdeptPowersVM { get; }
+    public FociViewModel FociVM { get; }
     public GearViewModel GearVM { get; }
     public AugmentationsViewModel AugmentationsVM { get; }
     public ContactsViewModel ContactsVM { get; }
@@ -70,6 +72,12 @@ public partial class CharacterShellViewModel : ViewModelBase
     [ObservableProperty]
     private bool _hasMagic;
 
+    [ObservableProperty]
+    private bool _hasSorcery;
+
+    [ObservableProperty]
+    private bool _isAdept;
+
     public CharacterShellViewModel(
         ICharacterBuilderService characterService,
         PrioritiesViewModel prioritiesVM,
@@ -78,6 +86,8 @@ public partial class CharacterShellViewModel : ViewModelBase
         AttributesViewModel attributesVM,
         SkillsViewModel skillsVM,
         SpellsViewModel spellsVM,
+        AdeptPowersViewModel adeptPowersVM,
+        FociViewModel fociVM,
         GearViewModel gearVM,
         AugmentationsViewModel augmentationsVM,
         ContactsViewModel contactsVM,
@@ -92,6 +102,8 @@ public partial class CharacterShellViewModel : ViewModelBase
         AttributesVM = attributesVM;
         SkillsVM = skillsVM;
         SpellsVM = spellsVM;
+        AdeptPowersVM = adeptPowersVM;
+        FociVM = fociVM;
         GearVM = gearVM;
         AugmentationsVM = augmentationsVM;
         ContactsVM = contactsVM;
@@ -125,7 +137,12 @@ public partial class CharacterShellViewModel : ViewModelBase
         SpellPointsAllowance = builder.SpellPointsAllowance;
         SpellPointsSpent = builder.SpellPointsSpent;
         SpellPointsRemaining = builder.SpellPointsRemaining;
-        HasMagic = SpellPointsAllowance > 0;
+
+        // Magic visibility - check magic aspect for tab visibility
+        var magicAspect = character.MagicAspect;
+        HasMagic = magicAspect != null && magicAspect.Name != AspectName.Mundane;
+        HasSorcery = magicAspect?.HasSorcery ?? false;
+        IsAdept = magicAspect?.HasPhysicalAdept ?? false;
 
         // Nuyen
         NuyenAllowance = builder.ResourcesAllowance;
