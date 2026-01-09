@@ -154,7 +154,7 @@ public partial class AugmentationsViewModel : ViewModelBase
         var filtered = _allCyberware
             .Where(c => MatchesCategoryPath(c.CategoryPath, _selectedCyberwareCategoryPath))
             .Where(c => MatchesTextFilter(c.Name, CyberwareFilterText))
-            .OrderBy(c => c.Name)
+            //.OrderBy(c => c.Name)
             .ToList();
 
         FilteredCyberware = new ObservableCollection<CyberwareItem>(filtered);
@@ -215,7 +215,7 @@ public partial class AugmentationsViewModel : ViewModelBase
         var filtered = _allBioware
             .Where(b => MatchesCategoryPath(b.CategoryPath, _selectedBiowareCategoryPath))
             .Where(b => MatchesTextFilter(b.Name, BiowareFilterText))
-            .OrderBy(b => b.Name)
+            //.OrderBy(b => b.Name)
             .ToList();
 
         FilteredBioware = new ObservableCollection<BiowareItem>(filtered);

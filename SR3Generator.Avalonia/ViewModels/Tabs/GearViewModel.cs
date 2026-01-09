@@ -124,7 +124,7 @@ public partial class GearViewModel : ViewModelBase
         var filtered = _allGearItems
             .Where(g => MatchesCategoryPath(g, _selectedCategoryPath))
             .Where(g => MatchesTextFilter(g))
-            .OrderBy(g => g.Name)
+            //.OrderBy(g => g.Name)
             .ToList();
 
         FilteredGear = new ObservableCollection<GearItem>(filtered);
