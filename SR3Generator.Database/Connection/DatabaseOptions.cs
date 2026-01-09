@@ -8,7 +8,7 @@ namespace SR3Generator.Database.Connection
 {
     public class DatabaseOptions
     {
-        public string DatabasePath { get; set; } = Path.Combine("data", "data_6cee37608.db");
+        public string DatabasePath { get; set; } = Path.Combine("data", "data_6d7b26801.db");
 
     }
 }
