@@ -1,0 +1,230 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.AugmentationsView"
+             x:DataType="vm:AugmentationsViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,16">
+            <TextBlock Text="Augmentations" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="Install cyberware and bioware to enhance your character. Cyberware costs Essence; Bioware costs Bio Index."
+                       TextWrapping="Wrap" Foreground="Gray"/>
+        </StackPanel>
+
+        <!-- Stats Summary -->
+        <Border Grid.Row="1" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                CornerRadius="8" Padding="16" Margin="0,0,0,16">
+            <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Resources" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <CheckBox Content="Use Street Index" IsChecked="{Binding UseStreetIndex}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0">
+                    <TextBlock Text="Essence: " VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding EssenceDisplay}" FontWeight="Bold" Foreground="Cyan" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="16,0">
+                    <TextBlock Text="Bio Index: " VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding BioIndexDisplay}" FontWeight="Bold" Foreground="LimeGreen" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="16,0">
+                    <TextBlock Text="Magic: " VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding MagicDisplay}" FontWeight="Bold" Foreground="Violet" VerticalAlignment="Center"/>
+                </StackPanel>
+                <TextBlock Grid.Column="4"
+                           Text="{Binding NuyenRemaining, StringFormat='Nuyen: {0:N0}¥'}"
+                           FontWeight="Bold"
+                           Margin="24,0,0,0" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- Main Content with Tabs -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,280">
+            <!-- Cyberware/Bioware Tabs -->
+            <TabControl Grid.Column="0" SelectedIndex="{Binding SelectedTabIndex}">
+                <!-- Cyberware Tab -->
+                <TabItem Header="Cyberware">
+                    <Grid ColumnDefinitions="180,*">
+                        <!-- Cyberware Categories -->
+                        <Border Grid.Column="0" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                                CornerRadius="8" Padding="12" Margin="0,8,8,0">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+                                    <TextBlock Text="Categories" FontWeight="SemiBold"/>
+                                    <Border Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
+                                            CornerRadius="4" Padding="8,4">
+                                        <TextBlock Text="{Binding CyberwareBreadcrumb}" TextWrapping="Wrap" FontSize="11"/>
+                                    </Border>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <Button Content="Up" Command="{Binding CyberwareNavigateUpCommand}" Padding="6,2" FontSize="11"/>
+                                        <Button Content="Clear" Command="{Binding ClearCyberwareFiltersCommand}" Padding="6,2" FontSize="11"/>
+                                    </StackPanel>
+                                    <TextBox Text="{Binding CyberwareFilterText}" Watermark="Search..." FontSize="11"/>
+                                    <TextBlock Text="{Binding CyberwareFilteredCount, StringFormat='{}{0} items'}" Foreground="Gray" FontSize="11"/>
+                                </StackPanel>
+                                <ScrollViewer>
+                                    <ItemsControl ItemsSource="{Binding CyberwareFacets}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="vm:AugFacetValue">
+                                                <Button Padding="4,2" Margin="0,1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                                        Command="{Binding $parent[UserControl].((vm:AugmentationsViewModel)DataContext).SelectCyberwareCategoryCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <Button.Styles>
+                                                        <Style Selector="Button">
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                        </Style>
+                                                    </Button.Styles>
+                                                    <Grid ColumnDefinitions="*,Auto">
+                                                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontSize="11"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat='({0})'}" Foreground="Gray" FontSize="10"/>
+                                                    </Grid>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- Cyberware List -->
+                        <Border Grid.Column="1" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                                CornerRadius="8" Padding="12" Margin="0,8,0,0">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                                    <TextBlock Text="Available Cyberware" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Grade:" Foreground="Gray" Margin="16,0,4,0"/>
+                                    <ComboBox ItemsSource="{Binding CyberwareGrades}"
+                                              SelectedItem="{Binding SelectedCyberwareGrade}"
+                                              MinWidth="100"/>
+                                </StackPanel>
+                                <ListBox ItemsSource="{Binding FilteredCyberware}"
+                                         SelectedItem="{Binding SelectedCyberwareItem}"
+                                         SelectionMode="Single">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="*,60,80,70">
+                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding EssenceDisplay}" Foreground="Cyan" Margin="8,0"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding CostDisplay}" Margin="8,0"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Availability}" Foreground="Gray"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+
+                <!-- Bioware Tab -->
+                <TabItem Header="Bioware">
+                    <Grid ColumnDefinitions="180,*">
+                        <!-- Bioware Categories -->
+                        <Border Grid.Column="0" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                                CornerRadius="8" Padding="12" Margin="0,8,8,0">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+                                    <TextBlock Text="Categories" FontWeight="SemiBold"/>
+                                    <Border Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
+                                            CornerRadius="4" Padding="8,4">
+                                        <TextBlock Text="{Binding BiowareBreadcrumb}" TextWrapping="Wrap" FontSize="11"/>
+                                    </Border>
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <Button Content="Up" Command="{Binding BiowareNavigateUpCommand}" Padding="6,2" FontSize="11"/>
+                                        <Button Content="Clear" Command="{Binding ClearBiowareFiltersCommand}" Padding="6,2" FontSize="11"/>
+                                    </StackPanel>
+                                    <TextBox Text="{Binding BiowareFilterText}" Watermark="Search..." FontSize="11"/>
+                                    <TextBlock Text="{Binding BiowareFilteredCount, StringFormat='{}{0} items'}" Foreground="Gray" FontSize="11"/>
+                                </StackPanel>
+                                <ScrollViewer>
+                                    <ItemsControl ItemsSource="{Binding BiowareFacets}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="vm:AugFacetValue">
+                                                <Button Padding="4,2" Margin="0,1" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                                        Command="{Binding $parent[UserControl].((vm:AugmentationsViewModel)DataContext).SelectBiowareCategoryCommand}"
+                                                        CommandParameter="{Binding}">
+                                                    <Button.Styles>
+                                                        <Style Selector="Button">
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                        </Style>
+                                                    </Button.Styles>
+                                                    <Grid ColumnDefinitions="*,Auto">
+                                                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" FontSize="11"/>
+                                                        <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat='({0})'}" Foreground="Gray" FontSize="10"/>
+                                                    </Grid>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- Bioware List -->
+                        <Border Grid.Column="1" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                                CornerRadius="8" Padding="12" Margin="0,8,0,0">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                                    <TextBlock Text="Available Bioware" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Grade:" Foreground="Gray" Margin="16,0,4,0"/>
+                                    <ComboBox ItemsSource="{Binding BiowareGrades}"
+                                              SelectedItem="{Binding SelectedBiowareGrade}"
+                                              MinWidth="100"/>
+                                </StackPanel>
+                                <ListBox ItemsSource="{Binding FilteredBioware}"
+                                         SelectedItem="{Binding SelectedBiowareItem}"
+                                         SelectionMode="Single">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="*,60,80,70">
+                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding BioIndexDisplay}" Foreground="LimeGreen" Margin="8,0"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding CostDisplay}" Margin="8,0"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Availability}" Foreground="Gray"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+
+            <!-- Install/Remove Controls -->
+            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="12" Margin="12,0">
+                <Button Content="Install" Command="{Binding InstallCyberwareCommand}" Width="70"
+                        IsVisible="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.IsNotNull}, ConverterParameter=0}"/>
+                <Button Content="Install" Command="{Binding InstallBiowareCommand}" Width="70"
+                        IsVisible="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.IsNotNull}, ConverterParameter=1}"/>
+                <Button Content="Remove" Command="{Binding RemoveAugmentationCommand}" Width="70"/>
+            </StackPanel>
+
+            <!-- Installed Augmentations -->
+            <Border Grid.Column="2" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                    CornerRadius="8" Padding="12">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="Installed Augmentations" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <ListBox ItemsSource="{Binding InstalledAugmentations}"
+                             SelectedItem="{Binding SelectedInstalledAug}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding IndexDisplay}" Foreground="Gray" FontSize="11"/>
+                                        <TextBlock Text="{Binding CostDisplay}" Foreground="Gray" FontSize="11"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

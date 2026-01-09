@@ -49,6 +49,12 @@ public interface ICharacterBuilderService
     void BuyGear(Equipment item, bool useStreetIndex = false);
     void SellGear(Guid gearId, bool useStreetIndex = false);
 
+    // Cyberware/Bioware methods
+    void InstallCyberware(Cyberware cyberware, bool useStreetIndex = false);
+    void RemoveCyberware(Guid cyberwareId, bool useStreetIndex = false);
+    void InstallBioware(Bioware bioware, bool useStreetIndex = false);
+    void RemoveBioware(Guid biowareId, bool useStreetIndex = false);
+
     // Contact methods
     void AddContact(Contact contact);
     void RemoveContact(Guid contactId);

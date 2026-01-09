@@ -60,12 +60,43 @@ public partial class AttributesViewModel : ViewModelBase
     public int IntelligenceTotal => IntelligenceValue + IntelligenceRacialMod;
     public int WillpowerTotal => WillpowerValue + WillpowerRacialMod;
 
+    // Augmented values (from cyberware/bioware)
+    [ObservableProperty]
+    private int _bodyAugmented;
+
+    [ObservableProperty]
+    private int _quicknessAugmented;
+
+    [ObservableProperty]
+    private int _strengthAugmented;
+
+    [ObservableProperty]
+    private int _charismaAugmented;
+
+    [ObservableProperty]
+    private int _intelligenceAugmented;
+
+    [ObservableProperty]
+    private int _willpowerAugmented;
+
+    [ObservableProperty]
+    private int _reactionAugmented;
+
+    // Display strings showing augmented values in parens if different
+    public string BodyDisplay => BodyAugmented != BodyTotal ? $"{BodyTotal} ({BodyAugmented})" : BodyTotal.ToString();
+    public string QuicknessDisplay => QuicknessAugmented != QuicknessTotal ? $"{QuicknessTotal} ({QuicknessAugmented})" : QuicknessTotal.ToString();
+    public string StrengthDisplay => StrengthAugmented != StrengthTotal ? $"{StrengthTotal} ({StrengthAugmented})" : StrengthTotal.ToString();
+    public string CharismaDisplay => CharismaAugmented != CharismaTotal ? $"{CharismaTotal} ({CharismaAugmented})" : CharismaTotal.ToString();
+    public string IntelligenceDisplay => IntelligenceAugmented != IntelligenceTotal ? $"{IntelligenceTotal} ({IntelligenceAugmented})" : IntelligenceTotal.ToString();
+    public string WillpowerDisplay => WillpowerAugmented != WillpowerTotal ? $"{WillpowerTotal} ({WillpowerAugmented})" : WillpowerTotal.ToString();
+    public string ReactionDisplay => ReactionAugmented != ReactionValue ? $"{ReactionValue} ({ReactionAugmented})" : ReactionValue.ToString();
+
     // Derived
     [ObservableProperty]
     private int _reactionValue;
 
     [ObservableProperty]
-    private int _essenceValue = 6;
+    private string _essenceDisplay = "6.00";
 
     [ObservableProperty]
     private int _magicValue;
@@ -121,12 +152,30 @@ public partial class AttributesViewModel : ViewModelBase
             IntelligenceValue = character.Attributes[AttributeName.Intelligence].BaseValue;
             WillpowerValue = character.Attributes[AttributeName.Willpower].BaseValue;
 
-            // Derived values
-            EssenceValue = (int)character.Attributes[AttributeName.Essence].BaseValue;
+            // Load augmented values (includes cyberware/bioware mods)
+            BodyAugmented = character.Attributes[AttributeName.Body].GetAugmentedValue(character);
+            QuicknessAugmented = character.Attributes[AttributeName.Quickness].GetAugmentedValue(character);
+            StrengthAugmented = character.Attributes[AttributeName.Strength].GetAugmentedValue(character);
+            CharismaAugmented = character.Attributes[AttributeName.Charisma].GetAugmentedValue(character);
+            IntelligenceAugmented = character.Attributes[AttributeName.Intelligence].GetAugmentedValue(character);
+            WillpowerAugmented = character.Attributes[AttributeName.Willpower].GetAugmentedValue(character);
+
+            // Derived values - Essence now tracked as decimal
+            var essence = builder.GetCurrentEssence();
+            EssenceDisplay = essence.ToString("F2");
             MagicValue = character.Attributes[AttributeName.Magic].BaseValue;
 
             RecalculatePoints();
             RecalculateDerived();
+
+            // Update display properties
+            OnPropertyChanged(nameof(BodyDisplay));
+            OnPropertyChanged(nameof(QuicknessDisplay));
+            OnPropertyChanged(nameof(StrengthDisplay));
+            OnPropertyChanged(nameof(CharismaDisplay));
+            OnPropertyChanged(nameof(IntelligenceDisplay));
+            OnPropertyChanged(nameof(WillpowerDisplay));
+            OnPropertyChanged(nameof(ReactionDisplay));
         }
         finally
         {
@@ -199,5 +248,14 @@ public partial class AttributesViewModel : ViewModelBase
     private void RecalculateDerived()
     {
         ReactionValue = (QuicknessTotal + IntelligenceTotal) / 2;
+
+        // Augmented Reaction = base derived reaction + direct Reaction mods from cyberware
+        // The Attribute.GetAugmentedValue handles direct mods, but Reaction is derived
+        // so we need to: (augmented QCK + augmented INT) / 2 + direct Reaction mods
+        var character = _characterService.Builder.Character;
+        var baseAugmentedReaction = (QuicknessAugmented + IntelligenceAugmented) / 2;
+        var directReactionMod = character.Attributes[AttributeName.Reaction].GetAugmentedValue(character)
+                               - character.Attributes[AttributeName.Reaction].BaseValue;
+        ReactionAugmented = baseAugmentedReaction + directReactionMod;
     }
 }

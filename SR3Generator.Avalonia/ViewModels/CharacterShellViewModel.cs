@@ -23,6 +23,7 @@ public partial class CharacterShellViewModel : ViewModelBase
     public SkillsViewModel SkillsVM { get; }
     public SpellsViewModel SpellsVM { get; }
     public GearViewModel GearVM { get; }
+    public AugmentationsViewModel AugmentationsVM { get; }
     public ContactsViewModel ContactsVM { get; }
     public SummaryViewModel SummaryVM { get; }
 
@@ -78,6 +79,7 @@ public partial class CharacterShellViewModel : ViewModelBase
         SkillsViewModel skillsVM,
         SpellsViewModel spellsVM,
         GearViewModel gearVM,
+        AugmentationsViewModel augmentationsVM,
         ContactsViewModel contactsVM,
         SummaryViewModel summaryVM)
     {
@@ -91,6 +93,7 @@ public partial class CharacterShellViewModel : ViewModelBase
         SkillsVM = skillsVM;
         SpellsVM = spellsVM;
         GearVM = gearVM;
+        AugmentationsVM = augmentationsVM;
         ContactsVM = contactsVM;
         SummaryVM = summaryVM;
 

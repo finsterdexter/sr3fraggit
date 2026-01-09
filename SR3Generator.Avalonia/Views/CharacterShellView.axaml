@@ -41,7 +41,11 @@
                 <tabs:GearView DataContext="{Binding GearVM}"/>
             </TabItem>
 
-            <TabItem Header="8. Contacts">
+            <TabItem Header="8. Augmentations">
+                <tabs:AugmentationsView DataContext="{Binding AugmentationsVM}"/>
+            </TabItem>
+
+            <TabItem Header="9. Contacts">
                 <tabs:ContactsView DataContext="{Binding ContactsVM}"/>
             </TabItem>
 

@@ -112,6 +112,30 @@ public class CharacterBuilderService : ICharacterBuilderService
         OnCharacterChanged();
     }
 
+    public void InstallCyberware(Cyberware cyberware, bool useStreetIndex = false)
+    {
+        _builder.InstallCyberware(cyberware, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void RemoveCyberware(Guid cyberwareId, bool useStreetIndex = false)
+    {
+        _builder.RemoveCyberware(cyberwareId, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void InstallBioware(Bioware bioware, bool useStreetIndex = false)
+    {
+        _builder.InstallBioware(bioware, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void RemoveBioware(Guid biowareId, bool useStreetIndex = false)
+    {
+        _builder.RemoveBioware(biowareId, useStreetIndex);
+        OnCharacterChanged();
+    }
+
     public void AddContact(Contact contact)
     {
         _builder.AddContact(contact);

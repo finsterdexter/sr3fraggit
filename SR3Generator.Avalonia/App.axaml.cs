@@ -61,6 +61,7 @@ public partial class App : Application
         // Database services - uses the public constructor
         services.AddSingleton<SkillDatabase>();
         services.AddSingleton<GearDatabase>();
+        services.AddSingleton<AugmentationDatabase>();
 
         // Character builder service
         services.AddSingleton<ICharacterBuilderService, CharacterBuilderService>();
@@ -73,6 +74,7 @@ public partial class App : Application
         services.AddTransient<SkillsViewModel>();
         services.AddTransient<SpellsViewModel>();
         services.AddTransient<GearViewModel>();
+        services.AddTransient<AugmentationsViewModel>();
         services.AddTransient<ContactsViewModel>();
         services.AddTransient<SummaryViewModel>();
 

@@ -9,6 +9,6 @@ namespace SR3Generator.Data.Gear
 {
     public class Augmentation : Equipment
     {
-        public List<Mod> Mods { get; set; } = new List<Mod>();
+        // Mods inherited from Equipment
     }
 }

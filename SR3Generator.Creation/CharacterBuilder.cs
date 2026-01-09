@@ -223,6 +223,131 @@ namespace SR3Generator.Creation
             return this;
         }
 
+        // Cyberware methods
+        public CharacterBuilder InstallCyberware(Cyberware cyberware, bool useStreetIndex = false)
+        {
+            var costm = cyberware.ActualCost * (useStreetIndex ? cyberware.StreetIndex : 1);
+            long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
+
+            // Check if character has enough Essence
+            var currentEssence = GetCurrentEssence();
+            if (currentEssence - cyberware.ActualEssenceCost < 0)
+            {
+                _logger.LogWarning("InstallCyberware: Insufficient Essence. Have {Current}, need {Cost}", currentEssence, cyberware.ActualEssenceCost);
+                return this;
+            }
+
+            RemoveNuyen(cost).AddGear(cyberware);
+            RecalculateEssenceAndMagic();
+            return this;
+        }
+
+        public CharacterBuilder RemoveCyberware(Guid cyberwareId, bool useStreetIndex = false)
+        {
+            if (!Character.Gear.TryGetValue(cyberwareId, out var item))
+            {
+                _logger.LogWarning("RemoveCyberware: Cyberware {CyberwareId} not found", cyberwareId);
+                return this;
+            }
+            if (item is not Cyberware cyberware)
+            {
+                _logger.LogWarning("RemoveCyberware: Equipment {CyberwareId} is not Cyberware", cyberwareId);
+                return this;
+            }
+
+            var costm = cyberware.ActualCost * (useStreetIndex ? cyberware.StreetIndex : 1);
+            long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
+
+            AddNuyen(cost).RemoveGear(cyberwareId);
+            RecalculateEssenceAndMagic();
+            return this;
+        }
+
+        // Bioware methods
+        public CharacterBuilder InstallBioware(Bioware bioware, bool useStreetIndex = false)
+        {
+            var costm = bioware.ActualCost * (useStreetIndex ? bioware.StreetIndex : 1);
+            long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
+
+            // Check Bio Index limit (max 9)
+            var currentBioIndex = GetCurrentBioIndex();
+            if (currentBioIndex + bioware.ActualBioIndexCost > 9)
+            {
+                _logger.LogWarning("InstallBioware: Bio Index would exceed maximum of 9. Current: {Current}, Adding: {Cost}", currentBioIndex, bioware.ActualBioIndexCost);
+                return this;
+            }
+
+            RemoveNuyen(cost).AddGear(bioware);
+            RecalculateEssenceAndMagic();
+            return this;
+        }
+
+        public CharacterBuilder RemoveBioware(Guid biowareId, bool useStreetIndex = false)
+        {
+            if (!Character.Gear.TryGetValue(biowareId, out var item))
+            {
+                _logger.LogWarning("RemoveBioware: Bioware {BiowareId} not found", biowareId);
+                return this;
+            }
+            if (item is not Bioware bioware)
+            {
+                _logger.LogWarning("RemoveBioware: Equipment {BiowareId} is not Bioware", biowareId);
+                return this;
+            }
+
+            var costm = bioware.ActualCost * (useStreetIndex ? bioware.StreetIndex : 1);
+            long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
+
+            AddNuyen(cost).RemoveGear(biowareId);
+            RecalculateEssenceAndMagic();
+            return this;
+        }
+
+        // Essence and Bio Index calculations
+        public decimal GetCurrentEssence()
+        {
+            decimal totalEssenceCost = 0;
+            foreach (var gear in Character.Gear.Values)
+            {
+                if (gear is Cyberware cyberware)
+                {
+                    totalEssenceCost += cyberware.ActualEssenceCost;
+                }
+            }
+            return 6.0m - totalEssenceCost;
+        }
+
+        public decimal GetCurrentBioIndex()
+        {
+            decimal totalBioIndex = 0;
+            foreach (var gear in Character.Gear.Values)
+            {
+                if (gear is Bioware bioware)
+                {
+                    totalBioIndex += bioware.ActualBioIndexCost;
+                }
+            }
+            return totalBioIndex;
+        }
+
+        private void RecalculateEssenceAndMagic()
+        {
+            var essence = GetCurrentEssence();
+            var bioIndex = GetCurrentBioIndex();
+
+            // Store Essence as int (floor of actual value) for the attribute
+            // Note: Actual decimal essence is tracked via cyberware
+            Character.Attributes[AttributeName.Essence].BaseValue = (int)Math.Floor(essence);
+
+            // For Awakened characters, Magic = floor(Essence - BioIndex/2)
+            if (Character.MagicAspect != null && Character.MagicAspect.Name != AspectName.Mundane)
+            {
+                var magicValue = essence - (bioIndex / 2);
+                var newMagic = Math.Max(0, (int)Math.Floor(magicValue));
+                Character.Attributes[AttributeName.Magic].BaseValue = newMagic;
+            }
+        }
+
         public CharacterBuilder BindFocus(Guid focusId)
         {
             if (!Character.Gear.TryGetValue(focusId, out var item))
