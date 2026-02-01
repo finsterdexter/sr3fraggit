@@ -3,39 +3,38 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
-             mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="800"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="800"
              x:Class="SR3Generator.Avalonia.Views.Tabs.SummaryView"
              x:DataType="vm:SummaryViewModel">
 
-    <ScrollViewer>
-        <StackPanel Margin="16" Spacing="16">
-            <TextBlock Text="Character Summary" FontSize="24" FontWeight="Bold"/>
-            <TextBlock Text="Review your character and finalize creation."
-                       TextWrapping="Wrap" Foreground="Gray"/>
+    <ScrollViewer Padding="12">
+        <StackPanel Spacing="12">
+            <!-- Header -->
+            <StackPanel Spacing="2">
+                <TextBlock Text="Character Summary" Classes="page-title"/>
+                <TextBlock Text="Review and finalize character creation."
+                           FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
+            </StackPanel>
 
             <!-- Validation Status -->
-            <Border CornerRadius="8" Padding="16"
-                    Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
+            <Border Classes="panel" Padding="8">
                 <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel>
-                        <TextBlock Text="{Binding ValidationStatus}" FontWeight="SemiBold"/>
-                    </StackPanel>
-                    <Button Grid.Column="1"
-                            Content="Build Character"
-                            Command="{Binding BuildCharacterCommand}"
-                            IsEnabled="{Binding IsValid}"/>
+                    <TextBlock Text="{Binding ValidationStatus}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" Content="Build Character" Command="{Binding BuildCharacterCommand}"
+                            IsEnabled="{Binding IsValid}" Classes="primary"/>
                 </Grid>
             </Border>
 
             <!-- Validation Issues -->
-            <ItemsControl ItemsSource="{Binding ValidationIssues}"
-                          IsVisible="{Binding !IsValid}">
+            <ItemsControl ItemsSource="{Binding ValidationIssues}" IsVisible="{Binding !IsValid}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="#20FF0000" CornerRadius="4" Padding="8" Margin="0,2">
+                        <Border Background="#15ef4444" BorderBrush="#30ef4444" BorderThickness="1"
+                                CornerRadius="2" Padding="8,6" Margin="0,2">
                             <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{Binding Severity}" FontWeight="Bold" Foreground="Red"/>
-                                <TextBlock Text="{Binding Message}" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Severity}" FontWeight="Bold" FontSize="10"
+                                           Foreground="{StaticResource DestructiveBrush}"/>
+                                <TextBlock Text="{Binding Message}" FontSize="10" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
@@ -43,151 +42,151 @@
             </ItemsControl>
 
             <!-- Two Column Layout -->
-            <Grid ColumnDefinitions="*,16,*">
+            <Grid ColumnDefinitions="*,12,*">
                 <!-- Left Column -->
-                <StackPanel Grid.Column="0" Spacing="16">
+                <StackPanel Grid.Column="0" Spacing="12">
                     <!-- Basic Info -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                            CornerRadius="8" Padding="16">
+                    <Border Classes="panel">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="Basic Info" FontWeight="SemiBold" FontSize="16"/>
-                            <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto">
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Race:" Foreground="Gray"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding RaceName}" FontWeight="SemiBold"/>
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Magic:" Foreground="Gray"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MagicAspect}" FontWeight="SemiBold"/>
+                            <TextBlock Text="IDENTITY" Classes="section-header"/>
+                            <Grid ColumnDefinitions="80,*" RowDefinitions="Auto,Auto">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Race" FontSize="10"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding RaceName}" FontSize="10" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Aspect" FontSize="10"
+                                           Foreground="{StaticResource InkSecondaryBrush}" Margin="0,2"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MagicAspect}" FontSize="10" FontWeight="SemiBold" Margin="0,2"/>
                             </Grid>
                         </StackPanel>
                     </Border>
 
                     <!-- Attributes -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                            CornerRadius="8" Padding="16">
+                    <Border Classes="panel">
                         <StackPanel Spacing="8">
-                            <TextBlock Text="Attributes" FontWeight="SemiBold" FontSize="16"/>
+                            <TextBlock Text="ATTRIBUTES" Classes="section-header"/>
                             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                                 <!-- Physical -->
                                 <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                                    <TextBlock Text="Body: " Foreground="Gray" Width="80"/>
-                                    <TextBlock Text="{Binding Body}" FontWeight="Bold"/>
+                                    <TextBlock Text="BOD" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
+                                    <TextBlock Text="{Binding Body}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
-                                    <TextBlock Text="Quickness: " Foreground="Gray" Width="80"/>
-                                    <TextBlock Text="{Binding Quickness}" FontWeight="Bold"/>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Margin="0,2">
+                                    <TextBlock Text="QCK" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
+                                    <TextBlock Text="{Binding Quickness}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
-                                    <TextBlock Text="Strength: " Foreground="Gray" Width="80"/>
-                                    <TextBlock Text="{Binding Strength}" FontWeight="Bold"/>
+                                <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Margin="0,2">
+                                    <TextBlock Text="STR" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
+                                    <TextBlock Text="{Binding Strength}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
                                 </StackPanel>
 
                                 <!-- Mental -->
                                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                                    <TextBlock Text="Charisma: " Foreground="Gray" Width="80"/>
-                                    <TextBlock Text="{Binding Charisma}" FontWeight="Bold"/>
+                                    <TextBlock Text="CHA" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
+                                    <TextBlock Text="{Binding Charisma}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
-                                    <TextBlock Text="Intelligence: " Foreground="Gray" Width="80"/>
-                                    <TextBlock Text="{Binding Intelligence}" FontWeight="Bold"/>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                                    <TextBlock Text="INT" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
+                                    <TextBlock Text="{Binding Intelligence}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
-                                    <TextBlock Text="Willpower: " Foreground="Gray" Width="80"/>
-                                    <TextBlock Text="{Binding Willpower}" FontWeight="Bold"/>
+                                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
+                                    <TextBlock Text="WIL" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
+                                    <TextBlock Text="{Binding Willpower}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
                                 </StackPanel>
 
                                 <!-- Derived -->
                                 <StackPanel Grid.Row="3" Grid.Column="0" Orientation="Horizontal" Margin="0,8,0,0">
-                                    <TextBlock Text="Reaction: " Foreground="Gray" Width="80"/>
-                                    <TextBlock Text="{Binding Reaction}" FontWeight="Bold"/>
+                                    <TextBlock Text="REA" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
+                                    <TextBlock Text="{Binding Reaction}" FontFamily="JetBrains Mono, monospace" FontSize="10"/>
                                 </StackPanel>
                                 <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
-                                    <TextBlock Text="Essence: " Foreground="Gray" Width="80"/>
-                                    <TextBlock Text="{Binding Essence}" FontWeight="Bold"/>
+                                    <TextBlock Text="ESS" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
+                                    <TextBlock Text="{Binding Essence}" FontFamily="JetBrains Mono, monospace" FontSize="10"
+                                               Foreground="{StaticResource AccentCyberBrush}"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal">
-                                    <TextBlock Text="Magic: " Foreground="Gray" Width="80"/>
-                                    <TextBlock Text="{Binding Magic}" FontWeight="Bold"/>
+                                <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" Margin="0,2">
+                                    <TextBlock Text="MAG" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
+                                    <TextBlock Text="{Binding Magic}" FontFamily="JetBrains Mono, monospace" FontSize="10"
+                                               Foreground="{StaticResource AccentManaBrush}"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
                     </Border>
 
                     <!-- Active Skills -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                            CornerRadius="8" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Active Skills" FontWeight="SemiBold" FontSize="16"/>
+                    <Border Classes="panel">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="ACTIVE SKILLS" Classes="section-header"/>
                             <ItemsControl ItemsSource="{Binding ActiveSkillsSummary}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontSize="12"/>
+                                        <TextBlock Text="{Binding}" FontSize="10"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+                            <TextBlock Text="(None)" FontSize="10" Foreground="{StaticResource InkMutedBrush}"
+                                       IsVisible="{Binding !ActiveSkillsSummary.Count}"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
 
                 <!-- Right Column -->
-                <StackPanel Grid.Column="2" Spacing="16">
+                <StackPanel Grid.Column="2" Spacing="12">
                     <!-- Spells -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                            CornerRadius="8" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Spells" FontWeight="SemiBold" FontSize="16"/>
+                    <Border Classes="panel">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="SPELLS" Classes="section-header"/>
                             <ItemsControl ItemsSource="{Binding SpellsSummary}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontSize="12"/>
+                                        <TextBlock Text="{Binding}" FontSize="10"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="(None)" Foreground="Gray" FontSize="12"
+                            <TextBlock Text="(None)" FontSize="10" Foreground="{StaticResource InkMutedBrush}"
                                        IsVisible="{Binding !SpellsSummary.Count}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Gear -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                            CornerRadius="8" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Gear" FontWeight="SemiBold" FontSize="16"/>
+                    <Border Classes="panel">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="GEAR" Classes="section-header"/>
                             <ItemsControl ItemsSource="{Binding GearSummary}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontSize="12"/>
+                                        <TextBlock Text="{Binding}" FontSize="10"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="(None)" Foreground="Gray" FontSize="12"
+                            <TextBlock Text="(None)" FontSize="10" Foreground="{StaticResource InkMutedBrush}"
                                        IsVisible="{Binding !GearSummary.Count}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Contacts -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                            CornerRadius="8" Padding="16">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="Contacts" FontWeight="SemiBold" FontSize="16"/>
+                    <Border Classes="panel">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="CONTACTS" Classes="section-header"/>
                             <ItemsControl ItemsSource="{Binding ContactsSummary}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontSize="12"/>
+                                        <TextBlock Text="{Binding}" FontSize="10"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="(None)" Foreground="Gray" FontSize="12"
+                            <TextBlock Text="(None)" FontSize="10" Foreground="{StaticResource InkMutedBrush}"
                                        IsVisible="{Binding !ContactsSummary.Count}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Resources -->
-                    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                            CornerRadius="8" Padding="16">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="Resources" FontWeight="SemiBold" FontSize="16"/>
-                            <TextBlock Text="{Binding NuyenRemaining, StringFormat='Remaining Nuyen: {0:N0}¥'}"
-                                       FontSize="14"/>
-                        </StackPanel>
+                    <Border Classes="panel-inset">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="Remaining Nuyen" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Column="1" Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}¥'}"
+                                       FontFamily="JetBrains Mono, monospace" FontWeight="Bold"
+                                       Foreground="{StaticResource AccentNuyenBrush}"/>
+                        </Grid>
                     </Border>
                 </StackPanel>
             </Grid>

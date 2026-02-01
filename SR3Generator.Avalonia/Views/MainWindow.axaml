@@ -4,30 +4,36 @@
         xmlns:views="using:SR3Generator.Avalonia.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+        mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="900"
         x:Class="SR3Generator.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
-        Width="1200" Height="800">
+        Width="1400" Height="900"
+        MinWidth="1200" MinHeight="700">
 
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
     <DockPanel>
-        <!-- Menu Bar -->
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_File">
-                <MenuItem Header="_New Character" Command="{Binding NewCharacterCommand}" />
-                <Separator/>
-                <MenuItem Header="E_xit" />
-            </MenuItem>
-            <MenuItem Header="_Help">
-                <MenuItem Header="_About" />
-            </MenuItem>
-        </Menu>
+        <!-- Compact Menu Bar -->
+        <Border DockPanel.Dock="Top"
+                Background="{StaticResource Surface100Brush}"
+                BorderBrush="{StaticResource BorderSubtleBrush}"
+                BorderThickness="0,0,0,1">
+            <Menu Background="Transparent" Margin="4,2">
+                <MenuItem Header="_File">
+                    <MenuItem Header="_New Character" Command="{Binding NewCharacterCommand}" />
+                    <Separator/>
+                    <MenuItem Header="E_xit" />
+                </MenuItem>
+                <MenuItem Header="_Help">
+                    <MenuItem Header="_About" />
+                </MenuItem>
+            </Menu>
+        </Border>
 
         <!-- Main Content -->
-        <views:CharacterShellView DataContext="{Binding CharacterShell}" Margin="8"/>
+        <views:CharacterShellView DataContext="{Binding CharacterShell}"/>
     </DockPanel>
 </Window>

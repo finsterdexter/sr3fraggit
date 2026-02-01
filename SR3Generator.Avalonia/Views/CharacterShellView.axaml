@@ -4,164 +4,229 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels"
              xmlns:tabs="using:SR3Generator.Avalonia.Views.Tabs"
-             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="700"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="850"
              x:Class="SR3Generator.Avalonia.Views.CharacterShellView"
              x:DataType="vm:CharacterShellViewModel">
 
-    <Grid ColumnDefinitions="*, 280">
-        <!-- Main Tab Content -->
-        <TabControl Grid.Column="0"
-                    SelectedIndex="{Binding SelectedTabIndex}"
-                    Margin="0,0,8,0">
-            <TabItem Header="1. Priorities">
-                <tabs:PrioritiesView DataContext="{Binding PrioritiesVM}"/>
-            </TabItem>
-
-            <TabItem Header="2. Race">
-                <tabs:RaceView DataContext="{Binding RaceVM}"/>
-            </TabItem>
-
-            <TabItem Header="3. Magic">
-                <tabs:MagicView DataContext="{Binding MagicVM}"/>
-            </TabItem>
-
-            <TabItem Header="4. Attributes">
-                <tabs:AttributesView DataContext="{Binding AttributesVM}"/>
-            </TabItem>
-
-            <TabItem Header="5. Skills">
-                <tabs:SkillsView DataContext="{Binding SkillsVM}"/>
-            </TabItem>
-
-            <TabItem Header="6. Spells" IsVisible="{Binding HasSorcery}">
-                <tabs:SpellsView DataContext="{Binding SpellsVM}"/>
-            </TabItem>
-
-            <TabItem Header="6. Adept Powers" IsVisible="{Binding IsAdept}">
-                <tabs:AdeptPowersView DataContext="{Binding AdeptPowersVM}"/>
-            </TabItem>
-
-            <TabItem Header="7. Foci" IsVisible="{Binding HasMagic}">
-                <tabs:FociView DataContext="{Binding FociVM}"/>
-            </TabItem>
-
-            <TabItem Header="8. Gear">
-                <tabs:GearView DataContext="{Binding GearVM}"/>
-            </TabItem>
-
-            <TabItem Header="9. Augmentations">
-                <tabs:AugmentationsView DataContext="{Binding AugmentationsVM}"/>
-            </TabItem>
-
-            <TabItem Header="10. Contacts">
-                <tabs:ContactsView DataContext="{Binding ContactsVM}"/>
-            </TabItem>
-
-            <TabItem Header="Summary">
-                <tabs:SummaryView DataContext="{Binding SummaryVM}"/>
-            </TabItem>
-        </TabControl>
-
-        <!-- Right Sidebar - Points Summary -->
-        <Border Grid.Column="1"
-                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                CornerRadius="8"
-                Padding="16">
-            <ScrollViewer>
-                <StackPanel Spacing="20">
-                    <TextBlock Text="Character Summary"
-                               FontSize="18"
-                               FontWeight="Bold"/>
-
-                    <!-- Race -->
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Race" FontWeight="SemiBold" Foreground="Gray"/>
-                        <TextBlock Text="{Binding SelectedRace}" FontSize="16"/>
+    <Grid RowDefinitions="Auto,*">
+        <!-- Resource Bar - Always visible at top -->
+        <Border Grid.Row="0"
+                Background="{StaticResource Surface100Brush}"
+                BorderBrush="{StaticResource BorderSubtleBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="12,8">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto">
+                <!-- Character Identity -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" Margin="0,0,24,0">
+                    <StackPanel Spacing="0">
+                        <TextBlock Text="RACE" Classes="section-header" FontSize="9"/>
+                        <TextBlock Text="{Binding SelectedRace}" FontWeight="SemiBold" FontSize="12"/>
                     </StackPanel>
-
-                    <!-- Magic Aspect -->
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Magic Aspect" FontWeight="SemiBold" Foreground="Gray"/>
-                        <TextBlock Text="{Binding SelectedMagicAspect}" FontSize="16"/>
+                    <StackPanel Spacing="0">
+                        <TextBlock Text="ASPECT" Classes="section-header" FontSize="9"/>
+                        <TextBlock Text="{Binding SelectedMagicAspect}" FontWeight="SemiBold" FontSize="12"/>
                     </StackPanel>
+                </StackPanel>
 
-                    <Separator/>
+                <Border Grid.Column="1" Width="1" Background="{StaticResource BorderSubtleBrush}" Margin="0,0,24,0"/>
 
+                <!-- Resource Pools -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="20">
                     <!-- Attribute Points -->
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Attribute Points" FontWeight="SemiBold" Foreground="Gray"/>
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{Binding AttributePointsRemaining, StringFormat='Remaining: {0}'}"
-                                       FontSize="16" FontWeight="Bold"/>
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding AttributePointsAllowance, StringFormat='/ {0}'}"
-                                       Foreground="Gray"/>
-                        </Grid>
-                        <ProgressBar Minimum="0"
-                                     Maximum="{Binding AttributePointsAllowance}"
-                                     Value="{Binding AttributePointsSpent}"
-                                     Height="8"
-                                     CornerRadius="4"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="ATTR" Classes="section-header" FontSize="9" VerticalAlignment="Center"/>
+                        <TextBlock FontFamily="JetBrains Mono, monospace" VerticalAlignment="Center">
+                            <Run Text="{Binding AttributePointsRemaining}" FontWeight="Bold" Foreground="{StaticResource AccentCyberBrush}"/>
+                            <Run Text="/" Foreground="{StaticResource InkMutedBrush}"/>
+                            <Run Text="{Binding AttributePointsAllowance}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                        </TextBlock>
                     </StackPanel>
 
                     <!-- Skill Points -->
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Skill Points" FontWeight="SemiBold" Foreground="Gray"/>
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{Binding SkillPointsRemaining, StringFormat='Remaining: {0}'}"
-                                       FontSize="16" FontWeight="Bold"/>
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding SkillPointsAllowance, StringFormat='/ {0}'}"
-                                       Foreground="Gray"/>
-                        </Grid>
-                        <ProgressBar Minimum="0"
-                                     Maximum="{Binding SkillPointsAllowance}"
-                                     Value="{Binding SkillPointsSpent}"
-                                     Height="8"
-                                     CornerRadius="4"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="SKILL" Classes="section-header" FontSize="9" VerticalAlignment="Center"/>
+                        <TextBlock FontFamily="JetBrains Mono, monospace" VerticalAlignment="Center">
+                            <Run Text="{Binding SkillPointsRemaining}" FontWeight="Bold" Foreground="{StaticResource AccentCyberBrush}"/>
+                            <Run Text="/" Foreground="{StaticResource InkMutedBrush}"/>
+                            <Run Text="{Binding SkillPointsAllowance}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                        </TextBlock>
                     </StackPanel>
 
                     <!-- Spell Points (conditional) -->
-                    <StackPanel Spacing="4" IsVisible="{Binding HasMagic}">
-                        <TextBlock Text="Spell Points" FontWeight="SemiBold" Foreground="Gray"/>
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{Binding SpellPointsRemaining, StringFormat='Remaining: {0}'}"
-                                       FontSize="16" FontWeight="Bold"/>
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding SpellPointsAllowance, StringFormat='/ {0}'}"
-                                       Foreground="Gray"/>
-                        </Grid>
-                        <ProgressBar Minimum="0"
-                                     Maximum="{Binding SpellPointsAllowance}"
-                                     Value="{Binding SpellPointsSpent}"
-                                     Height="8"
-                                     CornerRadius="4"/>
-                    </StackPanel>
-
-                    <!-- Nuyen -->
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Resources (Nuyen)" FontWeight="SemiBold" Foreground="Gray"/>
-                        <TextBlock Text="{Binding NuyenRemaining, StringFormat=\{0:N0\}¥}"
-                                   FontSize="16" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding NuyenAllowance, StringFormat=Starting: \{0:N0\}¥}"
-                                   Foreground="Gray" FontSize="12"/>
-                    </StackPanel>
-
-                    <Separator/>
-
-                    <!-- Validation / Status -->
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="Status" FontWeight="SemiBold" Foreground="Gray"/>
-                        <Border Background="#2000FF00"
-                                CornerRadius="4"
-                                Padding="8">
-                            <TextBlock Text="Ready to build character"
-                                       Foreground="Green"
-                                       TextWrapping="Wrap"/>
-                        </Border>
+                    <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasMagic}">
+                        <TextBlock Text="SPELL" Classes="section-header" FontSize="9" VerticalAlignment="Center"/>
+                        <TextBlock FontFamily="JetBrains Mono, monospace" VerticalAlignment="Center">
+                            <Run Text="{Binding SpellPointsRemaining}" FontWeight="Bold" Foreground="{StaticResource AccentManaBrush}"/>
+                            <Run Text="/" Foreground="{StaticResource InkMutedBrush}"/>
+                            <Run Text="{Binding SpellPointsAllowance}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                        </TextBlock>
                     </StackPanel>
                 </StackPanel>
-            </ScrollViewer>
+
+                <!-- Nuyen - Right side -->
+                <Border Grid.Column="6" Width="1" Background="{StaticResource BorderSubtleBrush}" Margin="24,0"/>
+
+                <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="NUYEN" Classes="section-header" FontSize="9" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}¥'}"
+                               FontFamily="JetBrains Mono, monospace"
+                               FontWeight="Bold"
+                               Foreground="{StaticResource AccentNuyenBrush}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
         </Border>
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,240">
+            <!-- Tab Content -->
+            <TabControl Grid.Column="0"
+                        SelectedIndex="{Binding SelectedTabIndex}"
+                        Margin="8,8,0,8"
+                        Padding="0">
+                <TabItem Header="Priorities">
+                    <tabs:PrioritiesView DataContext="{Binding PrioritiesVM}"/>
+                </TabItem>
+
+                <TabItem Header="Race">
+                    <tabs:RaceView DataContext="{Binding RaceVM}"/>
+                </TabItem>
+
+                <TabItem Header="Magic">
+                    <tabs:MagicView DataContext="{Binding MagicVM}"/>
+                </TabItem>
+
+                <TabItem Header="Attributes">
+                    <tabs:AttributesView DataContext="{Binding AttributesVM}"/>
+                </TabItem>
+
+                <TabItem Header="Skills">
+                    <tabs:SkillsView DataContext="{Binding SkillsVM}"/>
+                </TabItem>
+
+                <TabItem Header="Spells" IsVisible="{Binding HasSorcery}">
+                    <tabs:SpellsView DataContext="{Binding SpellsVM}"/>
+                </TabItem>
+
+                <TabItem Header="Adept" IsVisible="{Binding IsAdept}">
+                    <tabs:AdeptPowersView DataContext="{Binding AdeptPowersVM}"/>
+                </TabItem>
+
+                <TabItem Header="Foci" IsVisible="{Binding HasMagic}">
+                    <tabs:FociView DataContext="{Binding FociVM}"/>
+                </TabItem>
+
+                <TabItem Header="Gear">
+                    <tabs:GearView DataContext="{Binding GearVM}"/>
+                </TabItem>
+
+                <TabItem Header="Augments">
+                    <tabs:AugmentationsView DataContext="{Binding AugmentationsVM}"/>
+                </TabItem>
+
+                <TabItem Header="Contacts">
+                    <tabs:ContactsView DataContext="{Binding ContactsVM}"/>
+                </TabItem>
+
+                <TabItem Header="Summary">
+                    <tabs:SummaryView DataContext="{Binding SummaryVM}"/>
+                </TabItem>
+            </TabControl>
+
+            <!-- Right Sidebar - Compact Summary -->
+            <Border Grid.Column="1"
+                    Background="{StaticResource Surface100Brush}"
+                    BorderBrush="{StaticResource BorderSubtleBrush}"
+                    BorderThickness="1,0,0,0"
+                    Margin="0,8,8,8">
+                <ScrollViewer Padding="12">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="QUICK VIEW" Classes="section-header"/>
+
+                        <!-- Essence Tracker -->
+                        <Border Classes="panel-inset">
+                            <StackPanel Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="Essence" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="6.00"
+                                               FontFamily="JetBrains Mono, monospace"
+                                               FontWeight="Bold"
+                                               Foreground="{StaticResource AccentCyberBrush}"/>
+                                </Grid>
+                                <ProgressBar Minimum="0" Maximum="6" Value="6" Height="3"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Magic Rating (if applicable) -->
+                        <Border Classes="panel-inset" IsVisible="{Binding HasMagic}">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Magic Rating" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="6"
+                                           FontFamily="JetBrains Mono, monospace"
+                                           FontWeight="Bold"
+                                           Foreground="{StaticResource AccentManaBrush}"/>
+                            </Grid>
+                        </Border>
+
+                        <Separator/>
+
+                        <!-- Dice Pools Preview -->
+                        <TextBlock Text="DICE POOLS" Classes="section-header"/>
+                        <StackPanel Spacing="4">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Combat" FontSize="10"/>
+                                <TextBlock Text="--" FontFamily="JetBrains Mono, monospace" FontSize="10"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasMagic}">
+                                <TextBlock Text="Spell" FontSize="10"/>
+                                <TextBlock Text="--" FontFamily="JetBrains Mono, monospace" FontSize="10"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <Separator/>
+
+                        <!-- Quick Stats -->
+                        <TextBlock Text="ATTRIBUTES" Classes="section-header"/>
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,4">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="BOD" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="QCK" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="STR" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="CHA" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="INT" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="WIL" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
+                        </Grid>
+
+                        <Separator/>
+
+                        <!-- Validation Status -->
+                        <TextBlock Text="STATUS" Classes="section-header"/>
+                        <Border Background="#1522c55e"
+                                BorderBrush="#3022c55e"
+                                BorderThickness="1"
+                                CornerRadius="2"
+                                Padding="8,6">
+                            <TextBlock Text="Ready"
+                                       FontSize="10"
+                                       Foreground="{StaticResource SuccessBrush}"/>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
