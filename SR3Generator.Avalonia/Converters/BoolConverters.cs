@@ -1,0 +1,39 @@
+using Avalonia.Data.Converters;
+using System;
+using System.Globalization;
+
+namespace SR3Generator.Avalonia.Converters;
+
+public class BoolToChevronConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool isExpanded)
+        {
+            return isExpanded ? "▼" : "▶";
+        }
+        return "▶";
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class BoolToOpacityConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is bool isPurchased)
+        {
+            return isPurchased ? 0.4 : 1.0;
+        }
+        return 1.0;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

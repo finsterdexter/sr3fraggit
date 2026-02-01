@@ -790,9 +790,8 @@ namespace SR3Generator.Creation
         }
         public CharacterBuilder ImproveNewSkill(string name)
         {
-            // get skill from SkillDatabase by name
-            Skill? skill;
-            if (_skillDatabase.ActiveSkills.TryGetValue(name, out skill) == false && _skillDatabase.KnowledgeSkills.TryGetValue(name, out skill) == false)
+            // get skill from SkillDatabase by name (handles both base skills and specializations)
+            if (_skillDatabase.TryGetSkillByName(name, out var skill) == false || skill == null)
             {
                 _logger.LogWarning("ImproveNewSkill: Skill {SkillName} not found in database", name);
                 return this;

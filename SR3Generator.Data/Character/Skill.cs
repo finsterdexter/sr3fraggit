@@ -14,6 +14,7 @@ namespace SR3Generator.Data.Character
         public int BaseValue { get; set; }
         public bool IsSpecialization { get; set; }
         public string? BaseSkillName { get; set; }
+        public string SkillClass { get; set; }
 
         public string Book { get; set; }
         public string Page { get; set; }
@@ -28,6 +29,7 @@ namespace SR3Generator.Data.Character
             Book = null!;
             Page = null!;
             Notes = "";
+            SkillClass = "";
         }
 
         public int GetAugmentedValue(Character character)

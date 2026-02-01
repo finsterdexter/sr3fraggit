@@ -70,6 +70,15 @@ public class CharacterBuilderService : ICharacterBuilderService
         OnCharacterChanged();
     }
 
+    public void UpdateActiveSkillRating(string skillName, int newRating)
+    {
+        if (_builder.Character.ActiveSkills.TryGetValue(skillName, out var skill))
+        {
+            skill.BaseValue = newRating;
+            OnCharacterChanged();
+        }
+    }
+
     public void AddKnowledgeSkill(Skill skill)
     {
         _builder.AddKnowledgeSkill(skill);
@@ -80,6 +89,15 @@ public class CharacterBuilderService : ICharacterBuilderService
     {
         _builder.RemoveKnowledgeSkill(skillName);
         OnCharacterChanged();
+    }
+
+    public void UpdateKnowledgeSkillRating(string skillName, int newRating)
+    {
+        if (_builder.Character.KnowledgeSkills.TryGetValue(skillName, out var skill))
+        {
+            skill.BaseValue = newRating;
+            OnCharacterChanged();
+        }
     }
 
     public void AddSpell(Spell spell)

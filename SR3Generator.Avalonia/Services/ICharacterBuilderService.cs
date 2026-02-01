@@ -37,8 +37,10 @@ public interface ICharacterBuilderService
     // Skill methods
     void AddActiveSkill(Skill skill);
     void RemoveActiveSkill(string skillName);
+    void UpdateActiveSkillRating(string skillName, int newRating);
     void AddKnowledgeSkill(Skill skill);
     void RemoveKnowledgeSkill(string skillName);
+    void UpdateKnowledgeSkillRating(string skillName, int newRating);
 
     // Spell methods
     void AddSpell(Spell spell);

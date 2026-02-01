@@ -55,6 +55,7 @@ namespace SR3Generator.Database.Queries
                 newSkill.Book = skill.book;
                 newSkill.Page = skill.page;
                 newSkill.Notes = skill.notes;
+                newSkill.SkillClass = skill.skill_class ?? "";
                 skillResults.Add(newSkill);
             }
 
@@ -83,6 +84,7 @@ namespace SR3Generator.Database.Queries
                 newSpec.Page = spec.page;
                 newSpec.Notes = spec.notes;
                 newSpec.BaseSkillName = skill.name;
+                newSpec.SkillClass = skill.skill_class ?? "";
                 specResults.Add(newSpec);
             }
 

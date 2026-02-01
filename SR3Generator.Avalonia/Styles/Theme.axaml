@@ -1,0 +1,362 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="using:SR3Generator.Avalonia.Converters">
+
+    <Styles.Resources>
+        <ResourceDictionary>
+            <!-- Converters -->
+            <conv:BoolToChevronConverter x:Key="BoolToChevronConverter"/>
+            <conv:BoolToOpacityConverter x:Key="BoolToOpacityConverter"/>
+            <!-- Surface Colors -->
+            <Color x:Key="SurfaceBase">#0d0d0f</Color>
+            <Color x:Key="Surface100">#141416</Color>
+            <Color x:Key="Surface200">#1a1a1d</Color>
+            <Color x:Key="Surface300">#222225</Color>
+            <Color x:Key="SurfaceInset">#0a0a0b</Color>
+
+            <!-- Ink Colors -->
+            <Color x:Key="InkPrimary">#e8e8eb</Color>
+            <Color x:Key="InkSecondary">#a0a0a8</Color>
+            <Color x:Key="InkMuted">#606068</Color>
+            <Color x:Key="InkFaint">#404048</Color>
+
+            <!-- Border Colors -->
+            <Color x:Key="BorderDefault">#14ffffff</Color>
+            <Color x:Key="BorderSubtle">#0affffff</Color>
+            <Color x:Key="BorderStrong">#1effffff</Color>
+
+            <!-- Accent Colors -->
+            <Color x:Key="AccentCyber">#00d4ff</Color>
+            <Color x:Key="AccentMana">#c084fc</Color>
+            <Color x:Key="AccentNuyen">#fbbf24</Color>
+            <Color x:Key="AccentKarma">#22c55e</Color>
+
+            <!-- Semantic Colors -->
+            <Color x:Key="Destructive">#ef4444</Color>
+            <Color x:Key="Warning">#f59e0b</Color>
+            <Color x:Key="Success">#22c55e</Color>
+
+            <!-- Brushes -->
+            <SolidColorBrush x:Key="SurfaceBaseBrush" Color="{StaticResource SurfaceBase}"/>
+            <SolidColorBrush x:Key="Surface100Brush" Color="{StaticResource Surface100}"/>
+            <SolidColorBrush x:Key="Surface200Brush" Color="{StaticResource Surface200}"/>
+            <SolidColorBrush x:Key="Surface300Brush" Color="{StaticResource Surface300}"/>
+            <SolidColorBrush x:Key="SurfaceInsetBrush" Color="{StaticResource SurfaceInset}"/>
+
+            <SolidColorBrush x:Key="InkPrimaryBrush" Color="{StaticResource InkPrimary}"/>
+            <SolidColorBrush x:Key="InkSecondaryBrush" Color="{StaticResource InkSecondary}"/>
+            <SolidColorBrush x:Key="InkMutedBrush" Color="{StaticResource InkMuted}"/>
+            <SolidColorBrush x:Key="InkFaintBrush" Color="{StaticResource InkFaint}"/>
+
+            <SolidColorBrush x:Key="BorderDefaultBrush" Color="{StaticResource BorderDefault}"/>
+            <SolidColorBrush x:Key="BorderSubtleBrush" Color="{StaticResource BorderSubtle}"/>
+            <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrong}"/>
+
+            <SolidColorBrush x:Key="AccentCyberBrush" Color="{StaticResource AccentCyber}"/>
+            <SolidColorBrush x:Key="AccentManaBrush" Color="{StaticResource AccentMana}"/>
+            <SolidColorBrush x:Key="AccentNuyenBrush" Color="{StaticResource AccentNuyen}"/>
+            <SolidColorBrush x:Key="AccentKarmaBrush" Color="{StaticResource AccentKarma}"/>
+
+            <SolidColorBrush x:Key="DestructiveBrush" Color="{StaticResource Destructive}"/>
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}"/>
+            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}"/>
+        </ResourceDictionary>
+    </Styles.Resources>
+
+    <!-- Global Window Background -->
+    <Style Selector="Window">
+        <Setter Property="Background" Value="{StaticResource SurfaceBaseBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
+        <Setter Property="FontSize" Value="12"/>
+    </Style>
+
+    <!-- Default TextBlock -->
+    <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.muted">
+        <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.secondary">
+        <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.accent-cyber">
+        <Setter Property="Foreground" Value="{StaticResource AccentCyberBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.accent-mana">
+        <Setter Property="Foreground" Value="{StaticResource AccentManaBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.accent-nuyen">
+        <Setter Property="Foreground" Value="{StaticResource AccentNuyenBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.section-header">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}"/>
+        <Setter Property="Margin" Value="0,0,0,4"/>
+    </Style>
+
+    <Style Selector="TextBlock.page-title">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <Style Selector="TextBlock.data">
+        <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, monospace"/>
+    </Style>
+
+    <!-- Panel Styling -->
+    <Style Selector="Border.panel">
+        <Setter Property="Background" Value="{StaticResource Surface100Brush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="12"/>
+    </Style>
+
+    <Style Selector="Border.panel-inset">
+        <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="8"/>
+    </Style>
+
+    <Style Selector="Border.panel-elevated">
+        <Setter Property="Background" Value="{StaticResource Surface200Brush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="12"/>
+    </Style>
+
+    <!-- Tag / Badge -->
+    <Style Selector="Border.tag">
+        <Setter Property="Background" Value="{StaticResource Surface200Brush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+
+    <Style Selector="Border.tag-cyber">
+        <Setter Property="Background" Value="#1500d4ff"/>
+        <Setter Property="BorderBrush" Value="#3000d4ff"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+
+    <Style Selector="Border.tag-mana">
+        <Setter Property="Background" Value="#15c084fc"/>
+        <Setter Property="BorderBrush" Value="#30c084fc"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+
+    <Style Selector="Border.tag-nuyen">
+        <Setter Property="Background" Value="#15fbbf24"/>
+        <Setter Property="BorderBrush" Value="#30fbbf24"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="4,2"/>
+    </Style>
+
+    <!-- Buttons -->
+    <Style Selector="Button">
+        <Setter Property="Background" Value="{StaticResource Surface200Brush}"/>
+        <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="8,4"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="MinHeight" Value="24"/>
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource Surface300Brush}"/>
+    </Style>
+
+    <Style Selector="Button:pressed /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
+    </Style>
+
+    <Style Selector="Button.primary">
+        <Setter Property="Background" Value="#1a00d4ff"/>
+        <Setter Property="BorderBrush" Value="{StaticResource AccentCyberBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource AccentCyberBrush}"/>
+    </Style>
+
+    <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#3000d4ff"/>
+    </Style>
+
+    <Style Selector="Button.compact">
+        <Setter Property="Padding" Value="6,2"/>
+        <Setter Property="MinHeight" Value="20"/>
+        <Setter Property="FontSize" Value="10"/>
+    </Style>
+
+    <!-- TextBox -->
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="MinHeight" Value="24"/>
+    </Style>
+
+    <Style Selector="TextBox:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource AccentCyberBrush}"/>
+    </Style>
+
+    <!-- NumericUpDown -->
+    <Style Selector="NumericUpDown">
+        <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="MinHeight" Value="22"/>
+        <Setter Property="MinWidth" Value="50"/>
+        <Setter Property="Padding" Value="2,1"/>
+        <Setter Property="ClipValueToMinMax" Value="True"/>
+    </Style>
+
+    <Style Selector="NumericUpDown:focus">
+        <Setter Property="BorderBrush" Value="{StaticResource AccentCyberBrush}"/>
+    </Style>
+
+    <!-- Compact spinner buttons -->
+    <Style Selector="NumericUpDown /template/ RepeatButton">
+        <Setter Property="MinWidth" Value="18"/>
+        <Setter Property="Width" Value="18"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <Style Selector="NumericUpDown /template/ ButtonSpinner">
+        <Setter Property="MinHeight" Value="20"/>
+    </Style>
+
+    <Style Selector="NumericUpDown /template/ TextBox">
+        <Setter Property="MinHeight" Value="18"/>
+        <Setter Property="Padding" Value="4,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <!-- ComboBox -->
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="MinHeight" Value="24"/>
+    </Style>
+
+    <!-- ListBox -->
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="2"/>
+    </Style>
+
+    <Style Selector="ListBoxItem">
+        <Setter Property="Padding" Value="6,3"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="MinHeight" Value="24"/>
+    </Style>
+
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource Surface300Brush}"/>
+    </Style>
+
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource Surface200Brush}"/>
+    </Style>
+
+    <!-- TabControl -->
+    <Style Selector="TabControl">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="TabItem">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="TabItem:selected">
+        <Setter Property="Foreground" Value="{StaticResource AccentCyberBrush}"/>
+    </Style>
+
+    <Style Selector="TabItem:pointerover">
+        <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
+    </Style>
+
+    <!-- Separator -->
+    <Style Selector="Separator">
+        <Setter Property="Background" Value="{StaticResource BorderSubtleBrush}"/>
+        <Setter Property="Height" Value="1"/>
+        <Setter Property="Margin" Value="0,8"/>
+    </Style>
+
+    <!-- ProgressBar -->
+    <Style Selector="ProgressBar">
+        <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource AccentCyberBrush}"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="MinHeight" Value="4"/>
+    </Style>
+
+    <!-- CheckBox -->
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+
+    <!-- Menu -->
+    <Style Selector="Menu">
+        <Setter Property="Background" Value="{StaticResource Surface100Brush}"/>
+    </Style>
+
+    <Style Selector="MenuItem">
+        <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+
+    <!-- ScrollViewer -->
+    <Style Selector="ScrollViewer">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <!-- TreeView -->
+    <Style Selector="TreeView">
+        <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="2"/>
+    </Style>
+
+    <Style Selector="TreeViewItem">
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+
+</Styles>
