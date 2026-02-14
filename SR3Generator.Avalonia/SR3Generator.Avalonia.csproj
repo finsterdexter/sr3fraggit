@@ -28,10 +28,4 @@
     <ProjectReference Include="..\SR3Generator.Data\SR3Generator.Data.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="data\data_6d7b26801.db">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
