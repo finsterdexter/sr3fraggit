@@ -9,14 +9,14 @@ namespace SR3Generator.Data.Magic
     public class Spell
     {
         public SpellClass Class { get; set; }
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public SpellType Type { get; set; }
-        public string Target { get; set; }
+        public required string Target { get; set; }
         public Duration Duration { get; set; }
         public SpellRange Range { get; set; }
-        public string Drain { get; set; }
-        public string Notes { get; set; }
-        public string Book { get; set; }
+        public required string Drain { get; set; }
+        public string? Notes { get; set; }
+        public required string Book { get; set; }
         public int Page { get; set; }
         public int Force { get; set; }
         public bool IsExclusive { get; set; }

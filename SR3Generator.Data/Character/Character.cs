@@ -16,7 +16,7 @@ namespace SR3Generator.Data.Character
             }
         }
         public List<KarmaOperation> KarmaOperations { get; set; } = new List<KarmaOperation>();
-        public Race Race { get; set; }
+        public Race Race { get; set; } = null!;
         public Identity Identity { get; set; } = new Identity();
         public List<Lifestyle> Lifestyles { get; set; } = new List<Lifestyle>();
         public long Nuyen { get; set; }

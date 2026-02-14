@@ -28,28 +28,32 @@ namespace SR3Generator.Database.Queries
                 var focusType = ParseFocusType(dto.category_tree);
                 var rating = ParseRatingFromName(dto.name);
 
+                var name = dto.name ?? string.Empty;
+                var availability = ParseAvailability(dto.Availability);
+                var book = ParseBook(dto.BookPage);
+
                 Focus focus;
                 if (focusType == FocusType.Weapon)
                 {
                     focus = new WeaponFocus
                     {
-                        Reach = 0 // Default reach, could be parsed from name if available
+                        Name = name,
+                        Availability = availability,
+                        Book = book,
+                        Reach = 0
                     };
                 }
                 else
                 {
-                    focus = new Focus();
+                    focus = new Focus { Name = name, Availability = availability, Book = book };
                 }
 
                 focus.Id = dto.id;
-                focus.Name = dto.name ?? string.Empty;
                 focus.FocusType = focusType;
                 focus.Rating = rating;
                 focus.CategoryTree = ParseCategoryTree(dto.category_tree);
-                focus.Availability = ParseAvailability(dto.Availability);
                 focus.Cost = ParseCost(dto.Cost);
                 focus.StreetIndex = ParseDecimal(dto.StreetIndex, 2.0m);
-                focus.Book = ParseBook(dto.BookPage);
                 focus.Page = ParsePage(dto.BookPage);
                 focus.IsBound = false;
 
@@ -59,7 +63,7 @@ namespace SR3Generator.Database.Queries
             return results;
         }
 
-        private static FocusType ParseFocusType(string categoryTree)
+        private static FocusType ParseFocusType(string? categoryTree)
         {
             if (string.IsNullOrWhiteSpace(categoryTree))
                 return FocusType.SpecificSpell;
@@ -83,7 +87,7 @@ namespace SR3Generator.Database.Queries
             return FocusType.SpecificSpell;
         }
 
-        private static int? ParseRatingFromName(string name)
+        private static int? ParseRatingFromName(string? name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return null;
@@ -100,7 +104,7 @@ namespace SR3Generator.Database.Queries
             return null;
         }
 
-        private static List<string> ParseCategoryTree(string categoryTree)
+        private static List<string> ParseCategoryTree(string? categoryTree)
         {
             if (string.IsNullOrWhiteSpace(categoryTree))
                 return new List<string>();
@@ -108,7 +112,7 @@ namespace SR3Generator.Database.Queries
             return categoryTree.Split(" > ").Select(s => s.Trim()).ToList();
         }
 
-        private static decimal ParseDecimal(string value, decimal defaultValue = 0)
+        private static decimal ParseDecimal(string? value, decimal defaultValue = 0)
         {
             if (string.IsNullOrWhiteSpace(value))
                 return defaultValue;
@@ -118,7 +122,7 @@ namespace SR3Generator.Database.Queries
             return defaultValue;
         }
 
-        private static int ParseCost(string cost)
+        private static int ParseCost(string? cost)
         {
             if (string.IsNullOrWhiteSpace(cost))
                 return 0;
@@ -129,7 +133,7 @@ namespace SR3Generator.Database.Queries
             return 0;
         }
 
-        private static Availability ParseAvailability(string availability)
+        private static Availability ParseAvailability(string? availability)
         {
             if (string.IsNullOrWhiteSpace(availability))
                 return new Availability { TargetNumber = 0, Interval = "Always" };
@@ -149,7 +153,7 @@ namespace SR3Generator.Database.Queries
             return new Availability { TargetNumber = 0, Interval = availability };
         }
 
-        private static string ParseBook(string bookPage)
+        private static string ParseBook(string? bookPage)
         {
             if (string.IsNullOrWhiteSpace(bookPage))
                 return string.Empty;
@@ -160,7 +164,7 @@ namespace SR3Generator.Database.Queries
             return bookPage.Substring(0, i);
         }
 
-        private static int ParsePage(string bookPage)
+        private static int ParsePage(string? bookPage)
         {
             if (string.IsNullOrWhiteSpace(bookPage))
                 return 0;
@@ -182,13 +186,13 @@ namespace SR3Generator.Database.Queries
     internal class FocusDto
     {
         public int id { get; set; }
-        public string name { get; set; }
+        public string? name { get; set; }
         public int type_id { get; set; }
-        public string category_tree { get; set; }
-        public string KarmaCost { get; set; }
-        public string Availability { get; set; }
-        public string Cost { get; set; }
-        public string StreetIndex { get; set; }
-        public string BookPage { get; set; }
+        public string? category_tree { get; set; }
+        public string? KarmaCost { get; set; }
+        public string? Availability { get; set; }
+        public string? Cost { get; set; }
+        public string? StreetIndex { get; set; }
+        public string? BookPage { get; set; }
     }
 }

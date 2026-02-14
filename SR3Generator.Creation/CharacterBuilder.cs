@@ -85,6 +85,7 @@ namespace SR3Generator.Creation
                 {
                     Name = "Dermal Armor",
                     CategoryTree = new List<string> { "BODYWARE", "Dermal Plating/Sheath/Ruthenium" },
+                    Availability = new Availability { TargetNumber = 0, Interval = "Always" },
                     Book = "sr3",
                     Page = 56,
                     Notes = "Natural Troll Dermal Armor",

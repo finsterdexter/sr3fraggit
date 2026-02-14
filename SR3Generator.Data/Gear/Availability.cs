@@ -9,6 +9,6 @@ namespace SR3Generator.Data.Gear
     public class Availability
     {
         public int TargetNumber { get; set; }
-        public string Interval { get; set; }
+        public required string Interval { get; set; }
     }
 }

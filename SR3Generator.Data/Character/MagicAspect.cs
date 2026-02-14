@@ -15,8 +15,8 @@ namespace SR3Generator.Data.Character
         public bool HasOtherRestrictions { get; set; }
         public int StartingSpellPoints { get; set; }
         public int MaximumSpellPoints { get; set; }
-        public string Description { get; set; }
-        public string Book { get; set; }
+        public required string Description { get; set; }
+        public required string Book { get; set; }
         public int Page { get; set; }
     }
 

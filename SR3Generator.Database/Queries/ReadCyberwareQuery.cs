@@ -102,7 +102,7 @@ namespace SR3Generator.Database.Queries
             };
         }
 
-        private static List<string> ParseCategoryTree(string categoryTree)
+        private static List<string> ParseCategoryTree(string? categoryTree)
         {
             if (string.IsNullOrWhiteSpace(categoryTree))
                 return new List<string>();
@@ -110,7 +110,7 @@ namespace SR3Generator.Database.Queries
             return categoryTree.Split(" > ").Select(s => s.Trim()).ToList();
         }
 
-        private static decimal ParseDecimal(string value, decimal defaultValue = 0)
+        private static decimal ParseDecimal(string? value, decimal defaultValue = 0)
         {
             if (string.IsNullOrWhiteSpace(value))
                 return defaultValue;
@@ -120,7 +120,7 @@ namespace SR3Generator.Database.Queries
             return defaultValue;
         }
 
-        private static int ParseInt(string value)
+        private static int ParseInt(string? value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 return 0;
@@ -130,7 +130,7 @@ namespace SR3Generator.Database.Queries
             return 0;
         }
 
-        private static int ParseCost(string cost)
+        private static int ParseCost(string? cost)
         {
             if (string.IsNullOrWhiteSpace(cost))
                 return 0;
@@ -141,7 +141,7 @@ namespace SR3Generator.Database.Queries
             return 0;
         }
 
-        private static Availability ParseAvailability(string availability)
+        private static Availability ParseAvailability(string? availability)
         {
             if (string.IsNullOrWhiteSpace(availability))
                 return new Availability { TargetNumber = 0, Interval = "Always" };
@@ -161,7 +161,7 @@ namespace SR3Generator.Database.Queries
             return new Availability { TargetNumber = 0, Interval = availability };
         }
 
-        private static string ParseBook(string bookPage)
+        private static string ParseBook(string? bookPage)
         {
             if (string.IsNullOrWhiteSpace(bookPage))
                 return string.Empty;
@@ -172,7 +172,7 @@ namespace SR3Generator.Database.Queries
             return bookPage.Substring(0, i);
         }
 
-        private static int ParsePage(string bookPage)
+        private static int ParsePage(string? bookPage)
         {
             if (string.IsNullOrWhiteSpace(bookPage))
                 return 0;
@@ -194,16 +194,16 @@ namespace SR3Generator.Database.Queries
     internal class CyberwareDto
     {
         public int id { get; set; }
-        public string name { get; set; }
-        public string Notes { get; set; }
-        public string BookPage { get; set; }
-        public string category_tree { get; set; }
-        public string Availability { get; set; }
-        public string EssCost { get; set; }
-        public string Cost { get; set; }
-        public string Mods { get; set; }
-        public string LegalCode { get; set; }
-        public string Capacity { get; set; }
-        public string StreetIndex { get; set; }
+        public string? name { get; set; }
+        public string? Notes { get; set; }
+        public string? BookPage { get; set; }
+        public string? category_tree { get; set; }
+        public string? Availability { get; set; }
+        public string? EssCost { get; set; }
+        public string? Cost { get; set; }
+        public string? Mods { get; set; }
+        public string? LegalCode { get; set; }
+        public string? Capacity { get; set; }
+        public string? StreetIndex { get; set; }
     }
 }

@@ -8,7 +8,7 @@ namespace SR3Generator.Data.Character
 {
     public class Contact
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public ContactLevel Level { get; set; }
         public Dictionary<Guid, Contact> FriendsOfAFriend { get; set; } = new Dictionary<Guid, Contact>();
 

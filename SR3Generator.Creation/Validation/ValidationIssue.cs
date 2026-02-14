@@ -10,7 +10,7 @@ namespace SR3Generator.Creation.Validation
     {
         public ValidationIssueLevel Level { get; set; }
         public ValidationIssueCategory Category { get; set; }
-        public string Message { get; set; }
+        public required string Message { get; set; }
     }
 
     public enum ValidationIssueLevel

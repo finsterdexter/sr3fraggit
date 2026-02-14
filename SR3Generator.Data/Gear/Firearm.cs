@@ -8,9 +8,9 @@ namespace SR3Generator.Data.Gear
 {
     public class Firearm : Weapon
     {
-        public AmmunitionLoad Ammo { get; set; }
-        public List<FirearmAccessory> Accessories { get; set; }
-        public List<FireMode> FireModes { get; set; }
+        public required AmmunitionLoad Ammo { get; set; }
+        public List<FirearmAccessory> Accessories { get; set; } = [];
+        public List<FireMode> FireModes { get; set; } = [];
     }
 
     public class AmmunitionLoad
@@ -21,7 +21,7 @@ namespace SR3Generator.Data.Gear
 
     public class FirearmAccessory : Equipment
     {
-        public string Mount { get; set; }
+        public string? Mount { get; set; }
     }
 
     public enum ReloadType

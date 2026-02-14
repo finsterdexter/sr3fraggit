@@ -227,7 +227,7 @@ public class GearItem
     public string Availability { get; }
     public string[] CategoryPath { get; }
     public string CategoryDisplay { get; }
-    public string Concealability { get; }
+    public string? Concealability { get; }
     public Equipment Equipment { get; }
 
     /// <summary>

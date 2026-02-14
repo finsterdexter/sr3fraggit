@@ -11,7 +11,7 @@ namespace SR3Generator.Data.Character
         public LifestyleTier Tier { get; set; }
         public int MonthlyCost { get; set; }
         public int MonthsPaid { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
         // Edges/Flaws
 
     }

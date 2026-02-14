@@ -9,13 +9,13 @@ namespace SR3Generator.Data.Critter
 {
     public class CritterPower
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public PowerType Type { get; set; }
         public ActionType ActionType { get; set; }
         public Duration Duration { get; set; }
         public SpellRange Range { get; set; }
-        public string Notes { get; set; }
-        public string Book { get; set; }
+        public string? Notes { get; set; }
+        public required string Book { get; set; }
         public int Page { get; set; }
     }
 

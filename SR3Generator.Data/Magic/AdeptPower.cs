@@ -10,12 +10,12 @@ namespace SR3Generator.Data.Magic
     public class AdeptPower
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public decimal Cost { get; set; }
         public int Level { get; set; } = 1;
-        public List<Mod> Mods { get; set; }
-        public string Notes { get; set; }
-        public string Book { get; set; }
+        public List<Mod> Mods { get; set; } = [];
+        public string? Notes { get; set; }
+        public required string Book { get; set; }
         public int Page { get; set; }
 
         /// <summary>

@@ -88,7 +88,7 @@ namespace SR3Generator.Database.Queries
             }
         }
 
-        private static List<string> ParseCategoryTree(string categoryTree)
+        private static List<string> ParseCategoryTree(string? categoryTree)
         {
             if (string.IsNullOrWhiteSpace(categoryTree))
                 return new List<string>();
@@ -96,7 +96,7 @@ namespace SR3Generator.Database.Queries
             return categoryTree.Split(" > ").Select(s => s.Trim()).ToList();
         }
 
-        private static int ParseCost(string cost)
+        private static int ParseCost(string? cost)
         {
             if (string.IsNullOrWhiteSpace(cost))
                 return 0;
@@ -108,7 +108,7 @@ namespace SR3Generator.Database.Queries
             return 0;
         }
 
-        private static decimal ParseStreetIndex(string streetIndex)
+        private static decimal ParseStreetIndex(string? streetIndex)
         {
             if (string.IsNullOrWhiteSpace(streetIndex))
                 return 1.0m;
@@ -118,7 +118,7 @@ namespace SR3Generator.Database.Queries
             return 1.0m;
         }
 
-        private static Availability ParseAvailability(string availability)
+        private static Availability ParseAvailability(string? availability)
         {
             if (string.IsNullOrWhiteSpace(availability))
                 return new Availability { TargetNumber = 0, Interval = "Always" };
@@ -139,7 +139,7 @@ namespace SR3Generator.Database.Queries
             return new Availability { TargetNumber = 0, Interval = availability };
         }
 
-        private static string ParseBook(string bookPage)
+        private static string ParseBook(string? bookPage)
         {
             if (string.IsNullOrWhiteSpace(bookPage))
                 return string.Empty;
@@ -152,7 +152,7 @@ namespace SR3Generator.Database.Queries
             return bookPage.Substring(0, i);
         }
 
-        private static int ParsePage(string bookPage)
+        private static int ParsePage(string? bookPage)
         {
             if (string.IsNullOrWhiteSpace(bookPage))
                 return 0;
@@ -172,7 +172,7 @@ namespace SR3Generator.Database.Queries
             return 0;
         }
 
-        private static decimal ParseWeight(string weight)
+        private static decimal ParseWeight(string? weight)
         {
             if (string.IsNullOrWhiteSpace(weight))
                 return 0;
@@ -186,13 +186,13 @@ namespace SR3Generator.Database.Queries
     internal class GearDto
     {
         public int id { get; set; }
-        public string name { get; set; }
-        public string book_page { get; set; }
-        public string category_tree { get; set; }
-        public string availability { get; set; }
-        public string cost { get; set; }
-        public string street_index { get; set; }
-        public string concealability { get; set; }
-        public string weight { get; set; }
+        public string? name { get; set; }
+        public string? book_page { get; set; }
+        public string? category_tree { get; set; }
+        public string? availability { get; set; }
+        public string? cost { get; set; }
+        public string? street_index { get; set; }
+        public string? concealability { get; set; }
+        public string? weight { get; set; }
     }
 }

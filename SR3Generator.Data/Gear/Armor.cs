@@ -10,6 +10,5 @@ namespace SR3Generator.Data.Gear
     {
         public int Ballistic { get; set; }
         public int Impact { get; set; }
-        public int Concealability { get; set; }
     }
 }

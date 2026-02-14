@@ -31,15 +31,15 @@ namespace SR3Generator.Database.Queries
                 switch (skill.atr)
                 {
                     case "KNO":
-                        newSkill = new Skill(skill.name, Attribute.AttributeName.Intelligence);
+                        newSkill = new Skill(skill.name ?? "", Attribute.AttributeName.Intelligence);
                         newSkill.Type = SkillType.Knowledge;
                         break;
                     case "LAN":
-                        newSkill = new Skill(skill.name, Attribute.AttributeName.Intelligence);
+                        newSkill = new Skill(skill.name ?? "", Attribute.AttributeName.Intelligence);
                         newSkill.Type = SkillType.Language;
                         break;
                     case null or "" when skill.id == 393: // IN:Roleplaying Games of 20th Cen - missing atr in db
-                        newSkill = new Skill(skill.name, Attribute.AttributeName.Intelligence);
+                        newSkill = new Skill(skill.name ?? "", Attribute.AttributeName.Intelligence);
                         newSkill.Type = SkillType.Knowledge;
                         break;
                     case " Lewis" when skill.id == 408: // AK:Ft Lewis - corrupt atr in db (name got split)
@@ -47,14 +47,14 @@ namespace SR3Generator.Database.Queries
                         newSkill.Type = SkillType.Knowledge;
                         break;
                     default:
-                        var atr = (Attribute.AttributeAbbr)Enum.Parse(typeof(Attribute.AttributeAbbr), skill.atr);
-                        newSkill = new Skill(skill.name, Attribute.GetName(atr));
+                        var atr = (Attribute.AttributeAbbr)Enum.Parse(typeof(Attribute.AttributeAbbr), skill.atr!);
+                        newSkill = new Skill(skill.name ?? "", Attribute.GetName(atr));
                         newSkill.Type = SkillType.Active;
                         break;
                 }
-                newSkill.Book = skill.book;
-                newSkill.Page = skill.page;
-                newSkill.Notes = skill.notes;
+                newSkill.Book = skill.book ?? null!;
+                newSkill.Page = skill.page ?? null!;
+                newSkill.Notes = skill.notes ?? "";
                 newSkill.SkillClass = skill.skill_class ?? "";
                 skillResults.Add(newSkill);
             }
@@ -64,25 +64,26 @@ namespace SR3Generator.Database.Queries
             {
                 Skill newSpec;
                 var skill = skills.FirstOrDefault(s => s.id == spec.skill_id);
+                if (skill is null) continue;
                 switch (skill.atr)
                 {
                     case "KNO":
-                        newSpec = new Skill(spec.name, Attribute.AttributeName.Intelligence);
+                        newSpec = new Skill(spec.name ?? "", Attribute.AttributeName.Intelligence);
                         newSpec.Type = SkillType.Knowledge;
                         break;
                     case "LAN":
-                        newSpec = new Skill(spec.name, Attribute.AttributeName.Intelligence);
+                        newSpec = new Skill(spec.name ?? "", Attribute.AttributeName.Intelligence);
                         newSpec.Type = SkillType.Language;
                         break;
                     default:
-                        newSpec = new Skill(spec.name, Attribute.GetName((Attribute.AttributeAbbr)Enum.Parse(typeof(Attribute.AttributeAbbr), skill.atr)));
+                        newSpec = new Skill(spec.name ?? "", Attribute.GetName((Attribute.AttributeAbbr)Enum.Parse(typeof(Attribute.AttributeAbbr), skill.atr!)));
                         newSpec.Type = SkillType.Active;
                         break;
                 }
                 newSpec.IsSpecialization = true;
-                newSpec.Book = spec.book;
-                newSpec.Page = spec.page;
-                newSpec.Notes = spec.notes;
+                newSpec.Book = spec.book ?? null!;
+                newSpec.Page = spec.page ?? null!;
+                newSpec.Notes = spec.notes ?? "";
                 newSpec.BaseSkillName = skill.name;
                 newSpec.SkillClass = skill.skill_class ?? "";
                 specResults.Add(newSpec);
@@ -95,21 +96,21 @@ namespace SR3Generator.Database.Queries
     internal class SkillDto
     {
         public int id { get; set; }
-        public string skill_class { get; set; }
-        public string name { get; set; }
-        public string atr { get; set; }
-        public string book { get; set; }
-        public string page { get; set; }
-        public string notes { get; set; }
+        public string? skill_class { get; set; }
+        public string? name { get; set; }
+        public string? atr { get; set; }
+        public string? book { get; set; }
+        public string? page { get; set; }
+        public string? notes { get; set; }
     }
 
     internal class SpecializationDto
     {
         public int id { get; set; }
         public int skill_id { get; set; }
-        public string name { get; set; }
-        public string book { get; set; }
-        public string page { get; set; }
-        public string notes { get; set; }
+        public string? name { get; set; }
+        public string? book { get; set; }
+        public string? page { get; set; }
+        public string? notes { get; set; }
     }
 }

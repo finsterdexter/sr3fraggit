@@ -8,8 +8,7 @@ namespace SR3Generator.Data.Gear
 {
     public class Weapon : Equipment
     {
-        public string Skill { get; set; }
-        public int Concealability { get; set; }
-        public string Damage { get; set; }
+        public required string Skill { get; set; }
+        public required string Damage { get; set; }
     }
 }

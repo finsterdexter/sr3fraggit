@@ -64,7 +64,7 @@ namespace SR3Generator.Database
             ReadSkillsQueryHandler readSkillsQueryHandler)
         {
             var conn = dbConnectionFactory.CreateConnection();
-            var (skills, specs) = readSkillsQueryHandler.HandleAsync(new ReadSkillsQuery(), conn, null).Result;
+            var (skills, specs) = readSkillsQueryHandler.HandleAsync(new ReadSkillsQuery(), conn, null!).Result;
 
             foreach (var skill in skills)
             {

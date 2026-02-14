@@ -10,17 +10,17 @@ namespace SR3Generator.Data.Gear
     public class Equipment
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public List<string> CategoryTree { get; set; }
-        public string Concealability { get; set; }
+        public required string Name { get; set; }
+        public List<string> CategoryTree { get; set; } = [];
+        public string? Concealability { get; set; }
         public decimal Weight { get; set; }
-        public Availability Availability { get; set; }
+        public required Availability Availability { get; set; }
         public int Cost { get; set; }
         public decimal StreetIndex { get; set; }
-        public string Book { get; set; }
+        public required string Book { get; set; }
         public int Page { get; set; }
-        public string Legality { get; set; }
-        public string Notes { get; set; }
+        public string? Legality { get; set; }
+        public string? Notes { get; set; }
         public int? Rating { get; set; }
         public List<Mod> Mods { get; set; } = new List<Mod>();
         public bool IsEquipped { get; set; }

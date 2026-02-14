@@ -29,7 +29,7 @@ namespace SR3Generator.Database
         {
             var conn = dbConnectionFactory.CreateConnection();
 
-            var foci = readFociQueryHandler.HandleAsync(new ReadFociQuery(), conn, null).Result;
+            var foci = readFociQueryHandler.HandleAsync(new ReadFociQuery(), conn, null!).Result;
             AllFoci = foci.OrderBy(f => f.FocusType).ThenBy(f => f.Rating ?? 0).ThenBy(f => f.Name).ToList();
 
             foreach (var focus in AllFoci)

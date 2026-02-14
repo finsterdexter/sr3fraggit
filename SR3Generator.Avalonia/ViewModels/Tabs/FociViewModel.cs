@@ -98,20 +98,26 @@ public partial class FociViewModel : ViewModelBase
         {
             focus = new WeaponFocus
             {
+                Name = baseFocus.Name,
+                Availability = baseFocus.Availability,
+                Book = baseFocus.Book,
                 Reach = weaponFocus.Reach
             };
         }
         else
         {
-            focus = new Focus();
+            focus = new Focus
+            {
+                Name = baseFocus.Name,
+                Availability = baseFocus.Availability,
+                Book = baseFocus.Book
+            };
         }
 
         focus.Id = baseFocus.Id;
-        focus.Name = baseFocus.Name;
         focus.FocusType = baseFocus.FocusType;
         focus.Rating = baseFocus.Rating;
         focus.CategoryTree = baseFocus.CategoryTree?.ToList() ?? new();
-        focus.Availability = baseFocus.Availability;
         focus.Cost = baseFocus.Cost;
         focus.StreetIndex = baseFocus.StreetIndex;
         focus.Book = baseFocus.Book;

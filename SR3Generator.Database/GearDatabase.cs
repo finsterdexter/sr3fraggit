@@ -27,7 +27,7 @@ namespace SR3Generator.Database
             ReadGearQueryHandler readGearQueryHandler)
         {
             var conn = dbConnectionFactory.CreateConnection();
-            var gear = readGearQueryHandler.HandleAsync(new ReadGearQuery(), conn, null).Result;
+            var gear = readGearQueryHandler.HandleAsync(new ReadGearQuery(), conn, null!).Result;
 
             AllGear = gear.ToList();
 

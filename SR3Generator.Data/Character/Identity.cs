@@ -17,8 +17,8 @@ namespace SR3Generator.Data.Character
         public string Notes { get; set; } = string.Empty;
         public decimal Height { get; set; }
         public decimal Weight { get; set; }
-        public string Eyes { get; set; }
-        public string Hair { get; set; }
+        public string? Eyes { get; set; }
+        public string? Hair { get; set; }
 
     }
 }

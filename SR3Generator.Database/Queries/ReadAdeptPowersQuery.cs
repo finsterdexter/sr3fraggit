@@ -94,7 +94,7 @@ namespace SR3Generator.Database.Queries
             };
         }
 
-        private static decimal ParseDecimal(string value, decimal defaultValue = 0)
+        private static decimal ParseDecimal(string? value, decimal defaultValue = 0)
         {
             if (string.IsNullOrWhiteSpace(value))
                 return defaultValue;
@@ -104,7 +104,7 @@ namespace SR3Generator.Database.Queries
             return defaultValue;
         }
 
-        private static string ParseBook(string bookPage)
+        private static string ParseBook(string? bookPage)
         {
             if (string.IsNullOrWhiteSpace(bookPage))
                 return string.Empty;
@@ -115,7 +115,7 @@ namespace SR3Generator.Database.Queries
             return bookPage.Substring(0, i);
         }
 
-        private static int ParsePage(string bookPage)
+        private static int ParsePage(string? bookPage)
         {
             if (string.IsNullOrWhiteSpace(bookPage))
                 return 0;
@@ -137,11 +137,11 @@ namespace SR3Generator.Database.Queries
     internal class AdeptPowerDto
     {
         public int id { get; set; }
-        public string name { get; set; }
-        public string AdeptCost { get; set; }
-        public string Notes { get; set; }
-        public string category_tree { get; set; }
-        public string BookPage { get; set; }
-        public string Mods { get; set; }
+        public string? name { get; set; }
+        public string? AdeptCost { get; set; }
+        public string? Notes { get; set; }
+        public string? category_tree { get; set; }
+        public string? BookPage { get; set; }
+        public string? Mods { get; set; }
     }
 }

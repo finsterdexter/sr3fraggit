@@ -34,7 +34,7 @@ namespace SR3Generator.Database
             var conn = dbConnectionFactory.CreateConnection();
 
             // Load cyberware
-            var cyberware = readCyberwareQueryHandler.HandleAsync(new ReadCyberwareQuery(), conn, null).Result;
+            var cyberware = readCyberwareQueryHandler.HandleAsync(new ReadCyberwareQuery(), conn, null!).Result;
             AllCyberware = cyberware.ToList();
 
             foreach (var item in AllCyberware)
@@ -46,7 +46,7 @@ namespace SR3Generator.Database
             }
 
             // Load bioware
-            var bioware = readBiowareQueryHandler.HandleAsync(new ReadBiowareQuery(), conn, null).Result;
+            var bioware = readBiowareQueryHandler.HandleAsync(new ReadBiowareQuery(), conn, null!).Result;
             AllBioware = bioware.ToList();
 
             foreach (var item in AllBioware)
