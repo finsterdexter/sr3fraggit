@@ -13,7 +13,6 @@ Shadowrun 3rd Edition character creation system.
 | SR3Generator.Creation.Test | xUnit tests for character building |
 | SR3Generator.Database.Test | xUnit tests for database queries |
 
-Note: SR3Generator.App (MAUI UI) exists in the repo but is not in the active solution.
 
 ## Dependency Graph
 
