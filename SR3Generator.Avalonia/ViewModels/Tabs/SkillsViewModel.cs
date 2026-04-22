@@ -16,6 +16,8 @@ public partial class SkillsViewModel : ViewModelBase
     private readonly ICharacterBuilderService _characterService;
     private readonly SkillDatabase _skillDatabase;
 
+    public SR3Generator.Database.Queries.RulesEntry? SpecializationRule { get; }
+
     // All base skills from database (no specializations)
     private List<AvailableSkillItem> _allSkills = new();
 
@@ -73,10 +75,14 @@ public partial class SkillsViewModel : ViewModelBase
     [ObservableProperty]
     private int _currentPointsAllowance;
 
-    public SkillsViewModel(ICharacterBuilderService characterService, SkillDatabase skillDatabase)
+    public SkillsViewModel(
+        ICharacterBuilderService characterService,
+        SkillDatabase skillDatabase,
+        RulesGlossary rulesGlossary)
     {
         _characterService = characterService;
         _skillDatabase = skillDatabase;
+        SpecializationRule = rulesGlossary.Get("skill.specialization");
         _characterService.CharacterChanged += OnCharacterChanged;
         LoadSkills();
         RefreshFromBuilder();
@@ -589,12 +595,27 @@ public partial class PurchasedSkillItem : ObservableObject
     [ObservableProperty]
     private bool _isExpanded;
 
-    public bool HasAvailableSpecs => !HasSpecialization && AvailableSpecializations.Count > 0 && Rating >= 2;
+    // Chevron/expand visibility: we have specs AND we haven't already chosen one.
+    // (Rating is checked separately so we can show users WHY specs aren't clickable yet.)
+    public bool HasAvailableSpecs => !HasSpecialization && AvailableSpecializations.Count > 0;
+
+    // SR3: base splits into (base-1) + (spec+1), so base must be ≥ 2 before you can split it.
+    public bool CanSpecializeNow => HasAvailableSpecs && Rating >= 2;
+
+    // True when the skill has specs available but the base rating is too low to split.
+    public bool NeedsHigherRatingToSpecialize => HasAvailableSpecs && Rating < 2;
 
     // Display text showing base and spec ratings
     public string RatingDisplay => HasSpecialization
         ? $"{Rating} ({SpecializationRating})"
         : Rating.ToString();
+
+    partial void OnRatingChanged(int value)
+    {
+        OnPropertyChanged(nameof(CanSpecializeNow));
+        OnPropertyChanged(nameof(NeedsHigherRatingToSpecialize));
+        OnPropertyChanged(nameof(RatingDisplay));
+    }
 
     public PurchasedSkillItem(Skill skill, Skill? specialization, List<Skill> availableSpecs, SkillsViewModel parent)
     {
@@ -663,6 +684,7 @@ public class SkillCategory
     public string Name { get; }
     public int Count { get; }
     public bool IsKnowledge { get; }
+    public bool IsActive => !IsKnowledge && Name != "All";
     public string DisplayName => Name == "All" ? "All Categories" : CleanName(Name);
 
     public SkillCategory(string name, int count, bool isKnowledge)

@@ -38,6 +38,9 @@ namespace SR3Generator.Data.Character
         //         Watchers
         //         Ally Spirit
         public MagicAspect? MagicAspect { get; set; } = null;
+        public Tradition? Tradition { get; set; } = null;
+        public Totem? Totem { get; set; } = null;
+        public HermeticElement? HermeticElement { get; set; } = null;
         public Dictionary<string, Spell> Spells { get; set; } = new Dictionary<string, Spell>();
         public Dictionary<string, AdeptPower> AdeptPowers { get; set; } = new Dictionary<string, AdeptPower>();
         public Dictionary<Guid, BondedSpirit> BondedSpirits { get; set; } = new Dictionary<Guid, BondedSpirit>();

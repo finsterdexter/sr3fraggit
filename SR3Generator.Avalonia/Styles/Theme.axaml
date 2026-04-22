@@ -7,6 +7,7 @@
             <!-- Converters -->
             <conv:BoolToChevronConverter x:Key="BoolToChevronConverter"/>
             <conv:BoolToOpacityConverter x:Key="BoolToOpacityConverter"/>
+            <conv:IntEqualsConverter x:Key="IntEqualsConverter"/>
             <!-- Surface Colors -->
             <Color x:Key="SurfaceBase">#0d0d0f</Color>
             <Color x:Key="Surface100">#141416</Color>
@@ -96,19 +97,55 @@
     </Style>
 
     <Style Selector="TextBlock.section-header">
-        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontSize" Value="10"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}"/>
+        <Setter Property="LetterSpacing" Value="0.5"/>
         <Setter Property="Margin" Value="0,0,0,4"/>
     </Style>
 
     <Style Selector="TextBlock.page-title">
-        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontSize" Value="16"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <Style Selector="TextBlock.page-subtitle">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}"/>
+    </Style>
+
+    <Style Selector="TextBlock.micro-label">
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="LetterSpacing" Value="0.5"/>
+        <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
 
     <Style Selector="TextBlock.data">
         <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, monospace"/>
+    </Style>
+
+    <Style Selector="TextBlock.stat-value">
+        <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, monospace"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBlock.stat-value-lg">
+        <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, monospace"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBlock.body">
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+
+    <Style Selector="TextBlock.body-sm">
+        <Setter Property="FontSize" Value="10"/>
     </Style>
 
     <!-- Panel Styling -->
@@ -118,6 +155,39 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="4"/>
         <Setter Property="Padding" Value="12"/>
+    </Style>
+
+    <!-- Resource bar: standardized summary row of stat pills -->
+    <Style Selector="Border.resource-bar">
+        <Setter Property="Background" Value="{StaticResource Surface100Brush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Padding" Value="12,8"/>
+    </Style>
+
+    <!-- Contextual action bar: docked at the bottom of a list panel,
+         shown only when a row is selected. Hosts the primary action for that panel. -->
+    <Style Selector="Border.action-bar">
+        <Setter Property="Background" Value="{StaticResource Surface200Brush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+        <Setter Property="BorderThickness" Value="0,1,0,0"/>
+        <Setter Property="Padding" Value="12,8"/>
+    </Style>
+
+    <!-- List item row -->
+    <Style Selector="Border.list-row">
+        <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="Margin" Value="0,0,0,2"/>
+    </Style>
+
+    <Style Selector="Border.list-row-sub">
+        <Setter Property="Background" Value="{StaticResource Surface200Brush}"/>
+        <Setter Property="CornerRadius" Value="2"/>
+        <Setter Property="Padding" Value="6,3"/>
+        <Setter Property="Margin" Value="0,0,0,2"/>
     </Style>
 
     <Style Selector="Border.panel-inset">
@@ -205,6 +275,43 @@
         <Setter Property="FontSize" Value="10"/>
     </Style>
 
+    <!-- Transparent icon-style button (for list-row ± and x controls). Centered by default. -->
+    <Style Selector="Button.icon">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="MinWidth" Value="0"/>
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, monospace"/>
+        <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource Surface300Brush}"/>
+    </Style>
+
+    <Style Selector="Button.icon.danger">
+        <Setter Property="Foreground" Value="{StaticResource DestructiveBrush}"/>
+    </Style>
+
+    <!-- Ghost/transparent button for facet lists -->
+    <Style Selector="Button.ghost">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="6,3"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+
+    <Style Selector="Button.action">
+        <Setter Property="MinWidth" Value="70"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
+
     <!-- TextBox -->
     <Style Selector="TextBox">
         <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
@@ -221,7 +328,7 @@
         <Setter Property="BorderBrush" Value="{StaticResource AccentCyberBrush}"/>
     </Style>
 
-    <!-- NumericUpDown -->
+    <!-- NumericUpDown (matches Compact Input spec: 24px height, integer-only format) -->
     <Style Selector="NumericUpDown">
         <Setter Property="Background" Value="{StaticResource SurfaceInsetBrush}"/>
         <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
@@ -229,31 +336,57 @@
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CornerRadius" Value="2"/>
         <Setter Property="FontSize" Value="11"/>
-        <Setter Property="MinHeight" Value="22"/>
-        <Setter Property="MinWidth" Value="50"/>
-        <Setter Property="Padding" Value="2,1"/>
+        <Setter Property="MinHeight" Value="24"/>
+        <Setter Property="MinWidth" Value="48"/>
+        <Setter Property="Padding" Value="4,0"/>
         <Setter Property="ClipValueToMinMax" Value="True"/>
+        <Setter Property="FormatString" Value="0"/>
+        <Setter Property="Increment" Value="1"/>
     </Style>
 
     <Style Selector="NumericUpDown:focus">
         <Setter Property="BorderBrush" Value="{StaticResource AccentCyberBrush}"/>
     </Style>
 
-    <!-- Compact spinner buttons -->
+    <!-- Compact spinner buttons: 20px wide, on grid -->
     <Style Selector="NumericUpDown /template/ RepeatButton">
-        <Setter Property="MinWidth" Value="18"/>
-        <Setter Property="Width" Value="18"/>
+        <Setter Property="MinWidth" Value="20"/>
+        <Setter Property="Width" Value="20"/>
         <Setter Property="Padding" Value="0"/>
     </Style>
 
     <Style Selector="NumericUpDown /template/ ButtonSpinner">
-        <Setter Property="MinHeight" Value="20"/>
+        <Setter Property="MinHeight" Value="24"/>
     </Style>
 
     <Style Selector="NumericUpDown /template/ TextBox">
-        <Setter Property="MinHeight" Value="18"/>
+        <Setter Property="MinHeight" Value="20"/>
         <Setter Property="Padding" Value="4,0"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Prominent numeric spinner: 32px tall, 14px bold digit. For 1-6 stat-like inputs
+         (attributes, spell force) where the number is the focus of the control. -->
+    <Style Selector="NumericUpDown.prominent">
+        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="MinWidth" Value="96"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+    <Style Selector="NumericUpDown.prominent /template/ TextBox">
+        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Padding" Value="8,0"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="NumericUpDown.prominent /template/ ButtonSpinner">
+        <Setter Property="MinHeight" Value="28"/>
+    </Style>
+    <Style Selector="NumericUpDown.prominent /template/ RepeatButton">
+        <Setter Property="MinWidth" Value="24"/>
+        <Setter Property="Width" Value="24"/>
     </Style>
 
     <!-- ComboBox -->

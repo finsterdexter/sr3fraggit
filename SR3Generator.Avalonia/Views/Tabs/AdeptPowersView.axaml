@@ -3,79 +3,87 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
              mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
              x:Class="SR3Generator.Avalonia.Views.Tabs.AdeptPowersView"
              x:DataType="vm:AdeptPowersViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="12">
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
         <!-- Header -->
-        <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,8">
-            <TextBlock Text="Adept Powers" Classes="page-title"/>
-            <TextBlock Text="Physical Adepts channel magic into physical and mental enhancement."
-                       FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="{x:Static res:Strings.AdeptPowersTitle}" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="{x:Static res:Strings.AdeptPowersSubtitle}"/>
         </StackPanel>
 
-        <!-- Power Points Summary -->
-        <Border Grid.Row="1" Classes="panel" Padding="8" Margin="0,0,0,8">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="MAGIC" FontSize="9" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding MagicRating}" FontWeight="Bold"
-                               FontFamily="JetBrains Mono, monospace"
-                               Foreground="{StaticResource AccentManaBrush}" VerticalAlignment="Center"/>
+        <!-- Resource bar -->
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal" Spacing="28">
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelMagic}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding MagicRating}" Classes="stat-value-lg"
+                               Foreground="{StaticResource AccentManaBrush}"/>
                 </StackPanel>
-
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" Margin="16,0">
-                    <TextBlock Text="SPENT" FontSize="9" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding PowerPointsSpentDisplay}" FontWeight="Bold"
-                               FontFamily="JetBrains Mono, monospace"
-                               Foreground="{StaticResource AccentNuyenBrush}" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelPowerPtsRemaining}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value-lg">
+                        <Run Text="{Binding PowerPointsRemainingDisplay}"
+                             Foreground="{StaticResource AccentKarmaBrush}"/>
+                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                        <Run Text="{Binding MagicRating}"
+                             Foreground="{StaticResource InkSecondaryBrush}"/>
+                    </TextBlock>
                 </StackPanel>
-
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6">
-                    <TextBlock Text="REMAINING" FontSize="9" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding PowerPointsRemainingDisplay}" FontWeight="Bold"
-                               FontFamily="JetBrains Mono, monospace"
-                               Foreground="{StaticResource AccentKarmaBrush}" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelSpent}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding PowerPointsSpentDisplay}" Classes="stat-value"
+                               Foreground="{StaticResource InkSecondaryBrush}"/>
                 </StackPanel>
-            </Grid>
+            </StackPanel>
         </Border>
 
-        <!-- Main Content -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,220">
+        <!-- Main: Available | Controls | Purchased -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,240,12,*">
             <!-- Available Powers -->
-            <Border Grid.Column="0" Classes="panel" Margin="0,0,6,0">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,8">
-                        <TextBlock Text="AVAILABLE POWERS" Classes="section-header"/>
-                        <TextBox Text="{Binding FilterText}" Watermark="Search powers..."/>
+            <Border Grid.Column="0" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="12,12,12,8">
+                        <TextBlock Text="{x:Static res:Strings.SectionAvailable}" Classes="section-header"/>
+                        <TextBox Text="{Binding FilterText}" Watermark="{x:Static res:Strings.WatermarkSearchPowers}"/>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="Level:" FontSize="10" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{x:Static res:Strings.LabelLevel}" Classes="micro-label"/>
                             <ComboBox ItemsSource="{Binding AvailableLevels}"
-                                      SelectedItem="{Binding SelectedLevel}" MinWidth="60"/>
-                            <TextBlock Text="(for leveled powers *)" FontSize="9"
-                                       Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
+                                      SelectedItem="{Binding SelectedLevel}"
+                                      MinWidth="70"/>
+                            <TextBlock Text="{x:Static res:Strings.AdeptPowersLevelHint}" FontSize="10"
+                                       Foreground="{StaticResource InkMutedBrush}"
+                                       VerticalAlignment="Center"/>
                         </StackPanel>
                     </StackPanel>
                     <ListBox ItemsSource="{Binding AvailablePowers}"
-                             SelectedItem="{Binding SelectedAvailablePower}">
+                             SelectedItem="{Binding SelectedAvailablePower}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vm:AdeptPowerItem">
-                                <Grid ColumnDefinitions="*,50">
-                                    <StackPanel>
+                                <Grid ColumnDefinitions="*,60">
+                                    <StackPanel VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding DisplayName}" FontSize="10" FontWeight="SemiBold"/>
-                                            <TextBlock Text="{Binding LeveledIndicator}" FontSize="10"
-                                                       Foreground="{StaticResource AccentNuyenBrush}" Margin="2,0,0,0"/>
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       Classes="body" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding LeveledIndicator}" Classes="body"
+                                                       Foreground="{StaticResource AccentNuyenBrush}"
+                                                       Margin="4,0,0,0"/>
                                         </StackPanel>
-                                        <TextBlock Text="{Binding Notes}" FontSize="9"
+                                        <TextBlock Text="{Binding Notes}" FontSize="10"
                                                    Foreground="{StaticResource InkMutedBrush}"
                                                    TextTrimming="CharacterEllipsis" MaxLines="1"/>
                                     </StackPanel>
                                     <TextBlock Grid.Column="1" Text="{Binding CostDisplay}"
-                                               FontFamily="JetBrains Mono, monospace" FontSize="10"
+                                               Classes="stat-value"
                                                Foreground="{StaticResource AccentManaBrush}"
-                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -83,29 +91,42 @@
                 </DockPanel>
             </Border>
 
-            <!-- Add/Remove Controls -->
-            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6" Margin="6,0">
-                <Button Content="Add" Command="{Binding AddPowerCommand}" Width="60"/>
-                <Button Content="Remove" Command="{Binding RemovePowerCommand}" Width="60"/>
-            </StackPanel>
+            <!-- Controls -->
+            <Border Grid.Column="1" Classes="panel" Margin="12,0,0,0">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{x:Static res:Strings.SectionActions}" Classes="section-header"/>
+                    <Button Content="{x:Static res:Strings.ButtonAddPower}"
+                            Classes="primary action"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding AddPowerCommand}"/>
+                    <Button Content="{x:Static res:Strings.ButtonRemoveSelected}"
+                            Classes="action"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding RemovePowerCommand}"/>
+                </StackPanel>
+            </Border>
 
-            <!-- Purchased Powers -->
-            <Border Grid.Column="2" Classes="panel" Margin="6,0,0,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="PURCHASED" Classes="section-header" Margin="0,0,0,8"/>
+            <!-- Purchased -->
+            <Border Grid.Column="3" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionPurchased}"
+                               Classes="section-header" Margin="12,12,12,8"/>
                     <ListBox ItemsSource="{Binding PurchasedPowers}"
-                             SelectedItem="{Binding SelectedPurchasedPower}">
+                             SelectedItem="{Binding SelectedPurchasedPower}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vm:PurchasedPowerItem">
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding DisplayName}" FontSize="10" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding LevelDisplay}" FontSize="9"
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   Classes="body" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding LevelDisplay}" FontSize="10"
                                                    Foreground="{StaticResource InkMutedBrush}"
                                                    IsVisible="{Binding LevelDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                     </StackPanel>
                                     <TextBlock Grid.Column="1" Text="{Binding CostDisplay}"
-                                               FontFamily="JetBrains Mono, monospace" FontSize="10"
+                                               Classes="stat-value"
                                                Foreground="{StaticResource AccentManaBrush}"
                                                VerticalAlignment="Center"/>
                                 </Grid>

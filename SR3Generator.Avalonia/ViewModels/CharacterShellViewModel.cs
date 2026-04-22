@@ -18,12 +18,9 @@ public partial class CharacterShellViewModel : ViewModelBase
     // Tab ViewModels
     public PrioritiesViewModel PrioritiesVM { get; }
     public RaceViewModel RaceVM { get; }
-    public MagicViewModel MagicVM { get; }
+    public MagicContainerViewModel MagicContainerVM { get; }
     public AttributesViewModel AttributesVM { get; }
     public SkillsViewModel SkillsVM { get; }
-    public SpellsViewModel SpellsVM { get; }
-    public AdeptPowersViewModel AdeptPowersVM { get; }
-    public FociViewModel FociVM { get; }
     public GearViewModel GearVM { get; }
     public AugmentationsViewModel AugmentationsVM { get; }
     public ContactsViewModel ContactsVM { get; }
@@ -78,16 +75,18 @@ public partial class CharacterShellViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isAdept;
 
+    // True when the Magic priority permits any magical aspect choice (i.e. A or B).
+    // When false, the Magic tab is pointless and should be hidden.
+    [ObservableProperty]
+    private bool _canChooseMagic;
+
     public CharacterShellViewModel(
         ICharacterBuilderService characterService,
         PrioritiesViewModel prioritiesVM,
         RaceViewModel raceVM,
-        MagicViewModel magicVM,
+        MagicContainerViewModel magicContainerVM,
         AttributesViewModel attributesVM,
         SkillsViewModel skillsVM,
-        SpellsViewModel spellsVM,
-        AdeptPowersViewModel adeptPowersVM,
-        FociViewModel fociVM,
         GearViewModel gearVM,
         AugmentationsViewModel augmentationsVM,
         ContactsViewModel contactsVM,
@@ -98,12 +97,9 @@ public partial class CharacterShellViewModel : ViewModelBase
         // Initialize tab ViewModels
         PrioritiesVM = prioritiesVM;
         RaceVM = raceVM;
-        MagicVM = magicVM;
+        MagicContainerVM = magicContainerVM;
         AttributesVM = attributesVM;
         SkillsVM = skillsVM;
-        SpellsVM = spellsVM;
-        AdeptPowersVM = adeptPowersVM;
-        FociVM = fociVM;
         GearVM = gearVM;
         AugmentationsVM = augmentationsVM;
         ContactsVM = contactsVM;
@@ -143,6 +139,10 @@ public partial class CharacterShellViewModel : ViewModelBase
         HasMagic = magicAspect != null && magicAspect.Name != AspectName.Mundane;
         HasSorcery = magicAspect?.HasSorcery ?? false;
         IsAdept = magicAspect?.HasPhysicalAdept ?? false;
+
+        // The Magic tab is only useful if the priority actually allows magic choices.
+        // MagicAspectsAllowed is empty for Magic priority C/D/E.
+        CanChooseMagic = builder.MagicAspectsAllowed.Any();
 
         // Nuyen
         NuyenAllowance = builder.ResourcesAllowance;

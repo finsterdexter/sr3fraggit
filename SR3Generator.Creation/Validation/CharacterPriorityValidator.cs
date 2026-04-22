@@ -1,4 +1,5 @@
 ﻿using SR3Generator.Data.Character;
+using SR3Generator.Data.Magic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,9 +18,87 @@ namespace SR3Generator.Creation.Validation
                 .ValidateAttributes(builder)
                 .ValidateRace(builder)
                 .ValidateMagicAspect(builder)
+                .ValidateTraditionAndAffinity(builder)
                 .ValidateSpells(builder)
+                .ValidateBondedSpirits(builder)
+                .ValidateNuyen(builder)
                 ;
             return IssueCheck();
+        }
+
+        private CharacterPriorityValidator ValidateNuyen(CharacterBuilder builder)
+        {
+            // Character.Nuyen starts at 0 and is decremented by purchases (Gear / Cyber / Bio /
+            // Contacts). "Remaining" = ResourcesAllowance + Character.Nuyen. If that is negative,
+            // the player has spent more than their Resources priority allows.
+            var remaining = builder.ResourcesAllowance + builder.Character.Nuyen;
+            if (remaining < 0)
+            {
+                var over = -remaining;
+                Issues.Add(new ValidationIssue
+                {
+                    Category = ValidationIssueCategory.Resources,
+                    Level = ValidationIssueLevel.Error,
+                    Message = $"Overspent by {over:N0}¥. Total spent exceeds the {builder.ResourcesAllowance:N0}¥ Resources budget."
+                });
+            }
+            return this;
+        }
+
+        private CharacterPriorityValidator ValidateTraditionAndAffinity(CharacterBuilder builder)
+        {
+            var character = builder.Character;
+            var aspect = character.MagicAspect;
+            if (aspect is null) return this;
+
+            switch (aspect.Name)
+            {
+                case AspectName.Shamanist:
+                    if (character.Tradition != Tradition.Shamanic)
+                        Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = "Shamanist must follow the Shamanic tradition." });
+                    if (character.Totem is null)
+                        Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = "Shamanist must choose a totem." });
+                    break;
+                case AspectName.Elementalist:
+                    if (character.Tradition != Tradition.Hermetic)
+                        Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = "Elementalist must follow the Hermetic tradition." });
+                    if (character.HermeticElement is null)
+                        Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = "Elementalist must choose a hermetic element." });
+                    break;
+                case AspectName.FullMagician:
+                case AspectName.Sorcerer:
+                case AspectName.Conjurer:
+                    if (character.Tradition is null)
+                        Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = $"{aspect.Name} must choose a tradition (Hermetic or Shamanic)." });
+                    if (character.Tradition == Tradition.Shamanic && character.Totem is null)
+                        Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = "Shamans must choose a totem." });
+                    break;
+            }
+            return this;
+        }
+
+        private CharacterPriorityValidator ValidateBondedSpirits(CharacterBuilder builder)
+        {
+            var character = builder.Character;
+            if (character.BondedSpirits.Count == 0) return this;
+
+            if (character.MagicAspect is null || !character.MagicAspect.HasConjuring)
+            {
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = "Character has bound spirits but no Conjuring ability." });
+                return this;
+            }
+
+            if (character.BondedSpirits.Count > CharacterBuilder.MaxBondedSpirits)
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = $"Cannot start with more than {CharacterBuilder.MaxBondedSpirits} bound spirits." });
+
+            foreach (var bonded in character.BondedSpirits.Values)
+            {
+                if (bonded.Spirit.Force < 1 || bonded.Spirit.Force > CharacterBuilder.MaxSpiritForce)
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = $"Spirit '{bonded.Spirit.Name}' has invalid Force {bonded.Spirit.Force}." });
+                if (bonded.Services < 1 || bonded.Services > CharacterBuilder.MaxSpiritServices)
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = $"Spirit '{bonded.Spirit.Name}' has invalid Services {bonded.Services}." });
+            }
+            return this;
         }
 
         private CharacterPriorityValidator ValidateAttributes(CharacterBuilder builder)

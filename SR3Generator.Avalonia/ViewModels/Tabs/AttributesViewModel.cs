@@ -152,13 +152,14 @@ public partial class AttributesViewModel : ViewModelBase
             IntelligenceValue = character.Attributes[AttributeName.Intelligence].BaseValue;
             WillpowerValue = character.Attributes[AttributeName.Willpower].BaseValue;
 
-            // Load augmented values (includes cyberware/bioware mods)
-            BodyAugmented = character.Attributes[AttributeName.Body].GetAugmentedValue(character);
-            QuicknessAugmented = character.Attributes[AttributeName.Quickness].GetAugmentedValue(character);
-            StrengthAugmented = character.Attributes[AttributeName.Strength].GetAugmentedValue(character);
-            CharismaAugmented = character.Attributes[AttributeName.Charisma].GetAugmentedValue(character);
-            IntelligenceAugmented = character.Attributes[AttributeName.Intelligence].GetAugmentedValue(character);
-            WillpowerAugmented = character.Attributes[AttributeName.Willpower].GetAugmentedValue(character);
+            // Augmented = base + racial + cyber/bio mods. GetAugmentedValue only covers gear/bio,
+            // so we layer the racial mod on top to get the full augmented total.
+            BodyAugmented = character.Attributes[AttributeName.Body].GetAugmentedValue(character) + BodyRacialMod;
+            QuicknessAugmented = character.Attributes[AttributeName.Quickness].GetAugmentedValue(character) + QuicknessRacialMod;
+            StrengthAugmented = character.Attributes[AttributeName.Strength].GetAugmentedValue(character) + StrengthRacialMod;
+            CharismaAugmented = character.Attributes[AttributeName.Charisma].GetAugmentedValue(character) + CharismaRacialMod;
+            IntelligenceAugmented = character.Attributes[AttributeName.Intelligence].GetAugmentedValue(character) + IntelligenceRacialMod;
+            WillpowerAugmented = character.Attributes[AttributeName.Willpower].GetAugmentedValue(character) + WillpowerRacialMod;
 
             // Derived values - Essence now tracked as decimal
             var essence = builder.GetCurrentEssence();

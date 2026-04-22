@@ -16,6 +16,12 @@ namespace SR3Generator.Data.Gear
         public decimal Weight { get; set; }
         public required Availability Availability { get; set; }
         public int Cost { get; set; }
+        /// <summary>
+        /// Actual nuyen paid when this item was purchased/installed, including grade multiplier
+        /// and street-index multiplier. Set by the builder on purchase; zero for catalog entries
+        /// that haven't been bought. Removals refund this value.
+        /// </summary>
+        public long PaidCost { get; set; }
         public decimal StreetIndex { get; set; }
         public required string Book { get; set; }
         public int Page { get; set; }

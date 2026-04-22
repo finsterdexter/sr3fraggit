@@ -4,7 +4,9 @@ using SR3Generator.Avalonia.Services;
 using SR3Generator.Data;
 using SR3Generator.Data.Character;
 using SR3Generator.Data.Magic;
+using SR3Generator.Database;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -12,10 +14,21 @@ namespace SR3Generator.Avalonia.ViewModels.Tabs;
 
 public partial class SpellsViewModel : ViewModelBase
 {
+    private const string AllCategoriesFilter = "All";
+
     private readonly ICharacterBuilderService _characterService;
+    private readonly SpellDatabase _spellDatabase;
+    private readonly RulesGlossary _rulesGlossary;
+    private readonly List<SpellItem> _allSpells = new();
+
+    public SR3Generator.Database.Queries.RulesEntry? ExclusiveRule { get; }
+    public SR3Generator.Database.Queries.RulesEntry? FetishRule { get; }
 
     [ObservableProperty]
-    private ObservableCollection<SpellCategoryItem> _spellCategories = new();
+    private ObservableCollection<SpellItem> _filteredSpells = new();
+
+    [ObservableProperty]
+    private SpellItem? _selectedAvailableSpell;
 
     [ObservableProperty]
     private ObservableCollection<SpellItem> _purchasedSpells = new();
@@ -24,13 +37,19 @@ public partial class SpellsViewModel : ViewModelBase
     private SpellItem? _selectedPurchasedSpell;
 
     [ObservableProperty]
-    private SpellClass _selectedCategory = SpellClass.Combat;
+    private string _categoryFilter = AllCategoriesFilter;
+
+    [ObservableProperty]
+    private string _searchText = string.Empty;
 
     [ObservableProperty]
     private int _newSpellForce = 1;
 
     [ObservableProperty]
     private bool _newSpellExclusive;
+
+    [ObservableProperty]
+    private bool _newSpellFetishLimited;
 
     [ObservableProperty]
     private int _spellPointsAllowance;
@@ -50,97 +69,107 @@ public partial class SpellsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _hasSorcery;
 
-    public ObservableCollection<SpellClass> AvailableCategories { get; } = new(
-        Enum.GetValues<SpellClass>()
-    );
+    public ObservableCollection<string> CategoryFilters { get; } = new()
+    {
+        AllCategoriesFilter, "Combat", "Detection", "Health", "Illusion", "Manipulation"
+    };
 
-    public SpellsViewModel(ICharacterBuilderService characterService)
+    public int PendingSpellCost
+    {
+        get
+        {
+            var cost = NewSpellForce;
+            if (NewSpellExclusive) cost -= 2;
+            if (NewSpellFetishLimited) cost -= 1;
+            return Math.Max(1, cost);
+        }
+    }
+
+    public string PendingCostDisplay
+    {
+        get
+        {
+            var modifiers = new List<string>();
+            if (NewSpellExclusive) modifiers.Add("exclusive");
+            if (NewSpellFetishLimited) modifiers.Add("fetish");
+            return modifiers.Count == 0
+                ? $"{PendingSpellCost} pts"
+                : $"{PendingSpellCost} pts ({string.Join(", ", modifiers)})";
+        }
+    }
+
+    public SpellsViewModel(
+        ICharacterBuilderService characterService,
+        SpellDatabase spellDatabase,
+        RulesGlossary rulesGlossary)
     {
         _characterService = characterService;
+        _spellDatabase = spellDatabase;
+        _rulesGlossary = rulesGlossary;
         _characterService.CharacterChanged += OnCharacterChanged;
-        LoadSpellCategories();
+
+        ExclusiveRule = _rulesGlossary.Get("spell.exclusive");
+        FetishRule = _rulesGlossary.Get("spell.fetish");
+
+        LoadSpells();
+        ApplyFilter();
         RefreshFromBuilder();
     }
 
-    private void OnCharacterChanged(object? sender, EventArgs e)
+    private void OnCharacterChanged(object? sender, EventArgs e) => RefreshFromBuilder();
+
+    partial void OnCategoryFilterChanged(string value) => ApplyFilter();
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
+
+    partial void OnNewSpellForceChanged(int value)
     {
-        RefreshFromBuilder();
+        OnPropertyChanged(nameof(PendingSpellCost));
+        OnPropertyChanged(nameof(PendingCostDisplay));
     }
 
-    private void LoadSpellCategories()
+    partial void OnNewSpellExclusiveChanged(bool value)
     {
-        // Add spell categories with sample spells
-        // In a real app, these would come from a database
-        SpellCategories.Add(new SpellCategoryItem("Combat", SpellClass.Combat, new[]
-        {
-            CreateSpell("Manabolt", SpellClass.Combat, SpellType.Mana, "(W)M", "LOS"),
-            CreateSpell("Powerbolt", SpellClass.Combat, SpellType.Physical, "(W)M", "LOS"),
-            CreateSpell("Manaball", SpellClass.Combat, SpellType.Mana, "(W)S", "LOS (Area)"),
-            CreateSpell("Powerball", SpellClass.Combat, SpellType.Physical, "(W)S", "LOS (Area)"),
-            CreateSpell("Stunbolt", SpellClass.Combat, SpellType.Mana, "(W)M", "LOS"),
-            CreateSpell("Stunball", SpellClass.Combat, SpellType.Mana, "(W)S", "LOS (Area)"),
-        }));
-
-        SpellCategories.Add(new SpellCategoryItem("Detection", SpellClass.Detection, new[]
-        {
-            CreateSpell("Analyze Device", SpellClass.Detection, SpellType.Physical, "M", "Touch"),
-            CreateSpell("Clairvoyance", SpellClass.Detection, SpellType.Mana, "M", "Touch"),
-            CreateSpell("Combat Sense", SpellClass.Detection, SpellType.Mana, "M", "Touch"),
-            CreateSpell("Detect Enemies", SpellClass.Detection, SpellType.Mana, "M", "Touch (Area)"),
-            CreateSpell("Detect Magic", SpellClass.Detection, SpellType.Mana, "M", "Touch (Area)"),
-            CreateSpell("Mind Probe", SpellClass.Detection, SpellType.Mana, "S", "Touch"),
-        }));
-
-        SpellCategories.Add(new SpellCategoryItem("Health", SpellClass.Health, new[]
-        {
-            CreateSpell("Antidote", SpellClass.Health, SpellType.Mana, "(D)L", "Touch"),
-            CreateSpell("Cure Disease", SpellClass.Health, SpellType.Mana, "(D)L", "Touch"),
-            CreateSpell("Decrease Attribute", SpellClass.Health, SpellType.Physical, "(W)M", "Touch"),
-            CreateSpell("Heal", SpellClass.Health, SpellType.Mana, "(D)M", "Touch"),
-            CreateSpell("Increase Attribute", SpellClass.Health, SpellType.Physical, "(F÷2)M", "Touch"),
-            CreateSpell("Stabilize", SpellClass.Health, SpellType.Mana, "L", "Touch"),
-        }));
-
-        SpellCategories.Add(new SpellCategoryItem("Illusion", SpellClass.Illusion, new[]
-        {
-            CreateSpell("Chaos", SpellClass.Illusion, SpellType.Mana, "S", "LOS (Area)"),
-            CreateSpell("Confusion", SpellClass.Illusion, SpellType.Mana, "M", "LOS"),
-            CreateSpell("Entertainment", SpellClass.Illusion, SpellType.Mana, "M", "LOS (Area)"),
-            CreateSpell("Invisibility", SpellClass.Illusion, SpellType.Mana, "M", "LOS"),
-            CreateSpell("Mask", SpellClass.Illusion, SpellType.Mana, "M", "Touch"),
-            CreateSpell("Physical Mask", SpellClass.Illusion, SpellType.Physical, "M", "Touch"),
-        }));
-
-        SpellCategories.Add(new SpellCategoryItem("Manipulation", SpellClass.Manipulation, new[]
-        {
-            CreateSpell("Armor", SpellClass.Manipulation, SpellType.Physical, "M", "Touch"),
-            CreateSpell("Control Actions", SpellClass.Manipulation, SpellType.Mana, "S", "LOS"),
-            CreateSpell("Influence", SpellClass.Manipulation, SpellType.Mana, "M", "LOS"),
-            CreateSpell("Levitate", SpellClass.Manipulation, SpellType.Physical, "M", "LOS"),
-            CreateSpell("Light", SpellClass.Manipulation, SpellType.Physical, "M", "LOS (Area)"),
-            CreateSpell("Shadow", SpellClass.Manipulation, SpellType.Physical, "M", "LOS (Area)"),
-        }));
+        OnPropertyChanged(nameof(PendingSpellCost));
+        OnPropertyChanged(nameof(PendingCostDisplay));
     }
 
-    private Spell CreateSpell(string name, SpellClass spellClass, SpellType type, string drain, string range)
+    partial void OnNewSpellFetishLimitedChanged(bool value)
     {
-        return new Spell
+        OnPropertyChanged(nameof(PendingSpellCost));
+        OnPropertyChanged(nameof(PendingCostDisplay));
+    }
+
+    partial void OnSelectedAvailableSpellChanged(SpellItem? value) =>
+        AddSpellCommand.NotifyCanExecuteChanged();
+
+    private void LoadSpells()
+    {
+        _allSpells.Clear();
+        foreach (var spell in _spellDatabase.Spells)
         {
-            Name = name,
-            Class = spellClass,
-            Type = type,
-            Drain = drain,
-            Range = range == "Touch" ? SpellRange.Touch :
-                    range == "LOS" ? SpellRange.LineOfSight :
-                    range.Contains("Area") ? SpellRange.LineOfSight : SpellRange.Touch,
-            Duration = Duration.Instant,
-            Target = "",
-            Notes = "",
-            Book = "SR3",
-            Page = 0,
-            Force = 1,
-            IsExclusive = false
-        };
+            _allSpells.Add(SpellItem.FromTemplate(spell));
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        FilteredSpells.Clear();
+
+        IEnumerable<SpellItem> src = _allSpells;
+        if (CategoryFilter != AllCategoriesFilter)
+        {
+            src = src.Where(s => s.CategoryName == CategoryFilter);
+        }
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            var needle = SearchText.Trim();
+            src = src.Where(s => s.Name.Contains(needle, StringComparison.OrdinalIgnoreCase));
+        }
+
+        foreach (var s in src.OrderBy(s => s.CategoryName).ThenBy(s => s.Name))
+        {
+            FilteredSpells.Add(s);
+        }
     }
 
     private void RefreshFromBuilder()
@@ -152,7 +181,7 @@ public partial class SpellsViewModel : ViewModelBase
         HasSorcery = character.MagicAspect?.HasSorcery ?? false;
         SpellPointsAllowance = character.MagicAspect?.StartingSpellPoints ?? 0;
 
-        // Calculate spell points spent
+        var previouslySelected = SelectedPurchasedSpell?.Name;
         PurchasedSpells.Clear();
         SpellPointsSpent = 0;
 
@@ -163,75 +192,69 @@ public partial class SpellsViewModel : ViewModelBase
             SpellPointsSpent += CalculateSpellCost(spell);
         }
 
-        SpellPointsRemaining = SpellPointsAllowance + (BonusSpellPointsPurchased * 1) - SpellPointsSpent;
+        if (previouslySelected is not null)
+        {
+            SelectedPurchasedSpell = PurchasedSpells.FirstOrDefault(s => s.Name == previouslySelected);
+        }
+
+        SpellPointsRemaining = SpellPointsAllowance + BonusSpellPointsPurchased - SpellPointsSpent;
     }
 
-    private int CalculateSpellCost(Spell spell)
+    private static int CalculateSpellCost(Spell spell)
     {
-        // Base cost is Force
         var cost = spell.Force;
-
-        // Exclusive spells cost 2 less (minimum 1)
-        if (spell.IsExclusive)
-            cost = Math.Max(1, cost - 2);
-
-        return cost;
+        if (spell.IsExclusive) cost -= 2;
+        if (spell.IsFetishLimited) cost -= 1;
+        return Math.Max(1, cost);
     }
 
-    [RelayCommand]
-    private void AddSpell(SpellItem? spellTemplate)
-    {
-        if (spellTemplate == null) return;
+    private bool CanAddSpell() => SelectedAvailableSpell is not null;
 
+    [RelayCommand(CanExecute = nameof(CanAddSpell))]
+    private void AddSpell()
+    {
+        if (SelectedAvailableSpell is null) return;
+
+        var template = SelectedAvailableSpell;
         var spell = new Spell
         {
-            Name = spellTemplate.Name,
-            Class = spellTemplate.Category,
-            Type = spellTemplate.Type,
-            Drain = spellTemplate.Drain,
-            Range = SpellRange.Touch,
-            Duration = Duration.Instant,
-            Target = "",
-            Notes = "",
-            Book = "SR3",
-            Page = 0,
+            Name = template.Name,
+            Class = template.Category,
+            Type = template.Type,
+            Drain = template.Drain,
+            Range = template.Range,
+            Duration = template.Duration,
+            Target = template.Target,
+            Notes = template.Notes,
+            Book = template.Book,
+            Page = template.Page,
             Force = NewSpellForce,
-            IsExclusive = NewSpellExclusive
+            IsExclusive = NewSpellExclusive,
+            IsFetishLimited = NewSpellFetishLimited,
         };
 
         _characterService.AddSpell(spell);
+
+        // Reset the configurator for the next pick but keep the selection so users
+        // can quickly add multiple force levels of the same spell.
         NewSpellForce = 1;
         NewSpellExclusive = false;
+        NewSpellFetishLimited = false;
     }
 
     [RelayCommand]
     private void RemoveSpell()
     {
-        if (SelectedPurchasedSpell == null) return;
+        if (SelectedPurchasedSpell is null) return;
         _characterService.RemoveSpell(SelectedPurchasedSpell.Name);
     }
 
     [RelayCommand]
     private void BuySpellPoints()
     {
-        // Each additional spell point costs 25,000 nuyen
         _characterService.BuySpellPoints(1);
         BonusSpellPointsPurchased++;
         RefreshFromBuilder();
-    }
-}
-
-public class SpellCategoryItem
-{
-    public string Name { get; }
-    public SpellClass Category { get; }
-    public ObservableCollection<SpellItem> Spells { get; }
-
-    public SpellCategoryItem(string name, SpellClass category, Spell[] spells)
-    {
-        Name = name;
-        Category = category;
-        Spells = new ObservableCollection<SpellItem>(spells.Select(s => new SpellItem(s)));
     }
 }
 
@@ -239,12 +262,34 @@ public partial class SpellItem : ObservableObject
 {
     public string Name { get; }
     public SpellClass Category { get; }
+    public string CategoryName => Category.ToString();
     public SpellType Type { get; }
     public string TypeDisplay => Type == SpellType.Physical ? "P" : "M";
     public string Drain { get; }
+    public SpellRange Range { get; }
+    public Duration Duration { get; }
+    public string Target { get; }
+    public string? Notes { get; }
+    public string Book { get; }
+    public int Page { get; }
     public int Force { get; }
     public bool IsExclusive { get; }
-    public string CostDisplay => IsExclusive ? $"{Math.Max(1, Force - 2)} (Excl)" : Force.ToString();
+    public bool IsFetishLimited { get; }
+
+    public string CostDisplay
+    {
+        get
+        {
+            var cost = Force;
+            if (IsExclusive) cost -= 2;
+            if (IsFetishLimited) cost -= 1;
+            cost = Math.Max(1, cost);
+            var modifiers = new List<string>();
+            if (IsExclusive) modifiers.Add("Excl");
+            if (IsFetishLimited) modifiers.Add("Fetish");
+            return modifiers.Count == 0 ? cost.ToString() : $"{cost} ({string.Join(", ", modifiers)})";
+        }
+    }
 
     public SpellItem(Spell spell)
     {
@@ -252,7 +297,16 @@ public partial class SpellItem : ObservableObject
         Category = spell.Class;
         Type = spell.Type;
         Drain = spell.Drain;
+        Range = spell.Range;
+        Duration = spell.Duration;
+        Target = spell.Target;
+        Notes = spell.Notes;
+        Book = spell.Book;
+        Page = spell.Page;
         Force = spell.Force;
         IsExclusive = spell.IsExclusive;
+        IsFetishLimited = spell.IsFetishLimited;
     }
+
+    public static SpellItem FromTemplate(Spell template) => new(template);
 }

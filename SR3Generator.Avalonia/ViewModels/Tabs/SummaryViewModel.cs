@@ -45,10 +45,36 @@ public partial class SummaryViewModel : ViewModelBase
     private int _reaction;
 
     [ObservableProperty]
-    private int _essence = 6;
+    private decimal _essence = 6m;
+
+    public string EssenceDisplay => Essence.ToString("F2");
 
     [ObservableProperty]
     private int _magic;
+
+    // Augmented totals (base + racial + cyber/bio). When equal to the unaugmented
+    // total, the *Display property just shows the single number.
+    [ObservableProperty] private int _bodyAugmented;
+    [ObservableProperty] private int _quicknessAugmented;
+    [ObservableProperty] private int _strengthAugmented;
+    [ObservableProperty] private int _charismaAugmented;
+    [ObservableProperty] private int _intelligenceAugmented;
+    [ObservableProperty] private int _willpowerAugmented;
+    [ObservableProperty] private int _reactionAugmented;
+
+    // Initiative dice: SR3 stores the die count on the Initiative attribute (base 1,
+    // +1 per Wired Reflexes level). Total initiative roll = ReactionAugmented + Xd6.
+    [ObservableProperty] private int _initiativeDice = 1;
+
+    public string InitiativeDisplay => $"{ReactionAugmented} + {InitiativeDice}d6";
+
+    public string BodyDisplay => BodyAugmented != Body ? $"{Body} ({BodyAugmented})" : Body.ToString();
+    public string QuicknessDisplay => QuicknessAugmented != Quickness ? $"{Quickness} ({QuicknessAugmented})" : Quickness.ToString();
+    public string StrengthDisplay => StrengthAugmented != Strength ? $"{Strength} ({StrengthAugmented})" : Strength.ToString();
+    public string CharismaDisplay => CharismaAugmented != Charisma ? $"{Charisma} ({CharismaAugmented})" : Charisma.ToString();
+    public string IntelligenceDisplay => IntelligenceAugmented != Intelligence ? $"{Intelligence} ({IntelligenceAugmented})" : Intelligence.ToString();
+    public string WillpowerDisplay => WillpowerAugmented != Willpower ? $"{Willpower} ({WillpowerAugmented})" : Willpower.ToString();
+    public string ReactionDisplay => ReactionAugmented != Reaction ? $"{Reaction} ({ReactionAugmented})" : Reaction.ToString();
 
     // Skills
     [ObservableProperty]
@@ -112,8 +138,35 @@ public partial class SummaryViewModel : ViewModelBase
         Intelligence = GetAttributeTotal(character, AttributeName.Intelligence);
         Willpower = GetAttributeTotal(character, AttributeName.Willpower);
         Reaction = (Quickness + Intelligence) / 2;
-        Essence = (int)character.Attributes[AttributeName.Essence].BaseValue;
+        Essence = builder.GetCurrentEssence();
+        OnPropertyChanged(nameof(EssenceDisplay));
         Magic = character.Attributes[AttributeName.Magic].BaseValue;
+
+        // Augmented totals: GetAugmentedValue gives base + gear/bio mods; racial
+        // isn't folded in there, so we add it on top.
+        BodyAugmented = GetAttributeAugmented(character, AttributeName.Body);
+        QuicknessAugmented = GetAttributeAugmented(character, AttributeName.Quickness);
+        StrengthAugmented = GetAttributeAugmented(character, AttributeName.Strength);
+        CharismaAugmented = GetAttributeAugmented(character, AttributeName.Charisma);
+        IntelligenceAugmented = GetAttributeAugmented(character, AttributeName.Intelligence);
+        WillpowerAugmented = GetAttributeAugmented(character, AttributeName.Willpower);
+
+        // Reaction augments from Quickness/Intelligence aug plus any direct Reaction mod (wired reflexes).
+        var reactionBase = character.Attributes[AttributeName.Reaction].BaseValue;
+        var reactionDirectMod = character.Attributes[AttributeName.Reaction].GetAugmentedValue(character) - reactionBase;
+        ReactionAugmented = ((QuicknessAugmented + IntelligenceAugmented) / 2) + reactionDirectMod;
+
+        // Initiative dice: Initiative attribute holds the die count (default 1, +1 per Wired Reflexes level).
+        InitiativeDice = character.Attributes[AttributeName.Initiative].GetAugmentedValue(character);
+        OnPropertyChanged(nameof(InitiativeDisplay));
+
+        OnPropertyChanged(nameof(BodyDisplay));
+        OnPropertyChanged(nameof(QuicknessDisplay));
+        OnPropertyChanged(nameof(StrengthDisplay));
+        OnPropertyChanged(nameof(CharismaDisplay));
+        OnPropertyChanged(nameof(IntelligenceDisplay));
+        OnPropertyChanged(nameof(WillpowerDisplay));
+        OnPropertyChanged(nameof(ReactionDisplay));
 
         // Skills
         ActiveSkillsSummary.Clear();
@@ -169,6 +222,13 @@ public partial class SummaryViewModel : ViewModelBase
         var racialMod = character.Race?.AttributeMods
             .FirstOrDefault(m => m.AttributeName == name)?.ModValue ?? 0;
         return baseValue + racialMod;
+    }
+
+    private int GetAttributeAugmented(Character character, AttributeName name)
+    {
+        var racialMod = character.Race?.AttributeMods
+            .FirstOrDefault(m => m.AttributeName == name)?.ModValue ?? 0;
+        return character.Attributes[name].GetAugmentedValue(character) + racialMod;
     }
 
     private void RefreshValidation()

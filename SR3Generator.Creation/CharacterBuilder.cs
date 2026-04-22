@@ -14,6 +14,27 @@ namespace SR3Generator.Creation
     public class CharacterBuilder
     {
         private CharacterPriorityValidator _characterValidator = new CharacterPriorityValidator();
+        private CyberdeckValidator _cyberdeckValidator = new CyberdeckValidator();
+
+        /// <summary>
+        /// Runs all validators and refreshes <see cref="ValidationIssues"/>. Safe to call as
+        /// often as the UI needs — the validators are pure and cheap. Returns <c>true</c> when
+        /// no <c>Error</c>-level issues remain.
+        /// </summary>
+        public bool Validate()
+        {
+            ValidationIssues.Clear();
+
+            _characterValidator.Issues.Clear();
+            var (_, priorityIssues) = _characterValidator.Validate(this);
+            ValidationIssues.AddRange(priorityIssues);
+
+            _cyberdeckValidator.Issues.Clear();
+            var (_, deckIssues) = _cyberdeckValidator.Validate(this);
+            ValidationIssues.AddRange(deckIssues);
+
+            return !ValidationIssues.Any(i => i.Level == ValidationIssueLevel.Error);
+        }
         private readonly SkillDatabase _skillDatabase;
         private readonly ILogger<CharacterBuilder> _logger;
 
@@ -71,6 +92,22 @@ namespace SR3Generator.Creation
                     MagicAspectsAllowed = priority.GetAllowedMagicAspects();
                 }
             }
+
+            // Enforce consistency: if the priority shift invalidates the current magic aspect,
+            // drop it back to mundane state so downstream tabs (Spells / Adept / Foci) hide.
+            if (Character.MagicAspect is not null &&
+                !MagicAspectsAllowed.Any(a => a.Name == Character.MagicAspect.Name))
+            {
+                Character.MagicAspect = null;
+                SpellPointsAllowance = 0;
+                SpellPointsSpent = 0;
+                Character.Attributes[AttributeName.Magic].BaseValue = 0;
+                Character.Tradition = null;
+                Character.Totem = null;
+                Character.HermeticElement = null;
+                Character.BondedSpirits.Clear();
+            }
+
             return this;
         }
 
@@ -116,6 +153,9 @@ namespace SR3Generator.Creation
             Character.MagicAspect = magicAspect;
             SpellPointsAllowance = magicAspect.StartingSpellPoints;
             SpellPointsSpent = 0;
+            // Switching aspect invalidates any prior bound spirits since cost/availability
+            // are tied to the (possibly different) aspect.
+            Character.BondedSpirits.Clear();
 
             // Set Magic attribute to 6 for magical characters
             if (magicAspect.Name != AspectName.Mundane)
@@ -127,6 +167,160 @@ namespace SR3Generator.Creation
                 Character.Attributes[AttributeName.Magic].BaseValue = 0;
             }
 
+            // Enforce tradition / totem / element invariants per SR3 (p. 158-160).
+            switch (magicAspect.Name)
+            {
+                case AspectName.Shamanist:
+                    Character.Tradition = Tradition.Shamanic;
+                    Character.HermeticElement = null;
+                    break;
+
+                case AspectName.Elementalist:
+                    Character.Tradition = Tradition.Hermetic;
+                    Character.Totem = null;
+                    break;
+
+                case AspectName.PhysicalAdept:
+                case AspectName.Mundane:
+                    Character.Tradition = null;
+                    Character.Totem = null;
+                    Character.HermeticElement = null;
+                    break;
+
+                case AspectName.FullMagician:
+                case AspectName.Sorcerer:
+                case AspectName.Conjurer:
+                    // These can be either mage or shaman. Default to Hermetic if unset;
+                    // clear totem when not shamanic; element is never relevant to these.
+                    Character.HermeticElement = null;
+                    Character.Tradition ??= Tradition.Hermetic;
+                    if (Character.Tradition != Tradition.Shamanic)
+                    {
+                        Character.Totem = null;
+                    }
+                    break;
+            }
+
+            return this;
+        }
+
+        public CharacterBuilder WithTradition(Tradition tradition)
+        {
+            if (Character.MagicAspect is null)
+            {
+                _logger.LogWarning("WithTradition: No magic aspect selected");
+                return this;
+            }
+
+            // Aspects that have a fixed tradition can't be changed.
+            switch (Character.MagicAspect.Name)
+            {
+                case AspectName.Shamanist when tradition != Tradition.Shamanic:
+                    _logger.LogWarning("WithTradition: Shamanist aspect requires Shamanic tradition");
+                    return this;
+                case AspectName.Elementalist when tradition != Tradition.Hermetic:
+                    _logger.LogWarning("WithTradition: Elementalist aspect requires Hermetic tradition");
+                    return this;
+                case AspectName.PhysicalAdept:
+                case AspectName.Mundane:
+                    _logger.LogWarning("WithTradition: Aspect {AspectName} has no tradition", Character.MagicAspect.Name);
+                    return this;
+            }
+
+            Character.Tradition = tradition;
+            // Switching to hermetic clears any totem; switching to shamanic keeps element clear.
+            if (tradition == Tradition.Hermetic)
+            {
+                Character.Totem = null;
+            }
+            else
+            {
+                Character.HermeticElement = null;
+            }
+            return this;
+        }
+
+        public CharacterBuilder WithTotem(Totem totem)
+        {
+            if (Character.Tradition != Tradition.Shamanic)
+            {
+                _logger.LogWarning("WithTotem: Tradition is not Shamanic");
+                return this;
+            }
+            Character.Totem = totem;
+            return this;
+        }
+
+        public CharacterBuilder WithHermeticElement(HermeticElement element)
+        {
+            if (Character.MagicAspect?.Name != AspectName.Elementalist)
+            {
+                _logger.LogWarning("WithHermeticElement: Aspect is not Elementalist");
+                return this;
+            }
+            Character.HermeticElement = element;
+            return this;
+        }
+
+        // ----- Bound spirits (chargen only) -----------------------------------------------------
+        // SR3 p. 160 / mechanics.md: cost = Force × 1 + Services × 2 spell points.
+        // Limits: max 6 spirits, max Force 6, max 6 services. Adepts cannot summon.
+
+        public const int MaxBondedSpirits = 6;
+        public const int MaxSpiritForce = 6;
+        public const int MaxSpiritServices = 6;
+
+        public BondedSpirit? AddBondedSpirit(Spirit spirit, int services)
+        {
+            if (Character.MagicAspect is null || !Character.MagicAspect.HasConjuring)
+            {
+                _logger.LogWarning("AddBondedSpirit: Character does not have Conjuring");
+                return null;
+            }
+            if (spirit.Force < 1 || spirit.Force > MaxSpiritForce)
+            {
+                _logger.LogWarning("AddBondedSpirit: Force {Force} out of range 1-{Max}", spirit.Force, MaxSpiritForce);
+                return null;
+            }
+            if (services < 1 || services > MaxSpiritServices)
+            {
+                _logger.LogWarning("AddBondedSpirit: Services {Services} out of range 1-{Max}", services, MaxSpiritServices);
+                return null;
+            }
+            if (Character.BondedSpirits.Count >= MaxBondedSpirits)
+            {
+                _logger.LogWarning("AddBondedSpirit: At maximum {Max} bound spirits", MaxBondedSpirits);
+                return null;
+            }
+
+            var cost = spirit.Force + (services * 2);
+            if (SpellPointsRemaining < cost)
+            {
+                _logger.LogWarning("AddBondedSpirit: Insufficient spell points. Need {Cost}, have {Remaining}", cost, SpellPointsRemaining);
+                return null;
+            }
+
+            var bonded = new BondedSpirit
+            {
+                Id = Guid.NewGuid(),
+                Spirit = spirit,
+                Services = services,
+            };
+            Character.BondedSpirits[bonded.Id] = bonded;
+            SpellPointsSpent += cost;
+            return bonded;
+        }
+
+        public CharacterBuilder RemoveBondedSpirit(Guid id)
+        {
+            if (!Character.BondedSpirits.TryGetValue(id, out var bonded))
+            {
+                _logger.LogWarning("RemoveBondedSpirit: Spirit {Id} not found", id);
+                return this;
+            }
+            var cost = bonded.Spirit.Force + (bonded.Services * 2);
+            Character.BondedSpirits.Remove(id);
+            SpellPointsSpent -= cost;
             return this;
         }
 
@@ -207,6 +401,7 @@ namespace SR3Generator.Creation
             var costm = item.Cost * (useStreetIndex ? item.StreetIndex : 1);
             long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
 
+            item.PaidCost = cost;
             RemoveNuyen(cost).AddGear(item);
             return this;
         }
@@ -217,8 +412,11 @@ namespace SR3Generator.Creation
                 _logger.LogWarning("SellGear: Equipment {EquipmentId} not found", equipmentId);
                 return this;
             }
-            var costm = item.Cost * (useStreetIndex ? item.StreetIndex : 1);
-            long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
+            // Refund what was actually paid (falls back to base cost for any legacy items
+            // that predate the PaidCost field).
+            var cost = item.PaidCost > 0
+                ? item.PaidCost
+                : (long)Math.Round(item.Cost * (useStreetIndex ? item.StreetIndex : 1), MidpointRounding.AwayFromZero);
 
             AddNuyen(cost).RemoveGear(equipmentId);
             return this;
@@ -238,6 +436,7 @@ namespace SR3Generator.Creation
                 return this;
             }
 
+            cyberware.PaidCost = cost;
             RemoveNuyen(cost).AddGear(cyberware);
             RecalculateEssenceAndMagic();
             return this;
@@ -256,8 +455,10 @@ namespace SR3Generator.Creation
                 return this;
             }
 
-            var costm = cyberware.ActualCost * (useStreetIndex ? cyberware.StreetIndex : 1);
-            long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
+            // Refund exactly what was paid at install time.
+            var cost = cyberware.PaidCost > 0
+                ? cyberware.PaidCost
+                : (long)Math.Round(cyberware.ActualCost * (useStreetIndex ? cyberware.StreetIndex : 1), MidpointRounding.AwayFromZero);
 
             AddNuyen(cost).RemoveGear(cyberwareId);
             RecalculateEssenceAndMagic();
@@ -278,6 +479,7 @@ namespace SR3Generator.Creation
                 return this;
             }
 
+            bioware.PaidCost = cost;
             RemoveNuyen(cost).AddGear(bioware);
             RecalculateEssenceAndMagic();
             return this;
@@ -296,8 +498,9 @@ namespace SR3Generator.Creation
                 return this;
             }
 
-            var costm = bioware.ActualCost * (useStreetIndex ? bioware.StreetIndex : 1);
-            long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
+            var cost = bioware.PaidCost > 0
+                ? bioware.PaidCost
+                : (long)Math.Round(bioware.ActualCost * (useStreetIndex ? bioware.StreetIndex : 1), MidpointRounding.AwayFromZero);
 
             AddNuyen(cost).RemoveGear(biowareId);
             RecalculateEssenceAndMagic();

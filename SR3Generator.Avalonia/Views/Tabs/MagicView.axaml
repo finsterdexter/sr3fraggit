@@ -3,97 +3,216 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
+             xmlns:magic="using:SR3Generator.Data.Magic"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="SR3Generator.Avalonia.Views.Tabs.MagicView"
              x:DataType="vm:MagicViewModel">
 
-    <ScrollViewer Padding="12">
-        <StackPanel Spacing="12">
-            <!-- Header -->
-            <StackPanel Spacing="2">
-                <TextBlock Text="Magic Aspect" Classes="page-title"/>
-                <TextBlock Text="Choose magical tradition. Available options depend on Magic priority."
-                           FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
-            </StackPanel>
+    <Grid RowDefinitions="Auto,*" Margin="16">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="{x:Static res:Strings.MagicTitle}" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="{x:Static res:Strings.MagicSubtitle}"/>
+        </StackPanel>
 
-            <Grid ColumnDefinitions="200,*">
-                <!-- Aspect List -->
-                <Border Grid.Column="0" Classes="panel" Margin="0,0,8,0">
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="AVAILABLE ASPECTS" Classes="section-header"/>
-                        <ListBox ItemsSource="{Binding AvailableAspects}"
-                                 SelectedItem="{Binding SelectedAspect}"
-                                 Margin="0,8,0,0">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" FontSize="11"/>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </DockPanel>
-                </Border>
+        <!-- Two-pane: available list + details -->
+        <Grid Grid.Row="1" ColumnDefinitions="220,12,*">
+            <!-- Aspect List -->
+            <Border Grid.Column="0" Classes="panel" Padding="0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionAvailable}"
+                               Classes="section-header" Margin="12,12,12,8"/>
+                    <ListBox ItemsSource="{Binding AvailableAspects}"
+                             SelectedItem="{Binding SelectedAspect}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" Classes="body"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
 
-                <!-- Aspect Details -->
-                <StackPanel Grid.Column="1" Spacing="12">
-                    <Border Classes="panel">
-                        <StackPanel Spacing="12">
-                            <TextBlock Text="ASPECT DETAILS" Classes="section-header"/>
-                            <TextBlock Text="{Binding AspectDescription}"
-                                       TextWrapping="Wrap" FontSize="11"
-                                       Foreground="{StaticResource InkSecondaryBrush}"/>
-
-                            <Separator/>
-
-                            <!-- Capabilities Grid -->
-                            <Grid ColumnDefinitions="*,80" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Sorcery" FontSize="11"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding HasSorcery}" FontSize="11"
-                                           HorizontalAlignment="Right"
-                                           Foreground="{StaticResource AccentManaBrush}"/>
-
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Conjuring" FontSize="11" Margin="0,4"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding HasConjuring}" FontSize="11"
-                                           HorizontalAlignment="Right" Margin="0,4"
-                                           Foreground="{StaticResource AccentManaBrush}"/>
-
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Adept Powers" FontSize="11" Margin="0,4"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding HasAdeptPowers}" FontSize="11"
-                                           HorizontalAlignment="Right" Margin="0,4"
-                                           Foreground="{StaticResource AccentManaBrush}"/>
-
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Starting Spell Points" FontSize="11"
-                                           FontWeight="SemiBold" Margin="0,8,0,4"/>
-                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding StartingSpellPoints}" FontSize="11"
-                                           HorizontalAlignment="Right" Margin="0,8,0,4"
-                                           FontWeight="Bold" FontFamily="JetBrains Mono, monospace"
-                                           Foreground="{StaticResource AccentManaBrush}"/>
-
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Maximum Spell Points" FontSize="11" Margin="0,4"/>
-                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding MaximumSpellPoints}" FontSize="11"
-                                           HorizontalAlignment="Right" Margin="0,4"
-                                           FontFamily="JetBrains Mono, monospace"
-                                           Foreground="{StaticResource InkSecondaryBrush}"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Non-magical info -->
+            <!-- Aspect Details -->
+            <ScrollViewer Grid.Column="2">
+                <StackPanel Spacing="12">
+                    <!-- Warning for mundane -->
                     <Border Background="#15f59e0b"
                             BorderBrush="#30f59e0b"
                             BorderThickness="1"
-                            CornerRadius="2"
-                            Padding="10"
+                            CornerRadius="4"
+                            Padding="12,10"
                             IsVisible="{Binding !IsMagical}">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="!" FontWeight="Bold" FontSize="11"
-                                       Foreground="{StaticResource WarningBrush}"/>
-                            <TextBlock Text="No magical abilities. Set Magic priority to A or B to gain magic."
-                                       TextWrapping="Wrap" FontSize="11"
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="!" FontWeight="Bold" FontSize="14"
+                                       Foreground="{StaticResource WarningBrush}"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="{x:Static res:Strings.MagicMundaneWarning}"
+                                       TextWrapping="Wrap" Classes="body"
                                        Foreground="{StaticResource WarningBrush}"/>
                         </StackPanel>
                     </Border>
+
+                    <!-- Description + capability summary -->
+                    <Border Classes="panel">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{Binding SelectedAspect.Name}"
+                                       FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding AspectDescription}"
+                                       TextWrapping="Wrap" Classes="body"
+                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+
+                            <!-- Capabilities on one line: tag for each capability the aspect has,
+                                 then spell-point budget (hidden for non-casters). -->
+                            <WrapPanel Orientation="Horizontal" IsVisible="{Binding IsMagical}">
+                                <Border Classes="tag-mana" Margin="0,0,6,4"
+                                        IsVisible="{Binding HasSorcery}">
+                                    <TextBlock Text="Sorcery" FontSize="10"
+                                               Foreground="{StaticResource AccentManaBrush}"/>
+                                </Border>
+                                <Border Classes="tag-mana" Margin="0,0,6,4"
+                                        IsVisible="{Binding HasConjuring}">
+                                    <TextBlock Text="Conjuring" FontSize="10"
+                                               Foreground="{StaticResource AccentManaBrush}"/>
+                                </Border>
+                                <Border Classes="tag-mana" Margin="0,0,6,4"
+                                        IsVisible="{Binding HasAdeptPowers}">
+                                    <TextBlock Text="Adept Powers" FontSize="10"
+                                               Foreground="{StaticResource AccentManaBrush}"/>
+                                </Border>
+                                <StackPanel Orientation="Horizontal" Spacing="4"
+                                            Margin="4,0,0,4"
+                                            VerticalAlignment="Center"
+                                            IsVisible="{Binding HasSorcery}">
+                                    <TextBlock Text="·" Classes="body"
+                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                    <TextBlock Classes="body">
+                                        <Run Text="{Binding StartingSpellPoints}"
+                                             Foreground="{StaticResource AccentManaBrush}"
+                                             FontWeight="SemiBold"/>
+                                        <Run Text="/"
+                                             Foreground="{StaticResource InkMutedBrush}"/>
+                                        <Run Text="{Binding MaximumSpellPoints}"
+                                             Foreground="{StaticResource InkSecondaryBrush}"/>
+                                        <Run Text="spell points"
+                                             Foreground="{StaticResource InkMutedBrush}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Tradition picker (FullMagician / Sorcerer / Conjurer only) -->
+                    <StackPanel Spacing="4" IsVisible="{Binding ShowsTraditionPicker}">
+                        <TextBlock Text="{x:Static res:Strings.SectionTradition}" Classes="section-header"/>
+                        <Border Classes="panel">
+                            <StackPanel Spacing="8">
+                                <ComboBox ItemsSource="{Binding AllTraditions}"
+                                          SelectedItem="{Binding SelectedTradition}"
+                                          MinWidth="200" HorizontalAlignment="Left"/>
+                                <TextBlock Text="{x:Static res:Strings.HintPickTradition}"
+                                           Classes="body"
+                                           Foreground="{StaticResource WarningBrush}"
+                                           IsVisible="{Binding NeedsTraditionPick}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Element picker (Elementalist only) -->
+                    <StackPanel Spacing="4" IsVisible="{Binding ShowsElementPicker}">
+                        <TextBlock Text="{x:Static res:Strings.SectionElement}" Classes="section-header"/>
+                        <Border Classes="panel">
+                            <StackPanel Spacing="8">
+                                <ComboBox ItemsSource="{Binding AllElements}"
+                                          SelectedItem="{Binding SelectedElement}"
+                                          MinWidth="160" HorizontalAlignment="Left"/>
+                                <TextBlock Text="{x:Static res:Strings.HintPickElement}"
+                                           Classes="body"
+                                           Foreground="{StaticResource WarningBrush}"
+                                           IsVisible="{Binding NeedsElementPick}"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Totem picker (Shamanic tradition or Shamanist aspect) -->
+                    <StackPanel Spacing="4" IsVisible="{Binding ShowsTotemPicker}">
+                        <TextBlock Text="{x:Static res:Strings.SectionTotem}" Classes="section-header"/>
+                        <Border Classes="panel" Padding="0">
+                            <Grid ColumnDefinitions="220,12,*">
+                                <DockPanel Grid.Column="0">
+                                    <TextBox DockPanel.Dock="Top"
+                                             Text="{Binding TotemSearchText}"
+                                             Watermark="{x:Static res:Strings.WatermarkSearchTotems}"
+                                             Margin="12,12,12,8"/>
+                                    <ListBox ItemsSource="{Binding FilteredTotems}"
+                                             SelectedItem="{Binding SelectedTotem}"
+                                             Background="Transparent" BorderThickness="0"
+                                             Margin="8,0,8,8"
+                                             MaxHeight="320">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate DataType="magic:Totem">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" Classes="body"/>
+                                                    <TextBlock Text="{Binding Environment}"
+                                                               FontSize="10"
+                                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+
+                                <ScrollViewer Grid.Column="2" Padding="12,12,12,12">
+                                    <StackPanel Spacing="8" IsVisible="{Binding SelectedTotem, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                        <TextBlock Text="{Binding SelectedTotem.Name}"
+                                                   FontSize="14" FontWeight="SemiBold"/>
+                                        <Grid ColumnDefinitions="120,*">
+                                            <TextBlock Text="{x:Static res:Strings.LabelEnvironment}" Classes="micro-label"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding SelectedTotem.Environment}"
+                                                       Classes="body"/>
+                                        </Grid>
+                                        <Border Background="#1522c55e" BorderBrush="#3022c55e"
+                                                BorderThickness="1" CornerRadius="3" Padding="8,6"
+                                                IsVisible="{Binding SelectedTotem.Advantages, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{x:Static res:Strings.LabelAdvantages}" Classes="micro-label"
+                                                           Foreground="{StaticResource AccentKarmaBrush}"/>
+                                                <TextBlock Text="{Binding SelectedTotem.Advantages}"
+                                                           Classes="body" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="#15ef4444" BorderBrush="#30ef4444"
+                                                BorderThickness="1" CornerRadius="3" Padding="8,6"
+                                                IsVisible="{Binding SelectedTotem.Disadvantages, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{x:Static res:Strings.LabelDisadvantages}" Classes="micro-label"
+                                                           Foreground="{StaticResource DestructiveBrush}"/>
+                                                <TextBlock Text="{Binding SelectedTotem.Disadvantages}"
+                                                           Classes="body" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <TextBlock Text="{Binding SelectedTotem.Description}"
+                                                   Classes="body" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource InkSecondaryBrush}"
+                                                   IsVisible="{Binding SelectedTotem.Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="{x:Static res:Strings.HintPickTotem}"
+                                   Classes="body"
+                                   Foreground="{StaticResource WarningBrush}"
+                                   IsVisible="{Binding NeedsTotemPick}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
                 </StackPanel>
-            </Grid>
-        </StackPanel>
-    </ScrollViewer>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
 </UserControl>

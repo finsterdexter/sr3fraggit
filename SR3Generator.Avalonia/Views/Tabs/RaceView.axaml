@@ -3,52 +3,56 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="SR3Generator.Avalonia.Views.Tabs.RaceView"
              x:DataType="vm:RaceViewModel">
 
-    <ScrollViewer Padding="12">
-        <StackPanel Spacing="12">
-            <!-- Header -->
-            <StackPanel Spacing="2">
-                <TextBlock Text="Race Selection" Classes="page-title"/>
-                <TextBlock Text="Choose metatype. Available races depend on Race priority."
-                           FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
-            </StackPanel>
+    <Grid RowDefinitions="Auto,*" Margin="16">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="{x:Static res:Strings.RaceTitle}" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="{x:Static res:Strings.RaceSubtitle}"/>
+        </StackPanel>
 
-            <Grid ColumnDefinitions="200,*">
-                <!-- Race List -->
-                <Border Grid.Column="0" Classes="panel" Margin="0,0,8,0">
-                    <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="AVAILABLE" Classes="section-header"/>
-                        <ListBox ItemsSource="{Binding AvailableRaces}"
-                                 SelectedItem="{Binding SelectedRace}"
-                                 Margin="0,8,0,0">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" FontSize="11"/>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </DockPanel>
-                </Border>
+        <!-- Two-pane: available list + details -->
+        <Grid Grid.Row="1" ColumnDefinitions="220,12,*">
+            <!-- Race List -->
+            <Border Grid.Column="0" Classes="panel" Padding="0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionAvailable}"
+                               Classes="section-header" Margin="12,12,12,8"/>
+                    <ListBox ItemsSource="{Binding AvailableRaces}"
+                             SelectedItem="{Binding SelectedRace}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" Classes="body"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
 
-                <!-- Race Details -->
-                <StackPanel Grid.Column="1" Spacing="12">
+            <!-- Race Details -->
+            <ScrollViewer Grid.Column="2">
+                <StackPanel Spacing="12">
                     <!-- Selected Race Header -->
                     <Border Classes="panel">
                         <StackPanel Spacing="8">
                             <TextBlock Text="{Binding SelectedRace.Name}"
                                        FontSize="16" FontWeight="SemiBold"/>
                             <TextBlock Text="{Binding RaceDescription}"
-                                       TextWrapping="Wrap" FontSize="11"
+                                       TextWrapping="Wrap" Classes="body"
                                        Foreground="{StaticResource InkSecondaryBrush}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Attribute Modifiers -->
                     <StackPanel Spacing="4" IsVisible="{Binding RacialMods.Count}">
-                        <TextBlock Text="ATTRIBUTE MODIFIERS" Classes="section-header"/>
+                        <TextBlock Text="{x:Static res:Strings.SectionAttributeModifiers}" Classes="section-header"/>
                         <Border Classes="panel-inset">
                             <ItemsControl ItemsSource="{Binding RacialMods}">
                                 <ItemsControl.ItemsPanel>
@@ -59,9 +63,9 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border Classes="tag-cyber" Margin="0,0,6,6">
-                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <TextBlock Text="{Binding AttributeName}" FontSize="10"/>
-                                                <TextBlock Text="{Binding ModValue}" FontWeight="Bold" FontSize="10"
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <TextBlock Text="{Binding AttributeName}" Classes="body-sm"/>
+                                                <TextBlock Text="{Binding ModValue}" FontWeight="Bold" Classes="body-sm"
                                                            Foreground="{StaticResource AccentCyberBrush}"/>
                                             </StackPanel>
                                         </Border>
@@ -73,15 +77,17 @@
 
                     <!-- Special Abilities -->
                     <StackPanel Spacing="4" IsVisible="{Binding RacialExtras.Count}">
-                        <TextBlock Text="RACIAL ABILITIES" Classes="section-header"/>
+                        <TextBlock Text="{x:Static res:Strings.SectionRacialAbilities}" Classes="section-header"/>
                         <Border Classes="panel-inset">
                             <ItemsControl ItemsSource="{Binding RacialExtras}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
-                                            <TextBlock Text="+" FontSize="10"
-                                                       Foreground="{StaticResource AccentKarmaBrush}"/>
-                                            <TextBlock Text="{Binding}" FontSize="10"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2">
+                                            <TextBlock Text="+" FontWeight="Bold" Classes="body"
+                                                       Foreground="{StaticResource AccentKarmaBrush}"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding}" Classes="body"
+                                                       TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -89,7 +95,7 @@
                         </Border>
                     </StackPanel>
                 </StackPanel>
-            </Grid>
-        </StackPanel>
-    </ScrollViewer>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
 </UserControl>

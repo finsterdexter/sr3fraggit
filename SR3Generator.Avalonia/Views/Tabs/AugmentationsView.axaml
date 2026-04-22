@@ -3,226 +3,594 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
              mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
              x:Class="SR3Generator.Avalonia.Views.Tabs.AugmentationsView"
              x:DataType="vm:AugmentationsViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="12">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.crumb-sep">
+            <Setter Property="Text" Value="›"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="4,0"/>
+        </Style>
+        <Style Selector="ComboBox.crumb">
+            <Setter Property="MinWidth" Value="140"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
         <!-- Header -->
-        <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,8">
-            <TextBlock Text="Augmentations" Classes="page-title"/>
-            <TextBlock Text="Cyberware costs Essence. Bioware costs Bio Index."
-                       FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="{x:Static res:Strings.AugmentationsTitle}" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="{x:Static res:Strings.AugmentationsSubtitle}"/>
         </StackPanel>
 
-        <!-- Stats Summary -->
-        <Border Grid.Row="1" Classes="panel" Padding="8" Margin="0,0,0,8">
+        <!-- Main resource bar -->
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
             <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
-                <CheckBox Grid.Column="0" Content="Street Index" IsChecked="{Binding UseStreetIndex}" FontSize="10"/>
-
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" Margin="16,0">
-                    <TextBlock Text="ESS" FontSize="9" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding EssenceDisplay}" FontWeight="Bold"
-                               FontFamily="JetBrains Mono, monospace"
-                               Foreground="{StaticResource AccentCyberBrush}" VerticalAlignment="Center"/>
+                <CheckBox Grid.Column="0" Content="{x:Static res:Strings.CheckStreetIndex}"
+                          IsChecked="{Binding UseStreetIndex}"
+                          VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="{x:Static res:Strings.LabelEssence}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding EssenceDisplay}" Classes="stat-value"
+                               Foreground="{StaticResource AccentCyberBrush}"/>
                 </StackPanel>
-
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" Margin="16,0">
-                    <TextBlock Text="BIO" FontSize="9" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding BioIndexDisplay}" FontWeight="Bold"
-                               FontFamily="JetBrains Mono, monospace"
-                               Foreground="{StaticResource AccentKarmaBrush}" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="{x:Static res:Strings.LabelBioIndex}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding BioIndexDisplay}" Classes="stat-value"
+                               Foreground="{StaticResource AccentKarmaBrush}"/>
                 </StackPanel>
-
-                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" Margin="16,0">
-                    <TextBlock Text="MAG" FontSize="9" Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding MagicDisplay}" FontWeight="Bold"
-                               FontFamily="JetBrains Mono, monospace"
-                               Foreground="{StaticResource AccentManaBrush}" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="{x:Static res:Strings.LabelMagic}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding MagicDisplay}" Classes="stat-value"
+                               Foreground="{StaticResource AccentManaBrush}"/>
                 </StackPanel>
-
-                <TextBlock Grid.Column="5" VerticalAlignment="Center" FontFamily="JetBrains Mono, monospace">
-                    <Run Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}'}" FontWeight="Bold"
-                         Foreground="{StaticResource AccentNuyenBrush}"/>
-                    <Run Text="¥" Foreground="{StaticResource InkMutedBrush}"/>
-                </TextBlock>
+                <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="{x:Static res:Strings.LabelNuyen}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value-lg">
+                        <Run Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}'}"
+                             Foreground="{StaticResource AccentNuyenBrush}"/>
+                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                        <Run Text="{Binding NuyenAllowance, StringFormat='{}{0:N0}'}"
+                             Foreground="{StaticResource InkSecondaryBrush}"/>
+                        <Run Text="¥" Foreground="{StaticResource InkMutedBrush}"/>
+                    </TextBlock>
+                </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Main Content -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,200">
-            <!-- Cyber/Bio Tabs -->
-            <TabControl Grid.Column="0" SelectedIndex="{Binding SelectedTabIndex}" Margin="0,0,6,0">
-                <!-- Cyberware Tab -->
-                <TabItem Header="Cyberware">
-                    <Grid ColumnDefinitions="140,*">
-                        <!-- Categories -->
-                        <Border Grid.Column="0" Classes="panel" Margin="0,8,6,0">
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,8">
-                                    <TextBlock Text="CATEGORIES" Classes="section-header"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <Button Content="Up" Command="{Binding CyberwareNavigateUpCommand}" Classes="compact"/>
-                                        <Button Content="Clear" Command="{Binding ClearCyberwareFiltersCommand}" Classes="compact"/>
-                                    </StackPanel>
-                                    <TextBox Text="{Binding CyberwareFilterText}" Watermark="Search..."/>
-                                    <TextBlock Text="{Binding CyberwareFilteredCount, StringFormat='{}{0} items'}"
-                                               FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
-                                </StackPanel>
-                                <ScrollViewer>
-                                    <ItemsControl ItemsSource="{Binding CyberwareFacets}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate DataType="vm:AugFacetValue">
-                                                <Button Padding="4,2" Margin="0,1" HorizontalAlignment="Stretch"
-                                                        HorizontalContentAlignment="Left" Background="Transparent"
-                                                        Command="{Binding $parent[UserControl].((vm:AugmentationsViewModel)DataContext).SelectCyberwareCategoryCommand}"
-                                                        CommandParameter="{Binding}">
-                                                    <Grid ColumnDefinitions="*,Auto">
-                                                        <TextBlock Text="{Binding Name}" FontSize="10" TextTrimming="CharacterEllipsis"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat='({0})'}"
-                                                                   FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
-                                                    </Grid>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
-                            </DockPanel>
-                        </Border>
+        <!-- Cyberware / Bioware subtabs -->
+        <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}" Padding="0">
 
-                        <!-- Cyberware List -->
-                        <Border Grid.Column="1" Classes="panel" Margin="0,8,0,0">
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
-                                    <TextBlock Text="CYBERWARE" Classes="section-header"/>
-                                    <TextBlock Text="Grade:" FontSize="10" Foreground="{StaticResource InkMutedBrush}"
-                                               VerticalAlignment="Center" Margin="16,0,4,0"/>
-                                    <ComboBox ItemsSource="{Binding CyberwareGrades}"
-                                              SelectedItem="{Binding SelectedCyberwareGrade}" MinWidth="100"/>
-                                </StackPanel>
-                                <ListBox ItemsSource="{Binding FilteredCyberware}"
-                                         SelectedItem="{Binding SelectedCyberwareItem}">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid ColumnDefinitions="*,50,70,50">
-                                                <TextBlock Text="{Binding Name}" FontSize="10" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding EssenceDisplay}" FontSize="10"
+            <!-- ============================ CYBERWARE ============================ -->
+            <TabItem Header="Cyberware">
+                <Grid RowDefinitions="Auto,*" Margin="0,12,0,0">
+                    <!-- Breadcrumb bar -->
+                    <Border Grid.Row="0" Classes="resource-bar" Margin="0,0,0,12">
+                        <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="12">
+                            <ItemsControl Grid.Column="0"
+                                          ItemsSource="{Binding CyberwareBreadcrumbSteps}"
+                                          VerticalAlignment="Center">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:BreadcrumbStep">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Classes="crumb-sep" IsVisible="{Binding Depth}"/>
+                                            <ComboBox Classes="crumb"
+                                                      ItemsSource="{Binding Options}"
+                                                      SelectedItem="{Binding SelectedValue}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="{x:Static res:Strings.LabelGrade}" Classes="micro-label"/>
+                                <ComboBox ItemsSource="{Binding CyberwareGrades}"
+                                          SelectedItem="{Binding SelectedCyberwareGrade}"
+                                          MinWidth="110"/>
+                            </StackPanel>
+                            <Button Grid.Column="2" Content="{x:Static res:Strings.ButtonClear}"
+                                    Classes="compact"
+                                    Command="{Binding ClearCyberwareFiltersCommand}"/>
+                            <TextBox Grid.Column="3"
+                                     Text="{Binding CyberwareFilterText}"
+                                     Watermark="{x:Static res:Strings.WatermarkSearch}"
+                                     MinWidth="160"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Detail 20% | Available 50% | Installed 30% -->
+                    <Grid Grid.Row="1" ColumnDefinitions="2*,12,5*,12,3*">
+                        <!-- Detail -->
+                        <Border Grid.Column="0" Classes="panel">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock DockPanel.Dock="Top" Text="DETAIL" Classes="section-header"/>
+                                <ScrollViewer>
+                                    <Grid>
+                                        <TextBlock Text="Select an item to see details."
+                                                   Classes="body" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource InkMutedBrush}">
+                                            <TextBlock.IsVisible>
+                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                    <Binding Path="SelectedCyberwareItem" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                                    <Binding Path="SelectedInstalledAug" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                                </MultiBinding>
+                                            </TextBlock.IsVisible>
+                                        </TextBlock>
+
+                                        <!-- Installed augmentation detail (with Remove action) -->
+                                        <StackPanel Spacing="10"
+                                                    IsVisible="{Binding SelectedInstalledAug, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                            <TextBlock Text="{Binding SelectedInstalledAug.Name}"
+                                                       FontSize="14" FontWeight="SemiBold"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding SelectedInstalledAug.CategoryDisplay}"
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource InkMutedBrush}"
+                                                       TextWrapping="Wrap"/>
+                                            <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding SelectedInstalledAug.IndexLabel}" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedInstalledAug.IndexValueDisplay}"
+                                                           Classes="data" FontSize="11"
                                                            Foreground="{StaticResource AccentCyberBrush}"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding CostDisplay}" FontSize="10"
-                                                           FontFamily="JetBrains Mono, monospace"
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="PAID" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedInstalledAug.CostDisplay}"
+                                                           Classes="data" FontSize="11"
                                                            Foreground="{StaticResource AccentNuyenBrush}"/>
-                                                <TextBlock Grid.Column="3" Text="{Binding Availability}" FontSize="9"
-                                                           Foreground="{StaticResource InkMutedBrush}"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="GRADE" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedInstalledAug.GradeDisplay}"
+                                                           Classes="body-sm"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="AVAIL" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedInstalledAug.Availability}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="0" Text="CAPACITY" Classes="micro-label"
+                                                           IsVisible="{Binding SelectedInstalledAug.CapacityDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedInstalledAug.CapacityDisplay}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"
+                                                           IsVisible="{Binding SelectedInstalledAug.CapacityDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Grid.Row="5" Grid.Column="0" Text="LEGALITY" Classes="micro-label"
+                                                           IsVisible="{Binding SelectedInstalledAug.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SelectedInstalledAug.Legality}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"
+                                                           IsVisible="{Binding SelectedInstalledAug.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                             </Grid>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                            </DockPanel>
-                        </Border>
-                    </Grid>
-                </TabItem>
+                                            <StackPanel Spacing="2"
+                                                        IsVisible="{Binding SelectedInstalledAug.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                <TextBlock Text="NOTES" Classes="micro-label"/>
+                                                <TextBlock Text="{Binding SelectedInstalledAug.Notes}"
+                                                           Classes="body" TextWrapping="Wrap"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding SelectedInstalledAug.BookPageDisplay}"
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource InkMutedBrush}"
+                                                       IsVisible="{Binding SelectedInstalledAug.BookPageDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                            <Button Content="{x:Static res:Strings.ButtonRemove}"
+                                                    Classes="action"
+                                                    HorizontalAlignment="Stretch"
+                                                    Command="{Binding RemoveAugmentationCommand}"
+                                                    Margin="0,8,0,0"/>
+                                        </StackPanel>
 
-                <!-- Bioware Tab -->
-                <TabItem Header="Bioware">
-                    <Grid ColumnDefinitions="140,*">
-                        <!-- Categories -->
-                        <Border Grid.Column="0" Classes="panel" Margin="0,8,6,0">
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,8">
-                                    <TextBlock Text="CATEGORIES" Classes="section-header"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="4">
-                                        <Button Content="Up" Command="{Binding BiowareNavigateUpCommand}" Classes="compact"/>
-                                        <Button Content="Clear" Command="{Binding ClearBiowareFiltersCommand}" Classes="compact"/>
-                                    </StackPanel>
-                                    <TextBox Text="{Binding BiowareFilterText}" Watermark="Search..."/>
-                                    <TextBlock Text="{Binding BiowareFilteredCount, StringFormat='{}{0} items'}"
-                                               FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
-                                </StackPanel>
-                                <ScrollViewer>
-                                    <ItemsControl ItemsSource="{Binding BiowareFacets}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate DataType="vm:AugFacetValue">
-                                                <Button Padding="4,2" Margin="0,1" HorizontalAlignment="Stretch"
-                                                        HorizontalContentAlignment="Left" Background="Transparent"
-                                                        Command="{Binding $parent[UserControl].((vm:AugmentationsViewModel)DataContext).SelectBiowareCategoryCommand}"
-                                                        CommandParameter="{Binding}">
-                                                    <Grid ColumnDefinitions="*,Auto">
-                                                        <TextBlock Text="{Binding Name}" FontSize="10" TextTrimming="CharacterEllipsis"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat='({0})'}"
-                                                                   FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
-                                                    </Grid>
-                                                </Button>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                        <!-- Cyberware library detail (with Install action) -->
+                                        <StackPanel Spacing="10"
+                                                    IsVisible="{Binding SelectedCyberwareItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                            <TextBlock Text="{Binding SelectedCyberwareItem.Name}"
+                                                       FontSize="14" FontWeight="SemiBold"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding SelectedCyberwareItem.CategoryDisplay}"
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource InkMutedBrush}"
+                                                       TextWrapping="Wrap"/>
+
+                                            <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.LabelEssence}" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedCyberwareItem.EssenceDisplay}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource AccentCyberBrush}"/>
+
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.LabelNuyen}" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedCyberwareItem.CostDisplay}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource AccentNuyenBrush}"/>
+
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="AVAIL" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedCyberwareItem.Availability}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="CAPACITY" Classes="micro-label"
+                                                           IsVisible="{Binding SelectedCyberwareItem.CapacityDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedCyberwareItem.CapacityDisplay}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"
+                                                           IsVisible="{Binding SelectedCyberwareItem.CapacityDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                                <TextBlock Grid.Row="4" Grid.Column="0" Text="LEGALITY" Classes="micro-label"
+                                                           IsVisible="{Binding SelectedCyberwareItem.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedCyberwareItem.Legality}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"
+                                                           IsVisible="{Binding SelectedCyberwareItem.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                                <TextBlock Grid.Row="5" Grid.Column="0" Text="STREET IDX" Classes="micro-label"
+                                                           IsVisible="{Binding SelectedCyberwareItem.StreetIndexDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SelectedCyberwareItem.StreetIndexDisplay}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"
+                                                           IsVisible="{Binding SelectedCyberwareItem.StreetIndexDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                            </Grid>
+
+                                            <StackPanel Spacing="2"
+                                                        IsVisible="{Binding SelectedCyberwareItem.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                <TextBlock Text="NOTES" Classes="micro-label"/>
+                                                <TextBlock Text="{Binding SelectedCyberwareItem.Notes}"
+                                                           Classes="body" TextWrapping="Wrap"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                            </StackPanel>
+
+                                            <TextBlock Text="{Binding SelectedCyberwareItem.BookPageDisplay}"
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource InkMutedBrush}"
+                                                       IsVisible="{Binding SelectedCyberwareItem.BookPageDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                            <Button Content="{x:Static res:Strings.ButtonInstallCyberware}"
+                                                    Classes="primary action"
+                                                    HorizontalAlignment="Stretch"
+                                                    Command="{Binding InstallCyberwareCommand}"
+                                                    Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </ScrollViewer>
                             </DockPanel>
                         </Border>
 
-                        <!-- Bioware List -->
-                        <Border Grid.Column="1" Classes="panel" Margin="0,8,0,0">
-                            <DockPanel>
-                                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
-                                    <TextBlock Text="BIOWARE" Classes="section-header"/>
-                                    <TextBlock Text="Grade:" FontSize="10" Foreground="{StaticResource InkMutedBrush}"
-                                               VerticalAlignment="Center" Margin="16,0,4,0"/>
-                                    <ComboBox ItemsSource="{Binding BiowareGrades}"
-                                              SelectedItem="{Binding SelectedBiowareGrade}" MinWidth="100"/>
-                                </StackPanel>
-                                <ListBox ItemsSource="{Binding FilteredBioware}"
-                                         SelectedItem="{Binding SelectedBiowareItem}">
+                        <!-- Available -->
+                        <Border Grid.Column="2" Classes="panel" Padding="0">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionAvailable}"
+                                           Classes="section-header" Margin="12,12,12,8"/>
+                                <ListBox Name="CyberwareList"
+                                         ItemsSource="{Binding FilteredCyberware}"
+                                         SelectedItem="{Binding SelectedCyberwareItem}"
+                                         DoubleTapped="OnCyberwareListDoubleTapped"
+                                         Background="Transparent" BorderThickness="0"
+                                         Margin="8,0,8,8">
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid ColumnDefinitions="*,50,70,50">
-                                                <TextBlock Text="{Binding Name}" FontSize="10" TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Grid.Column="1" Text="{Binding BioIndexDisplay}" FontSize="10"
-                                                           Foreground="{StaticResource AccentKarmaBrush}"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding CostDisplay}" FontSize="10"
-                                                           FontFamily="JetBrains Mono, monospace"
-                                                           Foreground="{StaticResource AccentNuyenBrush}"/>
-                                                <TextBlock Grid.Column="3" Text="{Binding Availability}" FontSize="9"
-                                                           Foreground="{StaticResource InkMutedBrush}"/>
+                                            <Grid ColumnDefinitions="*,60,80,50">
+                                                <TextBlock Text="{Binding Name}" Classes="body"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding EssenceDisplay}"
+                                                           Classes="body-sm"
+                                                           Foreground="{StaticResource AccentCyberBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding CostDisplay}"
+                                                           Classes="data" FontSize="10"
+                                                           Foreground="{StaticResource AccentNuyenBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Availability}"
+                                                           FontSize="10"
+                                                           Foreground="{StaticResource InkMutedBrush}"
+                                                           VerticalAlignment="Center"/>
                                             </Grid>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>
                             </DockPanel>
                         </Border>
+
+                        <!-- Installed (no action bar — actions live in Detail) -->
+                        <Border Grid.Column="4" Classes="panel" Padding="0">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionInstalled}"
+                                           Classes="section-header" Margin="12,12,12,8"/>
+                                <ListBox ItemsSource="{Binding InstalledAugmentations}"
+                                         SelectedItem="{Binding SelectedInstalledAug}"
+                                         DoubleTapped="OnInstalledListDoubleTapped"
+                                         Background="Transparent" BorderThickness="0"
+                                         Margin="8,0,8,8">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{Binding Name}" Classes="body"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <TextBlock Text="{Binding IndexDisplay}" FontSize="10"
+                                                               Foreground="{StaticResource AccentCyberBrush}"/>
+                                                    <TextBlock Text="{Binding CostDisplay}" FontSize="10"
+                                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Border>
                     </Grid>
-                </TabItem>
-            </TabControl>
+                </Grid>
+            </TabItem>
 
-            <!-- Install/Remove Controls -->
-            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6" Margin="6,0">
-                <Button Content="Install" Command="{Binding InstallCyberwareCommand}" Width="60"
-                        IsVisible="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.IsNotNull}, ConverterParameter=0}"/>
-                <Button Content="Install" Command="{Binding InstallBiowareCommand}" Width="60"
-                        IsVisible="{Binding SelectedTabIndex, Converter={x:Static ObjectConverters.IsNotNull}, ConverterParameter=1}"/>
-                <Button Content="Remove" Command="{Binding RemoveAugmentationCommand}" Width="60"/>
-            </StackPanel>
+            <!-- ============================ BIOWARE ============================ -->
+            <TabItem Header="Bioware">
+                <Grid RowDefinitions="Auto,*" Margin="0,12,0,0">
+                    <!-- Breadcrumb bar -->
+                    <Border Grid.Row="0" Classes="resource-bar" Margin="0,0,0,12">
+                        <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="12">
+                            <ItemsControl Grid.Column="0"
+                                          ItemsSource="{Binding BiowareBreadcrumbSteps}"
+                                          VerticalAlignment="Center">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:BreadcrumbStep">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Classes="crumb-sep" IsVisible="{Binding Depth}"/>
+                                            <ComboBox Classes="crumb"
+                                                      ItemsSource="{Binding Options}"
+                                                      SelectedItem="{Binding SelectedValue}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="{x:Static res:Strings.LabelGrade}" Classes="micro-label"/>
+                                <ComboBox ItemsSource="{Binding BiowareGrades}"
+                                          SelectedItem="{Binding SelectedBiowareGrade}"
+                                          MinWidth="110"/>
+                            </StackPanel>
+                            <Button Grid.Column="2" Content="{x:Static res:Strings.ButtonClear}"
+                                    Classes="compact"
+                                    Command="{Binding ClearBiowareFiltersCommand}"/>
+                            <TextBox Grid.Column="3"
+                                     Text="{Binding BiowareFilterText}"
+                                     Watermark="{x:Static res:Strings.WatermarkSearch}"
+                                     MinWidth="160"/>
+                        </Grid>
+                    </Border>
 
-            <!-- Installed Augmentations -->
-            <Border Grid.Column="2" Classes="panel" Margin="6,0,0,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="INSTALLED" Classes="section-header" Margin="0,0,0,8"/>
-                    <ListBox ItemsSource="{Binding InstalledAugmentations}"
-                             SelectedItem="{Binding SelectedInstalledAug}">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="{Binding Name}" FontSize="10" TextTrimming="CharacterEllipsis"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="{Binding IndexDisplay}" FontSize="9"
-                                                   Foreground="{StaticResource AccentCyberBrush}"/>
-                                        <TextBlock Text="{Binding CostDisplay}" FontSize="9"
-                                                   Foreground="{StaticResource InkMutedBrush}"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </DockPanel>
-            </Border>
-        </Grid>
+                    <!-- Detail 20% | Available 50% | Installed 30% -->
+                    <Grid Grid.Row="1" ColumnDefinitions="2*,12,5*,12,3*">
+                        <!-- Detail -->
+                        <Border Grid.Column="0" Classes="panel">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock DockPanel.Dock="Top" Text="DETAIL" Classes="section-header"/>
+                                <ScrollViewer>
+                                    <Grid>
+                                        <TextBlock Text="Select an item to see details."
+                                                   Classes="body" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource InkMutedBrush}">
+                                            <TextBlock.IsVisible>
+                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                    <Binding Path="SelectedBiowareItem" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                                    <Binding Path="SelectedInstalledAug" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                                </MultiBinding>
+                                            </TextBlock.IsVisible>
+                                        </TextBlock>
+
+                                        <!-- Installed augmentation detail (with Remove action) -->
+                                        <StackPanel Spacing="10"
+                                                    IsVisible="{Binding SelectedInstalledAug, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                            <TextBlock Text="{Binding SelectedInstalledAug.Name}"
+                                                       FontSize="14" FontWeight="SemiBold"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding SelectedInstalledAug.CategoryDisplay}"
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource InkMutedBrush}"
+                                                       TextWrapping="Wrap"/>
+                                            <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding SelectedInstalledAug.IndexLabel}" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedInstalledAug.IndexValueDisplay}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource AccentKarmaBrush}"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="PAID" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedInstalledAug.CostDisplay}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource AccentNuyenBrush}"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="GRADE" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedInstalledAug.GradeDisplay}"
+                                                           Classes="body-sm"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="AVAIL" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedInstalledAug.Availability}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="0" Text="LEGALITY" Classes="micro-label"
+                                                           IsVisible="{Binding SelectedInstalledAug.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedInstalledAug.Legality}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"
+                                                           IsVisible="{Binding SelectedInstalledAug.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                            </Grid>
+                                            <StackPanel Spacing="2"
+                                                        IsVisible="{Binding SelectedInstalledAug.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                <TextBlock Text="NOTES" Classes="micro-label"/>
+                                                <TextBlock Text="{Binding SelectedInstalledAug.Notes}"
+                                                           Classes="body" TextWrapping="Wrap"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding SelectedInstalledAug.BookPageDisplay}"
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource InkMutedBrush}"
+                                                       IsVisible="{Binding SelectedInstalledAug.BookPageDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                            <Button Content="{x:Static res:Strings.ButtonRemove}"
+                                                    Classes="action"
+                                                    HorizontalAlignment="Stretch"
+                                                    Command="{Binding RemoveAugmentationCommand}"
+                                                    Margin="0,8,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Bioware library detail (with Install action) -->
+                                        <StackPanel Spacing="10"
+                                                    IsVisible="{Binding SelectedBiowareItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                            <TextBlock Text="{Binding SelectedBiowareItem.Name}"
+                                                       FontSize="14" FontWeight="SemiBold"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding SelectedBiowareItem.CategoryDisplay}"
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource InkMutedBrush}"
+                                                       TextWrapping="Wrap"/>
+
+                                            <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.LabelBioIndex}" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedBiowareItem.BioIndexDisplay}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource AccentKarmaBrush}"/>
+
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.LabelNuyen}" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedBiowareItem.CostDisplay}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource AccentNuyenBrush}"/>
+
+                                                <TextBlock Grid.Row="2" Grid.Column="0" Text="AVAIL" Classes="micro-label"/>
+                                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedBiowareItem.Availability}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+
+                                                <TextBlock Grid.Row="3" Grid.Column="0" Text="LEGALITY" Classes="micro-label"
+                                                           IsVisible="{Binding SelectedBiowareItem.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedBiowareItem.Legality}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"
+                                                           IsVisible="{Binding SelectedBiowareItem.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                                <TextBlock Grid.Row="4" Grid.Column="0" Text="STREET IDX" Classes="micro-label"
+                                                           IsVisible="{Binding SelectedBiowareItem.StreetIndexDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedBiowareItem.StreetIndexDisplay}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"
+                                                           IsVisible="{Binding SelectedBiowareItem.StreetIndexDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                            </Grid>
+
+                                            <StackPanel Spacing="2"
+                                                        IsVisible="{Binding SelectedBiowareItem.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                <TextBlock Text="NOTES" Classes="micro-label"/>
+                                                <TextBlock Text="{Binding SelectedBiowareItem.Notes}"
+                                                           Classes="body" TextWrapping="Wrap"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                            </StackPanel>
+
+                                            <TextBlock Text="{Binding SelectedBiowareItem.BookPageDisplay}"
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource InkMutedBrush}"
+                                                       IsVisible="{Binding SelectedBiowareItem.BookPageDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                            <Button Content="{x:Static res:Strings.ButtonInstallBioware}"
+                                                    Classes="primary action"
+                                                    HorizontalAlignment="Stretch"
+                                                    Command="{Binding InstallBiowareCommand}"
+                                                    Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- Available -->
+                        <Border Grid.Column="2" Classes="panel" Padding="0">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionAvailable}"
+                                           Classes="section-header" Margin="12,12,12,8"/>
+                                <ListBox Name="BiowareList"
+                                         ItemsSource="{Binding FilteredBioware}"
+                                         SelectedItem="{Binding SelectedBiowareItem}"
+                                         DoubleTapped="OnBiowareListDoubleTapped"
+                                         Background="Transparent" BorderThickness="0"
+                                         Margin="8,0,8,8">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid ColumnDefinitions="*,60,80,50">
+                                                <TextBlock Text="{Binding Name}" Classes="body"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding BioIndexDisplay}"
+                                                           Classes="body-sm"
+                                                           Foreground="{StaticResource AccentKarmaBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding CostDisplay}"
+                                                           Classes="data" FontSize="10"
+                                                           Foreground="{StaticResource AccentNuyenBrush}"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Availability}"
+                                                           FontSize="10"
+                                                           Foreground="{StaticResource InkMutedBrush}"
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Border>
+
+                        <!-- Installed (same list as Cyberware tab, bound to the same collection) -->
+                        <Border Grid.Column="4" Classes="panel" Padding="0">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionInstalled}"
+                                           Classes="section-header" Margin="12,12,12,8"/>
+                                <Border DockPanel.Dock="Bottom" Classes="action-bar"
+                                        IsVisible="{Binding SelectedInstalledAug, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding SelectedInstalledAug.Name}"
+                                                   Classes="body" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center"/>
+                                        <Button Grid.Column="1" Content="{x:Static res:Strings.ButtonRemove}"
+                                                Classes="action"
+                                                Command="{Binding RemoveAugmentationCommand}"/>
+                                    </Grid>
+                                </Border>
+                                <ListBox ItemsSource="{Binding InstalledAugmentations}"
+                                         SelectedItem="{Binding SelectedInstalledAug}"
+                                         DoubleTapped="OnInstalledListDoubleTapped"
+                                         Background="Transparent" BorderThickness="0"
+                                         Margin="8,0,8,8">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{Binding Name}" Classes="body"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                                    <TextBlock Text="{Binding IndexDisplay}" FontSize="10"
+                                                               Foreground="{StaticResource AccentCyberBrush}"/>
+                                                    <TextBlock Text="{Binding CostDisplay}" FontSize="10"
+                                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>

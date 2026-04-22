@@ -30,6 +30,11 @@ public interface ICharacterBuilderService
 
     // Magic methods
     void SetMagicAspect(MagicAspect aspect);
+    void SetTradition(Tradition tradition);
+    void SetTotem(Totem totem);
+    void SetHermeticElement(HermeticElement element);
+    BondedSpirit? AddBondedSpirit(Spirit spirit, int services);
+    void RemoveBondedSpirit(Guid id);
 
     // Attribute methods
     void SetAttribute(Attribute attribute);

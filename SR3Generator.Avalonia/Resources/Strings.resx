@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Attribute abbreviations -->
+  <data name="AbbrBody" xml:space="preserve"><value>BOD</value></data>
+  <data name="AbbrQuickness" xml:space="preserve"><value>QCK</value></data>
+  <data name="AbbrStrength" xml:space="preserve"><value>STR</value></data>
+  <data name="AbbrCharisma" xml:space="preserve"><value>CHA</value></data>
+  <data name="AbbrIntelligence" xml:space="preserve"><value>INT</value></data>
+  <data name="AbbrWillpower" xml:space="preserve"><value>WIL</value></data>
+  <data name="AbbrReaction" xml:space="preserve"><value>REA</value></data>
+  <data name="AbbrEssence" xml:space="preserve"><value>ESS</value></data>
+  <data name="AbbrMagic" xml:space="preserve"><value>MAG</value></data>
+
+  <!-- Attribute full names -->
+  <data name="AttrBody" xml:space="preserve"><value>Body</value></data>
+  <data name="AttrQuickness" xml:space="preserve"><value>Quickness</value></data>
+  <data name="AttrStrength" xml:space="preserve"><value>Strength</value></data>
+  <data name="AttrCharisma" xml:space="preserve"><value>Charisma</value></data>
+  <data name="AttrIntelligence" xml:space="preserve"><value>Intelligence</value></data>
+  <data name="AttrWillpower" xml:space="preserve"><value>Willpower</value></data>
+  <data name="AttrReaction" xml:space="preserve"><value>Reaction</value></data>
+  <data name="AttrEssence" xml:space="preserve"><value>Essence</value></data>
+  <data name="AttrMagic" xml:space="preserve"><value>Magic</value></data>
+  <data name="AttrInitiative" xml:space="preserve"><value>Initiative</value></data>
+  <data name="AttrReactionFormula" xml:space="preserve"><value>(QCK+INT)/2</value></data>
+
+  <!-- Resource-bar micro labels -->
+  <data name="LabelRace" xml:space="preserve"><value>RACE</value></data>
+  <data name="LabelAspect" xml:space="preserve"><value>ASPECT</value></data>
+  <data name="LabelAttributeShort" xml:space="preserve"><value>ATTR</value></data>
+  <data name="LabelSkillShort" xml:space="preserve"><value>SKILL</value></data>
+  <data name="LabelSpellShort" xml:space="preserve"><value>SPELL</value></data>
+  <data name="LabelNuyen" xml:space="preserve"><value>NUYEN</value></data>
+  <data name="LabelEssence" xml:space="preserve"><value>ESSENCE</value></data>
+  <data name="LabelBioIndex" xml:space="preserve"><value>BIO INDEX</value></data>
+  <data name="LabelMagic" xml:space="preserve"><value>MAGIC</value></data>
+  <data name="LabelSpellPoints" xml:space="preserve"><value>SPELL POINTS</value></data>
+  <data name="LabelSpellPointsShort" xml:space="preserve"><value>SPELL PTS</value></data>
+  <data name="LabelStatus" xml:space="preserve"><value>STATUS</value></data>
+  <data name="LabelCategory" xml:space="preserve"><value>CATEGORY</value></data>
+  <data name="LabelCost" xml:space="preserve"><value>COST</value></data>
+  <data name="LabelActive" xml:space="preserve"><value>ACTIVE</value></data>
+  <data name="LabelKnowledge" xml:space="preserve"><value>KNOWLEDGE</value></data>
+  <data name="LabelForce" xml:space="preserve"><value>FORCE</value></data>
+  <data name="LabelLevel" xml:space="preserve"><value>LEVEL</value></data>
+  <data name="LabelGrade" xml:space="preserve"><value>GRADE</value></data>
+  <data name="LabelRank" xml:space="preserve"><value>RANK</value></data>
+  <data name="LabelBenefit" xml:space="preserve"><value>BENEFIT</value></data>
+  <data name="LabelPowerPtsRemaining" xml:space="preserve"><value>POWER PTS REMAINING</value></data>
+  <data name="LabelSpent" xml:space="preserve"><value>SPENT</value></data>
+  <data name="LabelFreeContacts" xml:space="preserve"><value>FREE CONTACTS</value></data>
+  <data name="LabelSpentOnContacts" xml:space="preserve"><value>SPENT ON CONTACTS</value></data>
+  <data name="LabelAttributePoints" xml:space="preserve"><value>ATTRIBUTE POINTS</value></data>
+
+  <!-- Section headers -->
+  <data name="SectionAvailable" xml:space="preserve"><value>AVAILABLE</value></data>
+  <data name="SectionPurchased" xml:space="preserve"><value>PURCHASED</value></data>
+  <data name="SectionOwned" xml:space="preserve"><value>OWNED</value></data>
+  <data name="SectionInstalled" xml:space="preserve"><value>INSTALLED</value></data>
+  <data name="SectionCategories" xml:space="preserve"><value>CATEGORIES</value></data>
+  <data name="SectionActions" xml:space="preserve"><value>ACTIONS</value></data>
+  <data name="SectionPhysical" xml:space="preserve"><value>PHYSICAL</value></data>
+  <data name="SectionMental" xml:space="preserve"><value>MENTAL</value></data>
+  <data name="SectionDerived" xml:space="preserve"><value>DERIVED</value></data>
+  <data name="SectionPriorityReference" xml:space="preserve"><value>PRIORITY REFERENCE</value></data>
+  <data name="SectionAttributeModifiers" xml:space="preserve"><value>ATTRIBUTE MODIFIERS</value></data>
+  <data name="SectionRacialAbilities" xml:space="preserve"><value>RACIAL ABILITIES</value></data>
+  <data name="SectionCapabilities" xml:space="preserve"><value>CAPABILITIES</value></data>
+  <data name="SectionIdentity" xml:space="preserve"><value>IDENTITY</value></data>
+  <data name="SectionAttributes" xml:space="preserve"><value>ATTRIBUTES</value></data>
+  <data name="SectionActiveSkills" xml:space="preserve"><value>ACTIVE SKILLS</value></data>
+  <data name="SectionSpells" xml:space="preserve"><value>SPELLS</value></data>
+  <data name="SectionGear" xml:space="preserve"><value>GEAR</value></data>
+  <data name="SectionContacts" xml:space="preserve"><value>CONTACTS</value></data>
+  <data name="SectionResources" xml:space="preserve"><value>RESOURCES</value></data>
+  <data name="SectionQuickView" xml:space="preserve"><value>QUICK VIEW</value></data>
+  <data name="SectionPurchase" xml:space="preserve"><value>PURCHASE</value></data>
+  <data name="SectionBind" xml:space="preserve"><value>BIND</value></data>
+  <data name="SectionAddSpell" xml:space="preserve"><value>ADD SPELL</value></data>
+  <data name="SectionCyberware" xml:space="preserve"><value>CYBERWARE</value></data>
+  <data name="SectionBioware" xml:space="preserve"><value>BIOWARE</value></data>
+  <data name="SectionYourContacts" xml:space="preserve"><value>YOUR CONTACTS</value></data>
+  <data name="SectionAddFreeContact" xml:space="preserve"><value>ADD FREE CONTACT</value></data>
+  <data name="SectionBuyContact" xml:space="preserve"><value>BUY CONTACT</value></data>
+
+  <!-- Column headers (Priority reference etc.) -->
+  <data name="HeaderBase" xml:space="preserve"><value>BASE</value></data>
+  <data name="HeaderMod" xml:space="preserve"><value>MOD</value></data>
+  <data name="HeaderTotal" xml:space="preserve"><value>TOTAL</value></data>
+  <data name="HeaderRace" xml:space="preserve"><value>RACE</value></data>
+  <data name="HeaderMagic" xml:space="preserve"><value>MAGIC</value></data>
+  <data name="HeaderAttr" xml:space="preserve"><value>ATTR</value></data>
+  <data name="HeaderSkill" xml:space="preserve"><value>SKILL</value></data>
+  <data name="HeaderNuyen" xml:space="preserve"><value>NUYEN</value></data>
+  <data name="HeaderBenefit" xml:space="preserve"><value>BENEFIT</value></data>
+  <data name="HeaderCategory" xml:space="preserve"><value>CATEGORY</value></data>
+
+  <!-- Buttons -->
+  <data name="ButtonAdd" xml:space="preserve"><value>Add</value></data>
+  <data name="ButtonRemove" xml:space="preserve"><value>Remove</value></data>
+  <data name="ButtonRemoveSelected" xml:space="preserve"><value>Remove Selected</value></data>
+  <data name="ButtonBuy" xml:space="preserve"><value>Buy</value></data>
+  <data name="ButtonSell" xml:space="preserve"><value>Sell</value></data>
+  <data name="ButtonInstallCyberware" xml:space="preserve"><value>Install</value></data>
+  <data name="ButtonInstallBioware" xml:space="preserve"><value>Install</value></data>
+  <data name="ButtonUp" xml:space="preserve"><value>Up</value></data>
+  <data name="ButtonClear" xml:space="preserve"><value>Clear</value></data>
+  <data name="ButtonBindKarma" xml:space="preserve"><value>Bind (Karma)</value></data>
+  <data name="ButtonBindSpellPoints" xml:space="preserve"><value>Bind (Spell Pts)</value></data>
+  <data name="ButtonAddFree" xml:space="preserve"><value>Add Free</value></data>
+  <data name="ButtonBuildCharacter" xml:space="preserve"><value>Build Character</value></data>
+  <data name="ButtonAddPower" xml:space="preserve"><value>Add Power</value></data>
+
+  <!-- Watermarks -->
+  <data name="WatermarkSearch" xml:space="preserve"><value>Search...</value></data>
+  <data name="WatermarkSearchSkills" xml:space="preserve"><value>Search skills...</value></data>
+  <data name="WatermarkSearchPowers" xml:space="preserve"><value>Search powers...</value></data>
+  <data name="WatermarkSearchFoci" xml:space="preserve"><value>Search foci...</value></data>
+  <data name="WatermarkSearchSpells" xml:space="preserve"><value>Search spells...</value></data>
+  <data name="WatermarkContactName" xml:space="preserve"><value>Contact name...</value></data>
+
+  <!-- Checkboxes -->
+  <data name="CheckStreetIndex" xml:space="preserve"><value>Street Index</value></data>
+  <data name="CheckExclusive" xml:space="preserve"><value>Exclusive</value></data>
+  <data name="CheckFetishLimited" xml:space="preserve"><value>Fetish-limited</value></data>
+
+  <!-- Tab labels -->
+  <data name="TabPriorities" xml:space="preserve"><value>Priorities</value></data>
+  <data name="TabRace" xml:space="preserve"><value>Race</value></data>
+  <data name="TabMagic" xml:space="preserve"><value>Magic</value></data>
+  <data name="TabAttributes" xml:space="preserve"><value>Attributes</value></data>
+  <data name="TabSkills" xml:space="preserve"><value>Skills</value></data>
+  <data name="TabSpells" xml:space="preserve"><value>Spells</value></data>
+  <data name="TabAdept" xml:space="preserve"><value>Adept</value></data>
+  <data name="TabFoci" xml:space="preserve"><value>Foci</value></data>
+  <data name="TabGear" xml:space="preserve"><value>Gear</value></data>
+  <data name="TabAugments" xml:space="preserve"><value>Augments</value></data>
+  <data name="TabContacts" xml:space="preserve"><value>Contacts</value></data>
+  <data name="TabSummary" xml:space="preserve"><value>Summary</value></data>
+
+  <!-- Page titles + subtitles -->
+  <data name="PrioritiesTitle" xml:space="preserve"><value>Priorities</value></data>
+  <data name="PrioritiesSubtitle" xml:space="preserve"><value>Drag a row up or down to change its rank. Top row is priority A, bottom is E.</value></data>
+
+  <data name="RaceTitle" xml:space="preserve"><value>Race</value></data>
+  <data name="RaceSubtitle" xml:space="preserve"><value>Select a metatype. Available races depend on the Race priority.</value></data>
+
+  <data name="MagicTitle" xml:space="preserve"><value>Magic Aspect</value></data>
+  <data name="MagicSubtitle" xml:space="preserve"><value>Choose a magical tradition. Available options depend on the Magic priority.</value></data>
+  <data name="MagicMundaneWarning" xml:space="preserve"><value>No magical abilities. Set Magic priority to A or B to gain magic.</value></data>
+
+  <data name="AttributesTitle" xml:space="preserve"><value>Attributes</value></data>
+  <data name="AttributesSubtitle" xml:space="preserve"><value>Distribute attribute points. Racial modifiers apply automatically.</value></data>
+
+  <data name="SkillsTitle" xml:space="preserve"><value>Skills</value></data>
+  <data name="SkillsSubtitle" xml:space="preserve"><value>Click a skill to purchase it. Specializations are free (base −1, spec +1).</value></data>
+
+  <data name="SpellsTitle" xml:space="preserve"><value>Spells</value></data>
+  <data name="SpellsSubtitle" xml:space="preserve"><value>Purchase spells with spell points. Requires Sorcery.</value></data>
+  <data name="SpellsNoSorceryWarning" xml:space="preserve"><value>This character has no Sorcery. Choose a Magic Aspect with spellcasting to buy spells.</value></data>
+  <data name="SpellsBuyPointButton" xml:space="preserve"><value>Buy Point (25,000¥)</value></data>
+  <data name="SpellsAddButton" xml:space="preserve"><value>Add to Spellbook</value></data>
+  <data name="SpellsTypeTooltip" xml:space="preserve"><value>P = Physical, M = Mana</value></data>
+
+  <data name="AdeptPowersTitle" xml:space="preserve"><value>Adept Powers</value></data>
+  <data name="AdeptPowersSubtitle" xml:space="preserve"><value>Physical Adepts channel magic into physical and mental enhancements.</value></data>
+  <data name="AdeptPowersLevelHint" xml:space="preserve"><value>(for leveled powers *)</value></data>
+
+  <data name="FociTitle" xml:space="preserve"><value>Foci</value></data>
+  <data name="FociSubtitle" xml:space="preserve"><value>Magical items that enhance abilities. Must be bonded before use.</value></data>
+  <data name="FociTypesAll" xml:space="preserve"><value>All Types</value></data>
+
+  <data name="GearTitle" xml:space="preserve"><value>Gear &amp; Equipment</value></data>
+  <data name="GearSubtitle" xml:space="preserve"><value>Purchase weapons, armor, and equipment with starting nuyen.</value></data>
+
+  <data name="AugmentationsTitle" xml:space="preserve"><value>Augmentations</value></data>
+  <data name="AugmentationsSubtitle" xml:space="preserve"><value>Cyberware costs Essence. Bioware costs Bio Index. Both cost nuyen.</value></data>
+
+  <data name="ContactsTitle" xml:space="preserve"><value>Contacts</value></data>
+  <data name="ContactsSubtitle" xml:space="preserve"><value>Every character starts with 2 free Level 1 contacts. Extra contacts cost nuyen.</value></data>
+  <data name="ContactsFreeOnly" xml:space="preserve"><value>Level 1 contacts only. Max 2.</value></data>
+  <data name="ContactsTierLvl1" xml:space="preserve"><value>Lvl 1</value></data>
+  <data name="ContactsTierLvl2" xml:space="preserve"><value>Lvl 2</value></data>
+  <data name="ContactsTierLvl3" xml:space="preserve"><value>Lvl 3</value></data>
+  <data name="ContactsTierContact" xml:space="preserve"><value>Contact</value></data>
+  <data name="ContactsTierBuddy" xml:space="preserve"><value>Buddy</value></data>
+  <data name="ContactsTierFriendForLife" xml:space="preserve"><value>Friend for Life</value></data>
+  <data name="ContactsCostLvl1" xml:space="preserve"><value>5,000¥</value></data>
+  <data name="ContactsCostLvl2" xml:space="preserve"><value>10,000¥</value></data>
+  <data name="ContactsCostLvl3" xml:space="preserve"><value>200,000¥</value></data>
+
+  <data name="SummaryTitle" xml:space="preserve"><value>Character Summary</value></data>
+  <data name="SummarySubtitle" xml:space="preserve"><value>Review and finalize character creation.</value></data>
+  <data name="SummaryRemainingNuyen" xml:space="preserve"><value>Remaining Nuyen</value></data>
+  <data name="SummaryReadyToFinalize" xml:space="preserve"><value>Ready to finalize</value></data>
+  <data name="SummaryEmptyValue" xml:space="preserve"><value>(None)</value></data>
+
+  <!-- Priority reference table -->
+  <data name="PriorityRaceA" xml:space="preserve"><value>Any</value></data>
+  <data name="PriorityRaceB" xml:space="preserve"><value>Any</value></data>
+  <data name="PriorityRaceC" xml:space="preserve"><value>Elf / Troll</value></data>
+  <data name="PriorityRaceD" xml:space="preserve"><value>Dwarf / Ork / Human</value></data>
+  <data name="PriorityRaceE" xml:space="preserve"><value>Human only</value></data>
+  <data name="PriorityMagicA" xml:space="preserve"><value>Full Magician</value></data>
+  <data name="PriorityMagicB" xml:space="preserve"><value>Adept / Aspected</value></data>
+  <data name="PriorityMagicMundane" xml:space="preserve"><value>Mundane</value></data>
+
+  <!-- Tooltips -->
+  <data name="TooltipRaisePriority" xml:space="preserve"><value>Raise priority</value></data>
+  <data name="TooltipLowerPriority" xml:space="preserve"><value>Lower priority</value></data>
+  <data name="TooltipBindKarma" xml:space="preserve"><value>Bind using karma</value></data>
+  <data name="TooltipBindSpellPoints" xml:space="preserve"><value>Bind using spell points</value></data>
+
+  <!-- Skills tab badges -->
+  <data name="BadgeSpec" xml:space="preserve"><value>SPEC</value></data>
+  <data name="BadgeFree" xml:space="preserve"><value>FREE</value></data>
+
+  <!-- Magic subtabs -->
+  <data name="MagicSubtabOverview" xml:space="preserve"><value>Overview</value></data>
+  <data name="MagicSubtabSpells" xml:space="preserve"><value>Spells</value></data>
+  <data name="MagicSubtabAdept" xml:space="preserve"><value>Adept Powers</value></data>
+  <data name="MagicSubtabSpirits" xml:space="preserve"><value>Spirits</value></data>
+  <data name="MagicSubtabFoci" xml:space="preserve"><value>Foci</value></data>
+
+  <!-- Magic overview pickers -->
+  <data name="SectionTradition" xml:space="preserve"><value>TRADITION</value></data>
+  <data name="SectionTotem" xml:space="preserve"><value>TOTEM</value></data>
+  <data name="SectionElement" xml:space="preserve"><value>HERMETIC ELEMENT</value></data>
+  <data name="LabelTradition" xml:space="preserve"><value>TRADITION</value></data>
+  <data name="LabelTotem" xml:space="preserve"><value>TOTEM</value></data>
+  <data name="LabelElement" xml:space="preserve"><value>ELEMENT</value></data>
+  <data name="LabelEnvironment" xml:space="preserve"><value>ENVIRONMENT</value></data>
+  <data name="LabelAdvantages" xml:space="preserve"><value>ADVANTAGES</value></data>
+  <data name="LabelDisadvantages" xml:space="preserve"><value>DISADVANTAGES</value></data>
+  <data name="TraditionHermetic" xml:space="preserve"><value>Hermetic (Mage)</value></data>
+  <data name="TraditionShamanic" xml:space="preserve"><value>Shamanic (Shaman)</value></data>
+  <data name="ElementEarth" xml:space="preserve"><value>Earth</value></data>
+  <data name="ElementAir" xml:space="preserve"><value>Air</value></data>
+  <data name="ElementFire" xml:space="preserve"><value>Fire</value></data>
+  <data name="ElementWater" xml:space="preserve"><value>Water</value></data>
+  <data name="HintPickTradition" xml:space="preserve"><value>Pick a tradition (Hermetic or Shamanic) to complete this aspect.</value></data>
+  <data name="HintPickTotem" xml:space="preserve"><value>Shamans must pick a totem before they can cast magic.</value></data>
+  <data name="HintPickElement" xml:space="preserve"><value>Elementalists must pick a hermetic element. All spells and spirits will be tied to it.</value></data>
+  <data name="WatermarkSearchTotems" xml:space="preserve"><value>Search totems...</value></data>
+
+  <!-- Spirits tab -->
+  <data name="SpiritsTitle" xml:space="preserve"><value>Bound Spirits</value></data>
+  <data name="SpiritsSubtitle" xml:space="preserve"><value>Start the game with bound spirits. Each costs Force × 1 + Services × 2 spell points.</value></data>
+  <data name="LabelSpirits" xml:space="preserve"><value>SPIRITS</value></data>
+  <data name="LabelSpiritType" xml:space="preserve"><value>SPIRIT TYPE</value></data>
+  <data name="LabelServices" xml:space="preserve"><value>SERVICES</value></data>
+  <data name="SectionAddSpirit" xml:space="preserve"><value>BIND SPIRIT</value></data>
+  <data name="SpiritsAddButton" xml:space="preserve"><value>Bind Spirit</value></data>
+  <data name="WatermarkSpiritName" xml:space="preserve"><value>Spirit name (optional)...</value></data>
+  <data name="SpiritsNoConjuringWarning" xml:space="preserve"><value>This character cannot conjure. Pick an aspect with Conjuring to bind spirits.</value></data>
+</root>

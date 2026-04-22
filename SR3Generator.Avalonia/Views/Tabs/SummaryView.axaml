@@ -3,25 +3,44 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
              mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="800"
              x:Class="SR3Generator.Avalonia.Views.Tabs.SummaryView"
              x:DataType="vm:SummaryViewModel">
 
-    <ScrollViewer Padding="12">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.summary-label">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}"/>
+            <Setter Property="Width" Value="60"/>
+        </Style>
+        <Style Selector="TextBlock.summary-value">
+            <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, monospace"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer Padding="16">
         <StackPanel Spacing="12">
             <!-- Header -->
-            <StackPanel Spacing="2">
-                <TextBlock Text="Character Summary" Classes="page-title"/>
-                <TextBlock Text="Review and finalize character creation."
-                           FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
+            <StackPanel Spacing="4">
+                <TextBlock Text="{x:Static res:Strings.SummaryTitle}" Classes="page-title"/>
+                <TextBlock Classes="page-subtitle"
+                           Text="{x:Static res:Strings.SummarySubtitle}"/>
             </StackPanel>
 
-            <!-- Validation Status -->
-            <Border Classes="panel" Padding="8">
-                <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="{Binding ValidationStatus}" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <Button Grid.Column="1" Content="Build Character" Command="{Binding BuildCharacterCommand}"
-                            IsEnabled="{Binding IsValid}" Classes="primary"/>
+            <!-- Validation / Finalize bar -->
+            <Border Classes="resource-bar">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <TextBlock Text="{x:Static res:Strings.LabelStatus}" Classes="micro-label"/>
+                    <TextBlock Grid.Column="1" Text="{Binding ValidationStatus}"
+                               Classes="body" FontWeight="SemiBold"
+                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                    <Button Grid.Column="2" Content="{x:Static res:Strings.ButtonBuildCharacter}"
+                            Command="{Binding BuildCharacterCommand}"
+                            IsEnabled="{Binding IsValid}"
+                            Classes="primary action"/>
                 </Grid>
             </Border>
 
@@ -29,83 +48,89 @@
             <ItemsControl ItemsSource="{Binding ValidationIssues}" IsVisible="{Binding !IsValid}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="#15ef4444" BorderBrush="#30ef4444" BorderThickness="1"
-                                CornerRadius="2" Padding="8,6" Margin="0,2">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Border Background="#15ef4444" BorderBrush="#30ef4444"
+                                BorderThickness="1" CornerRadius="4"
+                                Padding="10,6" Margin="0,0,0,4">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
                                 <TextBlock Text="{Binding Severity}" FontWeight="Bold" FontSize="10"
-                                           Foreground="{StaticResource DestructiveBrush}"/>
-                                <TextBlock Text="{Binding Message}" FontSize="10" TextWrapping="Wrap"/>
+                                           Foreground="{StaticResource DestructiveBrush}"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Message}" Classes="body" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <!-- Two Column Layout -->
+            <!-- Two-column summary -->
             <Grid ColumnDefinitions="*,12,*">
-                <!-- Left Column -->
+                <!-- Left -->
                 <StackPanel Grid.Column="0" Spacing="12">
-                    <!-- Basic Info -->
+                    <!-- Identity -->
                     <Border Classes="panel">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="IDENTITY" Classes="section-header"/>
-                            <Grid ColumnDefinitions="80,*" RowDefinitions="Auto,Auto">
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Race" FontSize="10"
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{x:Static res:Strings.SectionIdentity}" Classes="section-header"/>
+                            <Grid ColumnDefinitions="80,*" RowDefinitions="Auto,Auto" RowSpacing="4">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.LabelRace}" Classes="body"
                                            Foreground="{StaticResource InkSecondaryBrush}"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding RaceName}" FontSize="10" FontWeight="SemiBold"/>
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Aspect" FontSize="10"
-                                           Foreground="{StaticResource InkSecondaryBrush}" Margin="0,2"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MagicAspect}" FontSize="10" FontWeight="SemiBold" Margin="0,2"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding RaceName}"
+                                           Classes="body" FontWeight="SemiBold"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.LabelAspect}" Classes="body"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MagicAspect}"
+                                           Classes="body" FontWeight="SemiBold"
+                                           Foreground="{StaticResource AccentManaBrush}"/>
                             </Grid>
                         </StackPanel>
                     </Border>
 
                     <!-- Attributes -->
                     <Border Classes="panel">
-                        <StackPanel Spacing="8">
-                            <TextBlock Text="ATTRIBUTES" Classes="section-header"/>
-                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-                                <!-- Physical -->
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{x:Static res:Strings.SectionAttributes}" Classes="section-header"/>
+                            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto"
+                                  RowSpacing="4" ColumnSpacing="16">
                                 <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                                    <TextBlock Text="BOD" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
-                                    <TextBlock Text="{Binding Body}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
+                                    <TextBlock Text="{x:Static res:Strings.AbbrBody}" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding Body}" Classes="summary-value"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Margin="0,2">
-                                    <TextBlock Text="QCK" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
-                                    <TextBlock Text="{Binding Quickness}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrQuickness}" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding Quickness}" Classes="summary-value"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Margin="0,2">
-                                    <TextBlock Text="STR" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
-                                    <TextBlock Text="{Binding Strength}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
+                                <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrStrength}" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding Strength}" Classes="summary-value"/>
                                 </StackPanel>
-
-                                <!-- Mental -->
                                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
-                                    <TextBlock Text="CHA" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
-                                    <TextBlock Text="{Binding Charisma}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
+                                    <TextBlock Text="{x:Static res:Strings.AbbrCharisma}" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding Charisma}" Classes="summary-value"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
-                                    <TextBlock Text="INT" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
-                                    <TextBlock Text="{Binding Intelligence}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrIntelligence}" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding Intelligence}" Classes="summary-value"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
-                                    <TextBlock Text="WIL" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
-                                    <TextBlock Text="{Binding Willpower}" FontFamily="JetBrains Mono, monospace" FontSize="10" FontWeight="Bold"/>
+                                <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrWillpower}" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding Willpower}" Classes="summary-value"/>
                                 </StackPanel>
+                            </Grid>
 
-                                <!-- Derived -->
-                                <StackPanel Grid.Row="3" Grid.Column="0" Orientation="Horizontal" Margin="0,8,0,0">
-                                    <TextBlock Text="REA" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
-                                    <TextBlock Text="{Binding Reaction}" FontFamily="JetBrains Mono, monospace" FontSize="10"/>
+                            <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,2"/>
+
+                            <Grid ColumnDefinitions="*,*,*">
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrReaction}" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding Reaction}" Classes="summary-value"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0">
-                                    <TextBlock Text="ESS" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
-                                    <TextBlock Text="{Binding Essence}" FontFamily="JetBrains Mono, monospace" FontSize="10"
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrEssence}" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding EssenceDisplay}" Classes="summary-value"
                                                Foreground="{StaticResource AccentCyberBrush}"/>
                                 </StackPanel>
-                                <StackPanel Grid.Row="4" Grid.Column="0" Orientation="Horizontal" Margin="0,2">
-                                    <TextBlock Text="MAG" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Width="50"/>
-                                    <TextBlock Text="{Binding Magic}" FontFamily="JetBrains Mono, monospace" FontSize="10"
+                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrMagic}" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding Magic}" Classes="summary-value"
                                                Foreground="{StaticResource AccentManaBrush}"/>
                                 </StackPanel>
                             </Grid>
@@ -114,79 +139,88 @@
 
                     <!-- Active Skills -->
                     <Border Classes="panel">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="ACTIVE SKILLS" Classes="section-header"/>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{x:Static res:Strings.SectionActiveSkills}" Classes="section-header"/>
                             <ItemsControl ItemsSource="{Binding ActiveSkillsSummary}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontSize="10"/>
+                                        <TextBlock Text="{Binding}" Classes="body"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="(None)" FontSize="10" Foreground="{StaticResource InkMutedBrush}"
+                            <TextBlock Text="{x:Static res:Strings.SummaryEmptyValue}" Classes="body"
+                                       Foreground="{StaticResource InkMutedBrush}"
                                        IsVisible="{Binding !ActiveSkillsSummary.Count}"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
 
-                <!-- Right Column -->
+                <!-- Right -->
                 <StackPanel Grid.Column="2" Spacing="12">
+                    <!-- Resources -->
+                    <Border Classes="panel">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{x:Static res:Strings.SectionResources}" Classes="section-header"/>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{x:Static res:Strings.SummaryRemainingNuyen}" Classes="body"
+                                           Foreground="{StaticResource InkSecondaryBrush}"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}¥'}"
+                                           Classes="stat-value-lg"
+                                           Foreground="{StaticResource AccentNuyenBrush}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Spells -->
                     <Border Classes="panel">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="SPELLS" Classes="section-header"/>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{x:Static res:Strings.SectionSpells}" Classes="section-header"/>
                             <ItemsControl ItemsSource="{Binding SpellsSummary}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontSize="10"/>
+                                        <TextBlock Text="{Binding}" Classes="body"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="(None)" FontSize="10" Foreground="{StaticResource InkMutedBrush}"
+                            <TextBlock Text="{x:Static res:Strings.SummaryEmptyValue}" Classes="body"
+                                       Foreground="{StaticResource InkMutedBrush}"
                                        IsVisible="{Binding !SpellsSummary.Count}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Gear -->
                     <Border Classes="panel">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="GEAR" Classes="section-header"/>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{x:Static res:Strings.SectionGear}" Classes="section-header"/>
                             <ItemsControl ItemsSource="{Binding GearSummary}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontSize="10"/>
+                                        <TextBlock Text="{Binding}" Classes="body"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="(None)" FontSize="10" Foreground="{StaticResource InkMutedBrush}"
+                            <TextBlock Text="{x:Static res:Strings.SummaryEmptyValue}" Classes="body"
+                                       Foreground="{StaticResource InkMutedBrush}"
                                        IsVisible="{Binding !GearSummary.Count}"/>
                         </StackPanel>
                     </Border>
 
                     <!-- Contacts -->
                     <Border Classes="panel">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="CONTACTS" Classes="section-header"/>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{x:Static res:Strings.SectionContacts}" Classes="section-header"/>
                             <ItemsControl ItemsSource="{Binding ContactsSummary}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontSize="10"/>
+                                        <TextBlock Text="{Binding}" Classes="body"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="(None)" FontSize="10" Foreground="{StaticResource InkMutedBrush}"
+                            <TextBlock Text="{x:Static res:Strings.SummaryEmptyValue}" Classes="body"
+                                       Foreground="{StaticResource InkMutedBrush}"
                                        IsVisible="{Binding !ContactsSummary.Count}"/>
                         </StackPanel>
-                    </Border>
-
-                    <!-- Resources -->
-                    <Border Classes="panel-inset">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="Remaining Nuyen" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
-                            <TextBlock Grid.Column="1" Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}¥'}"
-                                       FontFamily="JetBrains Mono, monospace" FontWeight="Bold"
-                                       Foreground="{StaticResource AccentNuyenBrush}"/>
-                        </Grid>
                     </Border>
                 </StackPanel>
             </Grid>

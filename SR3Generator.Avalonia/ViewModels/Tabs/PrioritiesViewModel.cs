@@ -1,10 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using SR3Generator.Avalonia.Services;
 using SR3Generator.Data.Character;
 using SR3Generator.Data.Character.Creation;
 using SR3Generator.Database;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -13,165 +12,124 @@ namespace SR3Generator.Avalonia.ViewModels.Tabs;
 public partial class PrioritiesViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
-    private bool _isUpdating;
 
-    [ObservableProperty]
-    private PriorityRank _racePriority = PriorityRank.A;
-
-    [ObservableProperty]
-    private PriorityRank _magicPriority = PriorityRank.B;
-
-    [ObservableProperty]
-    private PriorityRank _attributesPriority = PriorityRank.C;
-
-    [ObservableProperty]
-    private PriorityRank _skillsPriority = PriorityRank.D;
-
-    [ObservableProperty]
-    private PriorityRank _resourcesPriority = PriorityRank.E;
-
-    // Benefits descriptions
-    [ObservableProperty]
-    private string _raceBenefits = string.Empty;
-
-    [ObservableProperty]
-    private string _magicBenefits = string.Empty;
-
-    [ObservableProperty]
-    private string _attributesBenefits = string.Empty;
-
-    [ObservableProperty]
-    private string _skillsBenefits = string.Empty;
-
-    [ObservableProperty]
-    private string _resourcesBenefits = string.Empty;
-
-    public ObservableCollection<PriorityRank> AvailableRanks { get; } = new(Enum.GetValues<PriorityRank>());
+    public ObservableCollection<PriorityRow> OrderedPriorities { get; } = new();
 
     public PrioritiesViewModel(ICharacterBuilderService characterService)
     {
         _characterService = characterService;
-        RefreshBenefits();
+
+        // Default top-to-bottom: A through E
+        OrderedPriorities.Add(new PriorityRow(PriorityType.Race));
+        OrderedPriorities.Add(new PriorityRow(PriorityType.Magic));
+        OrderedPriorities.Add(new PriorityRow(PriorityType.Attributes));
+        OrderedPriorities.Add(new PriorityRow(PriorityType.Skills));
+        OrderedPriorities.Add(new PriorityRow(PriorityType.Resources));
+
+        RefreshRanks();
         ApplyPriorities();
     }
 
-    partial void OnRacePriorityChanged(PriorityRank value)
+    public void MovePriority(int fromIndex, int toIndex)
     {
-        if (!_isUpdating)
-            HandlePriorityChange(PriorityType.Race, value);
-    }
+        if (fromIndex == toIndex) return;
+        if (fromIndex < 0 || fromIndex >= OrderedPriorities.Count) return;
+        if (toIndex < 0 || toIndex >= OrderedPriorities.Count) return;
 
-    partial void OnMagicPriorityChanged(PriorityRank value)
-    {
-        if (!_isUpdating)
-            HandlePriorityChange(PriorityType.Magic, value);
-    }
-
-    partial void OnAttributesPriorityChanged(PriorityRank value)
-    {
-        if (!_isUpdating)
-            HandlePriorityChange(PriorityType.Attributes, value);
-    }
-
-    partial void OnSkillsPriorityChanged(PriorityRank value)
-    {
-        if (!_isUpdating)
-            HandlePriorityChange(PriorityType.Skills, value);
-    }
-
-    partial void OnResourcesPriorityChanged(PriorityRank value)
-    {
-        if (!_isUpdating)
-            HandlePriorityChange(PriorityType.Resources, value);
-    }
-
-    private void HandlePriorityChange(PriorityType changedType, PriorityRank newRank)
-    {
-        // Find which other priority has the rank we want and swap
-        var currentPriorities = GetCurrentPriorities();
-        var conflicting = currentPriorities.FirstOrDefault(p => p.Type != changedType && p.Rank == newRank);
-
-        if (conflicting != null)
-        {
-            // Get the old rank of the changed type
-            var oldRank = currentPriorities.First(p => p.Type == changedType).Rank;
-
-            _isUpdating = true;
-            try
-            {
-                // Swap the conflicting priority to our old rank
-                SetPriorityRank(conflicting.Type, oldRank);
-            }
-            finally
-            {
-                _isUpdating = false;
-            }
-        }
-
-        RefreshBenefits();
+        OrderedPriorities.Move(fromIndex, toIndex);
+        RefreshRanks();
         ApplyPriorities();
     }
 
-    private void SetPriorityRank(PriorityType type, PriorityRank rank)
+    [RelayCommand]
+    private void MoveUp(PriorityRow? row)
     {
-        switch (type)
+        if (row is null) return;
+        var idx = OrderedPriorities.IndexOf(row);
+        if (idx > 0) MovePriority(idx, idx - 1);
+    }
+
+    [RelayCommand]
+    private void MoveDown(PriorityRow? row)
+    {
+        if (row is null) return;
+        var idx = OrderedPriorities.IndexOf(row);
+        if (idx >= 0 && idx < OrderedPriorities.Count - 1) MovePriority(idx, idx + 1);
+    }
+
+    private void RefreshRanks()
+    {
+        // Top of list (index 0) = rank A (enum value 4); bottom (index 4) = rank E (enum value 0)
+        for (int i = 0; i < OrderedPriorities.Count; i++)
         {
-            case PriorityType.Race:
-                RacePriority = rank;
-                break;
-            case PriorityType.Magic:
-                MagicPriority = rank;
-                break;
-            case PriorityType.Attributes:
-                AttributesPriority = rank;
-                break;
-            case PriorityType.Skills:
-                SkillsPriority = rank;
-                break;
-            case PriorityType.Resources:
-                ResourcesPriority = rank;
-                break;
+            OrderedPriorities[i].SetRank((PriorityRank)(4 - i));
         }
     }
 
-    private List<Priority> GetCurrentPriorities()
+    private void ApplyPriorities()
     {
-        return new List<Priority>
+        var priorities = OrderedPriorities
+            .Select(r => new Priority(r.Type, r.Rank))
+            .ToList();
+        _characterService.SetPriorities(priorities);
+    }
+}
+
+public partial class PriorityRow : ObservableObject
+{
+    [ObservableProperty] private PriorityRank _rank;
+    [ObservableProperty] private string _benefits = string.Empty;
+    [ObservableProperty] private string _rankDisplay = "A";
+    [ObservableProperty] private bool _isDragging;
+
+    public PriorityType Type { get; }
+    public string DisplayName { get; }
+    public string AccentResource { get; }
+
+    public PriorityRow(PriorityType type)
+    {
+        Type = type;
+        DisplayName = type.ToString();
+        AccentResource = type switch
         {
-            new Priority(PriorityType.Race, RacePriority),
-            new Priority(PriorityType.Magic, MagicPriority),
-            new Priority(PriorityType.Attributes, AttributesPriority),
-            new Priority(PriorityType.Skills, SkillsPriority),
-            new Priority(PriorityType.Resources, ResourcesPriority)
+            PriorityType.Magic => "AccentManaBrush",
+            PriorityType.Resources => "AccentNuyenBrush",
+            _ => "InkPrimaryBrush"
         };
     }
 
-    private void RefreshBenefits()
+    public void SetRank(PriorityRank rank)
     {
-        RaceBenefits = GetRaceBenefits(RacePriority);
-        MagicBenefits = GetMagicBenefits(MagicPriority);
-        AttributesBenefits = $"{new Priority(PriorityType.Attributes, AttributesPriority).GetAttributePoints()} points";
-        SkillsBenefits = $"{new Priority(PriorityType.Skills, SkillsPriority).GetSkillPoints()} points";
-        ResourcesBenefits = $"{new Priority(PriorityType.Resources, ResourcesPriority).GetNuyen():N0}¥";
+        Rank = rank;
+        RankDisplay = rank.ToString();
+        Benefits = ComputeBenefits(Type, rank);
     }
 
-    private string GetRaceBenefits(PriorityRank rank)
+    private static string ComputeBenefits(PriorityType type, PriorityRank rank)
+    {
+        var priority = new Priority(type, rank);
+        return type switch
+        {
+            PriorityType.Race => GetRaceBenefits(rank),
+            PriorityType.Magic => GetMagicBenefits(rank),
+            PriorityType.Attributes => $"{priority.GetAttributePoints()} attribute points",
+            PriorityType.Skills => $"{priority.GetSkillPoints()} skill points",
+            PriorityType.Resources => $"{priority.GetNuyen():N0}¥",
+            _ => string.Empty
+        };
+    }
+
+    private static string GetRaceBenefits(PriorityRank rank)
     {
         var races = new Priority(PriorityType.Race, rank).GetAllowedRaces();
         return string.Join(", ", races.Select(r => r.Name.ToString()));
     }
 
-    private string GetMagicBenefits(PriorityRank rank)
+    private static string GetMagicBenefits(PriorityRank rank)
     {
         var aspects = new Priority(PriorityType.Magic, rank).GetAllowedMagicAspects();
         if (aspects.All(a => a.Name == AspectName.Mundane))
             return "Mundane (No Magic)";
         return string.Join(", ", aspects.Where(a => a.Name != AspectName.Mundane).Select(a => a.Name.ToString()));
-    }
-
-    private void ApplyPriorities()
-    {
-        var priorities = GetCurrentPriorities();
-        _characterService.SetPriorities(priorities);
     }
 }

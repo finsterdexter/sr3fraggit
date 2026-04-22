@@ -10,7 +10,6 @@ namespace SR3Generator.Data
     {
         Instant,
         Sustained,
-        AlwaysOn,
-        Other
+        Permanent,
     }
 }

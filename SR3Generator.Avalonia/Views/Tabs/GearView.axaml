@@ -3,71 +3,81 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
              mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
              x:Class="SR3Generator.Avalonia.Views.Tabs.GearView"
              x:DataType="vm:GearViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="12">
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
         <!-- Header -->
-        <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,8">
-            <TextBlock Text="Gear &amp; Equipment" Classes="page-title"/>
-            <TextBlock Text="Purchase weapons, armor, and equipment with starting nuyen."
-                       FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="{x:Static res:Strings.GearTitle}" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="{x:Static res:Strings.GearSubtitle}"/>
         </StackPanel>
 
-        <!-- Nuyen Summary -->
-        <Border Grid.Row="1" Classes="panel" Padding="8" Margin="0,0,0,8">
+        <!-- Resource bar -->
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
             <Grid ColumnDefinitions="Auto,*,Auto">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
-                    <TextBlock Text="NUYEN" Classes="section-header" VerticalAlignment="Center"/>
-                    <CheckBox Content="Street Index (1.5x)" IsChecked="{Binding UseStreetIndex}"
-                              FontSize="10" VerticalAlignment="Center"/>
+                <CheckBox Grid.Column="0" Content="{x:Static res:Strings.CheckStreetIndex}"
+                          IsChecked="{Binding UseStreetIndex}"
+                          VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelNuyen}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value-lg">
+                        <Run Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}'}"
+                             Foreground="{StaticResource AccentNuyenBrush}"/>
+                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                        <Run Text="{Binding NuyenAllowance, StringFormat='{}{0:N0}'}"
+                             Foreground="{StaticResource InkSecondaryBrush}"/>
+                        <Run Text="¥" Foreground="{StaticResource InkMutedBrush}"/>
+                    </TextBlock>
                 </StackPanel>
-                <TextBlock Grid.Column="2" FontFamily="JetBrains Mono, monospace" VerticalAlignment="Center">
-                    <Run Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}'}" FontWeight="Bold"
-                         Foreground="{StaticResource AccentNuyenBrush}"/>
-                    <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
-                    <Run Text="{Binding NuyenAllowance, StringFormat='{}{0:N0}'}"
-                         Foreground="{StaticResource InkSecondaryBrush}"/>
-                    <Run Text="¥" Foreground="{StaticResource InkMutedBrush}"/>
-                </TextBlock>
             </Grid>
         </Border>
 
-        <!-- Main Content -->
-        <Grid Grid.Row="2" ColumnDefinitions="160,*,Auto,220">
-            <!-- Category Facets -->
-            <Border Grid.Column="0" Classes="panel" Margin="0,0,6,0">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,8">
-                        <TextBlock Text="CATEGORIES" Classes="section-header"/>
-                        <Border Classes="panel-inset" Padding="4">
-                            <TextBlock Text="{Binding Breadcrumb}" TextWrapping="Wrap" FontSize="9"
+        <!-- Main: Categories | List | Controls | Owned -->
+        <Grid Grid.Row="2" ColumnDefinitions="180,12,*,80,12,*">
+            <!-- Categories -->
+            <Border Grid.Column="0" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="12,12,12,8">
+                        <TextBlock Text="{x:Static res:Strings.SectionCategories}" Classes="section-header"/>
+                        <Border Classes="panel-inset" Padding="6,4">
+                            <TextBlock Text="{Binding Breadcrumb}" TextWrapping="Wrap"
+                                       FontSize="10"
                                        Foreground="{StaticResource InkSecondaryBrush}"/>
                         </Border>
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <Button Content="Up" Command="{Binding NavigateUpCommand}" Classes="compact"/>
-                            <Button Content="Clear" Command="{Binding ClearFiltersCommand}" Classes="compact"/>
-                        </StackPanel>
-                        <TextBox Text="{Binding FilterText}" Watermark="Search..." Margin="0,4,0,0"/>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                            <Button Grid.Column="0" Content="{x:Static res:Strings.ButtonUp}"
+                                    Command="{Binding NavigateUpCommand}"
+                                    Classes="compact" HorizontalAlignment="Stretch"/>
+                            <Button Grid.Column="1" Content="{x:Static res:Strings.ButtonClear}"
+                                    Command="{Binding ClearFiltersCommand}"
+                                    Classes="compact" HorizontalAlignment="Stretch"/>
+                        </Grid>
+                        <TextBox Text="{Binding FilterText}" Watermark="{x:Static res:Strings.WatermarkSearch}"/>
                         <TextBlock Text="{Binding FilteredCount, StringFormat='{}{0} items'}"
-                                   FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
+                                   FontSize="10" Foreground="{StaticResource InkMutedBrush}"/>
                     </StackPanel>
-
-                    <ScrollViewer>
+                    <ScrollViewer Padding="8,0,8,8">
                         <ItemsControl ItemsSource="{Binding CategoryFacets}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="vm:FacetValue">
-                                    <Button Padding="4,2" Margin="0,1"
+                                    <Button Classes="ghost"
+                                            Margin="0,1"
                                             HorizontalAlignment="Stretch"
-                                            HorizontalContentAlignment="Left"
                                             Command="{Binding $parent[UserControl].((vm:GearViewModel)DataContext).SelectCategoryCommand}"
-                                            CommandParameter="{Binding}"
-                                            Background="Transparent">
+                                            CommandParameter="{Binding}">
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <TextBlock Text="{Binding Name}" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Name}" Classes="body"
+                                                       TextTrimming="CharacterEllipsis"/>
                                             <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat='({0})'}"
-                                                       FontSize="9" Foreground="{StaticResource InkMutedBrush}" Margin="4,0,0,0"/>
+                                                       FontSize="10"
+                                                       Foreground="{StaticResource InkMutedBrush}"
+                                                       Margin="6,0,0,0"/>
                                         </Grid>
                                     </Button>
                                 </DataTemplate>
@@ -78,22 +88,32 @@
             </Border>
 
             <!-- Gear List -->
-            <Border Grid.Column="1" Classes="panel" Margin="0,0,6,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="AVAILABLE" Classes="section-header" Margin="0,0,0,4"/>
+            <Border Grid.Column="2" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionAvailable}"
+                               Classes="section-header" Margin="12,12,12,8"/>
                     <ListBox ItemsSource="{Binding FilteredGear}"
-                             SelectedItem="{Binding SelectedGearItem}">
+                             SelectedItem="{Binding SelectedGearItem}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Grid ColumnDefinitions="*,60,60,50">
-                                    <TextBlock Text="{Binding Name}" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                <Grid ColumnDefinitions="*,70,70,50">
+                                    <TextBlock Text="{Binding Name}" Classes="body"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{Binding PrimaryStat}"
-                                               FontSize="9" Foreground="{StaticResource AccentCyberBrush}"/>
+                                               Classes="body-sm"
+                                               Foreground="{StaticResource AccentCyberBrush}"
+                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding CostDisplay}"
-                                               FontSize="9" FontFamily="JetBrains Mono, monospace"
-                                               Foreground="{StaticResource AccentNuyenBrush}"/>
+                                               Classes="data" FontSize="10"
+                                               Foreground="{StaticResource AccentNuyenBrush}"
+                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="3" Text="{Binding Availability}"
-                                               FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
+                                               FontSize="10"
+                                               Foreground="{StaticResource InkMutedBrush}"
+                                               VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -101,25 +121,40 @@
                 </DockPanel>
             </Border>
 
-            <!-- Buy/Sell Controls -->
-            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="6" Margin="0,0,6,0">
-                <Button Content="Buy" Command="{Binding BuyGearCommand}" Width="50"/>
-                <Button Content="Sell" Command="{Binding SellGearCommand}" Width="50"/>
-            </StackPanel>
+            <!-- Controls -->
+            <Border Grid.Column="3" Classes="panel" Margin="12,0,0,0">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{x:Static res:Strings.SectionActions}" Classes="section-header"/>
+                    <Button Content="{x:Static res:Strings.ButtonBuy}"
+                            Classes="primary action"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding BuyGearCommand}"/>
+                    <Button Content="{x:Static res:Strings.ButtonSell}"
+                            Classes="action"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding SellGearCommand}"/>
+                </StackPanel>
+            </Border>
 
-            <!-- Owned Gear -->
-            <Border Grid.Column="3" Classes="panel">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="OWNED" Classes="section-header" Margin="0,0,0,4"/>
+            <!-- Owned -->
+            <Border Grid.Column="5" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionOwned}"
+                               Classes="section-header" Margin="12,12,12,8"/>
                     <ListBox ItemsSource="{Binding OwnedGear}"
-                             SelectedItem="{Binding SelectedOwnedGear}">
+                             SelectedItem="{Binding SelectedOwnedGear}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Text="{Binding Name}" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Name}" Classes="body"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{Binding CostDisplay}"
-                                               FontSize="9" FontFamily="JetBrains Mono, monospace"
-                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                               Classes="data" FontSize="10"
+                                               Foreground="{StaticResource InkMutedBrush}"
+                                               VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -128,28 +163,32 @@
             </Border>
         </Grid>
 
-        <!-- Selected Item Details -->
-        <Border Grid.Row="3" Classes="panel-inset" Margin="0,8,0,0"
+        <!-- Selected item details -->
+        <Border Grid.Row="3" Classes="panel-inset" Margin="0,12,0,0"
                 IsVisible="{Binding SelectedGearItem, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <Grid RowDefinitions="Auto,Auto">
+            <StackPanel Spacing="6">
                 <Grid ColumnDefinitions="*,Auto,Auto,Auto">
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="{Binding SelectedGearItem.Name}" FontWeight="SemiBold" FontSize="11"/>
+                        <TextBlock Text="{Binding SelectedGearItem.Name}"
+                                   Classes="body" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding SelectedGearItem.CategoryDisplay}"
-                                   FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
+                                   FontSize="10"
+                                   Foreground="{StaticResource InkMutedBrush}"/>
                     </StackPanel>
                     <TextBlock Grid.Column="1" Text="{Binding SelectedGearItem.CostDisplay}"
-                               FontFamily="JetBrains Mono, monospace"
+                               Classes="stat-value"
                                Foreground="{StaticResource AccentNuyenBrush}"
                                VerticalAlignment="Center" Margin="12,0"/>
                     <TextBlock Grid.Column="2" Text="{Binding SelectedGearItem.Availability, StringFormat='Avail {0}'}"
-                               FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"
+                               Classes="body"
+                               Foreground="{StaticResource InkSecondaryBrush}"
                                VerticalAlignment="Center" Margin="12,0"/>
                     <TextBlock Grid.Column="3" Text="{Binding SelectedGearItem.Concealability, StringFormat='Conceal {0}'}"
-                               FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"
+                               Classes="body"
+                               Foreground="{StaticResource InkSecondaryBrush}"
                                VerticalAlignment="Center"/>
                 </Grid>
-                <ItemsControl Grid.Row="1" ItemsSource="{Binding SelectedGearItem.Stats}" Margin="0,6,0,0">
+                <ItemsControl ItemsSource="{Binding SelectedGearItem.Stats}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal"/>
@@ -159,15 +198,15 @@
                         <DataTemplate DataType="vm:StatDisplay">
                             <Border Classes="tag-cyber" Margin="0,0,6,4">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Text="{Binding Label}" FontSize="9" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Value}" FontSize="9"
+                                    <TextBlock Text="{Binding Label}" FontSize="10" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Value}" FontSize="10"
                                                Foreground="{StaticResource AccentCyberBrush}"/>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </Grid>
+            </StackPanel>
         </Border>
     </Grid>
 </UserControl>

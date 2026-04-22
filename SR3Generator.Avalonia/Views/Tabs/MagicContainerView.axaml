@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:tabs="using:SR3Generator.Avalonia.Views.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="800"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.MagicContainerView"
+             x:DataType="vm:MagicContainerViewModel">
+
+    <TabControl SelectedIndex="{Binding SelectedSubtabIndex}" Padding="0">
+        <TabItem Header="{x:Static res:Strings.MagicSubtabOverview}">
+            <tabs:MagicView DataContext="{Binding OverviewVM}"/>
+        </TabItem>
+        <TabItem Header="{x:Static res:Strings.MagicSubtabSpells}"
+                 IsVisible="{Binding HasSorcery}">
+            <tabs:SpellsView DataContext="{Binding SpellsVM}"/>
+        </TabItem>
+        <TabItem Header="{x:Static res:Strings.MagicSubtabAdept}"
+                 IsVisible="{Binding IsAdept}">
+            <tabs:AdeptPowersView DataContext="{Binding AdeptPowersVM}"/>
+        </TabItem>
+        <TabItem Header="{x:Static res:Strings.MagicSubtabSpirits}"
+                 IsVisible="{Binding HasConjuring}">
+            <tabs:SpiritsView DataContext="{Binding SpiritsVM}"/>
+        </TabItem>
+        <TabItem Header="{x:Static res:Strings.MagicSubtabFoci}"
+                 IsVisible="{Binding HasMagic}">
+            <tabs:FociView DataContext="{Binding FociVM}"/>
+        </TabItem>
+    </TabControl>
+</UserControl>

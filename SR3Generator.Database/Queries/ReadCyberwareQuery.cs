@@ -161,33 +161,21 @@ namespace SR3Generator.Database.Queries
             return new Availability { TargetNumber = 0, Interval = availability };
         }
 
+        // DB format is "bookcode.page", e.g. "sr3.300", "cb3.98", "mm.25". Book codes can
+        // include digits (cb3, sr3), so we split on the last '.' instead of walking letters.
         private static string ParseBook(string? bookPage)
         {
-            if (string.IsNullOrWhiteSpace(bookPage))
-                return string.Empty;
-
-            var i = 0;
-            while (i < bookPage.Length && char.IsLetter(bookPage[i]))
-                i++;
-            return bookPage.Substring(0, i);
+            if (string.IsNullOrWhiteSpace(bookPage)) return string.Empty;
+            var dot = bookPage.LastIndexOf('.');
+            return dot < 0 ? bookPage : bookPage[..dot];
         }
 
         private static int ParsePage(string? bookPage)
         {
-            if (string.IsNullOrWhiteSpace(bookPage))
-                return 0;
-
-            var i = 0;
-            while (i < bookPage.Length && char.IsLetter(bookPage[i]))
-                i++;
-
-            var pageStr = bookPage.Substring(i);
-            if (pageStr.Contains('.'))
-                pageStr = pageStr.Split('.')[0];
-
-            if (int.TryParse(pageStr, out var page))
-                return page;
-            return 0;
+            if (string.IsNullOrWhiteSpace(bookPage)) return 0;
+            var dot = bookPage.LastIndexOf('.');
+            if (dot < 0 || dot == bookPage.Length - 1) return 0;
+            return int.TryParse(bookPage[(dot + 1)..], out var page) ? page : 0;
         }
     }
 

@@ -106,6 +106,12 @@ public partial class AugmentationsViewModel : ViewModelBase
     public CyberwareGrade[] CyberwareGrades { get; } = Enum.GetValues<CyberwareGrade>();
     public BiowareGrade[] BiowareGrades { get; } = Enum.GetValues<BiowareGrade>();
 
+    // Breadcrumb dropdown-per-level representation of the current category path.
+    // Each step has a SelectedValue (the chosen name at that depth) and Options (its
+    // siblings). The last step is the "pick next level" step with SelectedValue=null.
+    public ObservableCollection<BreadcrumbStep> CyberwareBreadcrumbSteps { get; } = new();
+    public ObservableCollection<BreadcrumbStep> BiowareBreadcrumbSteps { get; } = new();
+
     public AugmentationsViewModel(ICharacterBuilderService characterService, AugmentationDatabase augmentationDatabase)
     {
         _characterService = characterService;
@@ -115,14 +121,123 @@ public partial class AugmentationsViewModel : ViewModelBase
         LoadAllAugmentations();
         BuildCyberwareFacets();
         BuildBiowareFacets();
+        RebuildCyberwareBreadcrumb();
+        RebuildBiowareBreadcrumb();
         ApplyCyberwareFilters();
         ApplyBiowareFilters();
         RefreshFromBuilder();
     }
 
+    // --- Breadcrumb steps --------------------------------------------------------------
+
+    private void RebuildCyberwareBreadcrumb() =>
+        RebuildBreadcrumb(CyberwareBreadcrumbSteps, _selectedCyberwareCategoryPath, _allCyberware.Select(c => c.CategoryPath), OnCyberwareStepChanged);
+
+    private void RebuildBiowareBreadcrumb() =>
+        RebuildBreadcrumb(BiowareBreadcrumbSteps, _selectedBiowareCategoryPath, _allBioware.Select(b => b.CategoryPath), OnBiowareStepChanged);
+
+    /// <summary>
+    /// Produces one breadcrumb <see cref="BreadcrumbStep"/> per depth already in the path
+    /// (pre-selected), plus one trailing "pick next" step whose options list the available
+    /// sub-categories beneath the current path.
+    /// </summary>
+    private static void RebuildBreadcrumb(
+        ObservableCollection<BreadcrumbStep> target,
+        List<string> selectedPath,
+        IEnumerable<string[]> allPaths,
+        Action<int, string?> onStepChanged)
+    {
+        target.Clear();
+
+        var allPathsList = allPaths.ToList();
+
+        // Steps for each already-selected depth.
+        for (int depth = 0; depth < selectedPath.Count; depth++)
+        {
+            var options = OptionsAtDepth(allPathsList, selectedPath, depth);
+            var step = new BreadcrumbStep(depth, options, onStepChanged);
+            step.SetSilently(selectedPath[depth]);
+            target.Add(step);
+        }
+
+        // Trailing "pick next" step (null selection) if any deeper options exist.
+        var nextDepth = selectedPath.Count;
+        var nextOptions = OptionsAtDepth(allPathsList, selectedPath, nextDepth);
+        if (nextOptions.Count > 0)
+        {
+            target.Add(new BreadcrumbStep(nextDepth, nextOptions, onStepChanged));
+        }
+    }
+
+    /// <summary>Distinct names that appear at <paramref name="depth"/> given the prefix in
+    /// <paramref name="selectedPath"/> (up to <paramref name="depth"/>, inclusive of the earlier
+    /// selections).</summary>
+    private static List<string> OptionsAtDepth(
+        IReadOnlyList<string[]> allPaths,
+        IReadOnlyList<string> selectedPath,
+        int depth)
+    {
+        return allPaths
+            .Where(p => p.Length > depth)
+            .Where(p =>
+            {
+                // Require the prefix of the path to match selectedPath up to `depth`.
+                for (int i = 0; i < depth && i < selectedPath.Count; i++)
+                {
+                    if (!p[i].Equals(selectedPath[i], StringComparison.OrdinalIgnoreCase)) return false;
+                }
+                return true;
+            })
+            .Select(p => p[depth])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => n)
+            .ToList();
+    }
+
+    private void OnCyberwareStepChanged(int depth, string? value)
+    {
+        // Truncate path back to depth, then append the new value (if any).
+        while (_selectedCyberwareCategoryPath.Count > depth) _selectedCyberwareCategoryPath.RemoveAt(_selectedCyberwareCategoryPath.Count - 1);
+        if (!string.IsNullOrEmpty(value)) _selectedCyberwareCategoryPath.Add(value);
+        RebuildCyberwareBreadcrumb();
+        BuildCyberwareFacets();
+        ApplyCyberwareFilters();
+    }
+
+    private void OnBiowareStepChanged(int depth, string? value)
+    {
+        while (_selectedBiowareCategoryPath.Count > depth) _selectedBiowareCategoryPath.RemoveAt(_selectedBiowareCategoryPath.Count - 1);
+        if (!string.IsNullOrEmpty(value)) _selectedBiowareCategoryPath.Add(value);
+        RebuildBiowareBreadcrumb();
+        BuildBiowareFacets();
+        ApplyBiowareFilters();
+    }
+
     private void OnCharacterChanged(object? sender, EventArgs e)
     {
         RefreshFromBuilder();
+    }
+
+    // Selections are mutually exclusive: the Detail panel shows whichever list last selected a
+    // row. Picking from Available clears the Installed selection, and vice versa, so only one
+    // primary action (Install or Remove) is visible at a time.
+    partial void OnSelectedCyberwareItemChanged(CyberwareItem? value)
+    {
+        if (value != null) SelectedInstalledAug = null;
+    }
+
+    partial void OnSelectedBiowareItemChanged(BiowareItem? value)
+    {
+        if (value != null) SelectedInstalledAug = null;
+    }
+
+    partial void OnSelectedInstalledAugChanged(InstalledAugmentation? value)
+    {
+        if (value != null)
+        {
+            SelectedCyberwareItem = null;
+            SelectedBiowareItem = null;
+        }
     }
 
     private void LoadAllAugmentations()
@@ -169,6 +284,7 @@ public partial class AugmentationsViewModel : ViewModelBase
     {
         CyberwareFilterText = string.Empty;
         _selectedCyberwareCategoryPath.Clear();
+        RebuildCyberwareBreadcrumb();
         BuildCyberwareFacets();
         ApplyCyberwareFilters();
     }
@@ -179,6 +295,7 @@ public partial class AugmentationsViewModel : ViewModelBase
         if (_selectedCyberwareCategoryPath.Count > 0)
         {
             _selectedCyberwareCategoryPath.RemoveAt(_selectedCyberwareCategoryPath.Count - 1);
+            RebuildCyberwareBreadcrumb();
             BuildCyberwareFacets();
             ApplyCyberwareFilters();
         }
@@ -188,6 +305,7 @@ public partial class AugmentationsViewModel : ViewModelBase
     private void SelectCyberwareCategory(AugFacetValue facetValue)
     {
         _selectedCyberwareCategoryPath.Add(facetValue.Name);
+        RebuildCyberwareBreadcrumb();
         BuildCyberwareFacets();
         ApplyCyberwareFilters();
     }
@@ -230,6 +348,7 @@ public partial class AugmentationsViewModel : ViewModelBase
     {
         BiowareFilterText = string.Empty;
         _selectedBiowareCategoryPath.Clear();
+        RebuildBiowareBreadcrumb();
         BuildBiowareFacets();
         ApplyBiowareFilters();
     }
@@ -240,6 +359,7 @@ public partial class AugmentationsViewModel : ViewModelBase
         if (_selectedBiowareCategoryPath.Count > 0)
         {
             _selectedBiowareCategoryPath.RemoveAt(_selectedBiowareCategoryPath.Count - 1);
+            RebuildBiowareBreadcrumb();
             BuildBiowareFacets();
             ApplyBiowareFilters();
         }
@@ -249,6 +369,7 @@ public partial class AugmentationsViewModel : ViewModelBase
     private void SelectBiowareCategory(AugFacetValue facetValue)
     {
         _selectedBiowareCategoryPath.Add(facetValue.Name);
+        RebuildBiowareBreadcrumb();
         BuildBiowareFacets();
         ApplyBiowareFilters();
     }
@@ -349,9 +470,10 @@ public partial class AugmentationsViewModel : ViewModelBase
 
         NuyenAllowance = builder.ResourcesAllowance;
 
-        // Calculate nuyen spent (simplified - full calc would include all gear)
-        NuyenSpent = builder.ResourcesAllowance - character.Nuyen;
-        NuyenRemaining = character.Nuyen;
+        // Character.Nuyen starts at 0 and is decremented by every purchase (gear / cyber /
+        // bio / contacts / etc.), so "spent" is -Nuyen and "remaining" is allowance + Nuyen.
+        NuyenSpent = -character.Nuyen;
+        NuyenRemaining = builder.ResourcesAllowance + character.Nuyen;
 
         // Get Essence and Bio Index from builder
         var essence = builder.GetCurrentEssence();
@@ -391,6 +513,44 @@ public class AugFacetValue
     }
 }
 
+/// <summary>
+/// One dropdown in the augment-category breadcrumb. Owns its own selection state; when the user
+/// picks a value, the registered change-handler is called with (depth, newValue). The
+/// <see cref="SetSilently"/> helper lets the VM set the value programmatically without
+/// re-triggering the handler during a rebuild.
+/// </summary>
+public partial class BreadcrumbStep : ObservableObject
+{
+    private readonly Action<int, string?> _onChanged;
+    private bool _suppress;
+
+    public int Depth { get; }
+    public ObservableCollection<string> Options { get; }
+
+    [ObservableProperty]
+    private string? _selectedValue;
+
+    public BreadcrumbStep(int depth, IEnumerable<string> options, Action<int, string?> onChanged)
+    {
+        Depth = depth;
+        Options = new ObservableCollection<string>(options);
+        _onChanged = onChanged;
+    }
+
+    partial void OnSelectedValueChanged(string? value)
+    {
+        if (_suppress) return;
+        _onChanged(Depth, value);
+    }
+
+    public void SetSilently(string? value)
+    {
+        _suppress = true;
+        SelectedValue = value;
+        _suppress = false;
+    }
+}
+
 public class CyberwareItem
 {
     public string Name { get; }
@@ -402,6 +562,22 @@ public class CyberwareItem
     public string[] CategoryPath { get; }
     public string CategoryDisplay { get; }
     public string Notes { get; }
+    public string? Legality { get; }
+    public int Capacity { get; }
+    public string CapacityDisplay => Capacity == 0 ? string.Empty : Capacity.ToString();
+    public decimal StreetIndex { get; }
+    public string StreetIndexDisplay => StreetIndex == 0m ? string.Empty : $"×{StreetIndex:0.##}";
+    public string? Book { get; }
+    public int Page { get; }
+    public string BookPageDisplay
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(Book)) return string.Empty;
+            var book = Book.ToUpperInvariant();
+            return Page > 0 ? $"{book} p.{Page}" : book;
+        }
+    }
     public Cyberware Cyberware { get; }
 
     public CyberwareItem(Cyberware cyberware)
@@ -414,6 +590,11 @@ public class CyberwareItem
         CategoryPath = cyberware.CategoryTree?.ToArray() ?? Array.Empty<string>();
         CategoryDisplay = CategoryPath.Length > 0 ? string.Join(" > ", CategoryPath) : "Uncategorized";
         Notes = cyberware.Notes ?? string.Empty;
+        Legality = cyberware.Legality;
+        Capacity = cyberware.Capacity;
+        StreetIndex = cyberware.StreetIndex;
+        Book = cyberware.Book;
+        Page = cyberware.Page;
     }
 
     private static string FormatAvailability(Availability? availability)
@@ -435,6 +616,20 @@ public class BiowareItem
     public string[] CategoryPath { get; }
     public string CategoryDisplay { get; }
     public string Notes { get; }
+    public string? Legality { get; }
+    public decimal StreetIndex { get; }
+    public string StreetIndexDisplay => StreetIndex == 0m ? string.Empty : $"×{StreetIndex:0.##}";
+    public string? Book { get; }
+    public int Page { get; }
+    public string BookPageDisplay
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(Book)) return string.Empty;
+            var book = Book.ToUpperInvariant();
+            return Page > 0 ? $"{book} p.{Page}" : book;
+        }
+    }
     public Bioware Bioware { get; }
 
     public BiowareItem(Bioware bioware)
@@ -447,6 +642,10 @@ public class BiowareItem
         CategoryPath = bioware.CategoryTree?.ToArray() ?? Array.Empty<string>();
         CategoryDisplay = CategoryPath.Length > 0 ? string.Join(" > ", CategoryPath) : "Uncategorized";
         Notes = bioware.Notes ?? string.Empty;
+        Legality = bioware.Legality;
+        StreetIndex = bioware.StreetIndex;
+        Book = bioware.Book;
+        Page = bioware.Page;
     }
 
     private static string FormatAvailability(Availability? availability)
@@ -466,14 +665,37 @@ public class InstalledAugmentation
     public string IndexDisplay { get; }
     public bool IsCyberware { get; }
 
+    // Extended detail fields (populated for the Detail pane)
+    public string CategoryDisplay { get; }
+    public string Availability { get; }
+    public string IndexLabel { get; }           // "Essence" or "Bio Index"
+    public string IndexValueDisplay { get; }     // "0.40", "0.80", etc.
+    public string? Legality { get; }
+    public int Capacity { get; }
+    public string CapacityDisplay => Capacity == 0 ? string.Empty : Capacity.ToString();
+    public string GradeDisplay { get; }
+    public string? Notes { get; }
+    public string BookPageDisplay { get; }
+
     public InstalledAugmentation(Guid gearId, Cyberware cyberware)
     {
         GearId = gearId;
         Name = cyberware.Name;
         Type = $"Cyberware ({cyberware.Grade})";
-        CostDisplay = $"{cyberware.ActualCost:N0}¥";
+        CostDisplay = FormatPaidCost(cyberware);
         IndexDisplay = $"Ess: {cyberware.ActualEssenceCost:F2}";
         IsCyberware = true;
+
+        CategoryDisplay = (cyberware.CategoryTree?.Count ?? 0) > 0
+            ? string.Join(" > ", cyberware.CategoryTree!) : "Uncategorized";
+        Availability = FormatAvailability(cyberware.Availability);
+        IndexLabel = "Essence";
+        IndexValueDisplay = cyberware.ActualEssenceCost.ToString("F2");
+        Legality = cyberware.Legality;
+        Capacity = cyberware.Capacity;
+        GradeDisplay = cyberware.Grade.ToString();
+        Notes = cyberware.Notes;
+        BookPageDisplay = FormatBookPage(cyberware.Book, cyberware.Page);
     }
 
     public InstalledAugmentation(Guid gearId, Bioware bioware)
@@ -481,8 +703,39 @@ public class InstalledAugmentation
         GearId = gearId;
         Name = bioware.Name;
         Type = $"Bioware ({bioware.Grade})";
-        CostDisplay = $"{bioware.ActualCost:N0}¥";
+        CostDisplay = FormatPaidCost(bioware);
         IndexDisplay = $"Bio: {bioware.ActualBioIndexCost:F2}";
         IsCyberware = false;
+
+        CategoryDisplay = (bioware.CategoryTree?.Count ?? 0) > 0
+            ? string.Join(" > ", bioware.CategoryTree!) : "Uncategorized";
+        Availability = FormatAvailability(bioware.Availability);
+        IndexLabel = "Bio Index";
+        IndexValueDisplay = bioware.ActualBioIndexCost.ToString("F2");
+        Legality = bioware.Legality;
+        Capacity = 0;
+        GradeDisplay = bioware.Grade.ToString();
+        Notes = bioware.Notes;
+        BookPageDisplay = FormatBookPage(bioware.Book, bioware.Page);
+    }
+
+    private static string FormatPaidCost(Equipment eq)
+    {
+        var paid = eq.PaidCost > 0 ? eq.PaidCost : (eq is Cyberware c ? c.ActualCost : eq is Bioware b ? b.ActualCost : eq.Cost);
+        return $"{paid:N0}¥";
+    }
+
+    private static string FormatAvailability(Availability? availability)
+    {
+        if (availability == null) return "Always";
+        if (availability.TargetNumber == 0) return "Always";
+        return $"{availability.TargetNumber}/{availability.Interval}";
+    }
+
+    private static string FormatBookPage(string? book, int page)
+    {
+        if (string.IsNullOrEmpty(book)) return string.Empty;
+        var b = book.ToUpperInvariant();
+        return page > 0 ? $"{b} p.{page}" : b;
     }
 }

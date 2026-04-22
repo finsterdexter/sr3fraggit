@@ -3,196 +3,202 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="SR3Generator.Avalonia.Views.Tabs.AttributesView"
              x:DataType="vm:AttributesViewModel">
 
-    <ScrollViewer Padding="12">
-        <StackPanel Spacing="12">
-            <!-- Header with Points -->
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Spacing="2">
-                    <TextBlock Text="Attributes" Classes="page-title"/>
-                    <TextBlock Text="Distribute points. Racial modifiers applied automatically."
-                               FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
-                </StackPanel>
+    <UserControl.Styles>
+        <Style Selector="TextBlock.attr-header">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="LetterSpacing" Value="0.5"/>
+            <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+    </UserControl.Styles>
 
-                <!-- Points Counter -->
-                <Border Grid.Column="1" Classes="panel" Padding="12,8">
-                    <StackPanel Orientation="Horizontal" Spacing="12">
-                        <TextBlock Text="POINTS" Classes="section-header" VerticalAlignment="Center"/>
-                        <TextBlock FontFamily="JetBrains Mono, monospace" VerticalAlignment="Center" FontSize="14">
-                            <Run Text="{Binding PointsRemaining}" FontWeight="Bold"
-                                 Foreground="{StaticResource AccentCyberBrush}"/>
-                            <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
-                            <Run Text="{Binding PointsAllowance}" Foreground="{StaticResource InkSecondaryBrush}"/>
-                        </TextBlock>
+    <ScrollViewer Padding="16">
+        <StackPanel Spacing="12" MaxWidth="900" HorizontalAlignment="Left">
+            <!-- Header -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="{x:Static res:Strings.AttributesTitle}" Classes="page-title"/>
+                <TextBlock Classes="page-subtitle"
+                           Text="{x:Static res:Strings.AttributesSubtitle}"/>
+            </StackPanel>
+
+            <!-- Points resource bar -->
+            <Border Classes="resource-bar">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{x:Static res:Strings.LabelAttributePoints}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value-lg">
+                        <Run Text="{Binding PointsRemaining}"
+                             Foreground="{StaticResource AccentCyberBrush}"/>
+                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                        <Run Text="{Binding PointsAllowance}"
+                             Foreground="{StaticResource InkSecondaryBrush}"/>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- Physical & Mental -->
+            <Grid ColumnDefinitions="*,12,*">
+                <!-- Physical -->
+                <Border Grid.Column="0" Classes="panel">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{x:Static res:Strings.SectionPhysical}" Classes="section-header"/>
+                        <Grid ColumnDefinitions="*,100,40,80">
+                            <TextBlock Grid.Column="1" Text="{x:Static res:Strings.HeaderBase}" Classes="attr-header"/>
+                            <TextBlock Grid.Column="2" Text="{x:Static res:Strings.HeaderMod}" Classes="attr-header"/>
+                            <TextBlock Grid.Column="3" Text="{x:Static res:Strings.HeaderTotal}" Classes="attr-header"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,100,40,80" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                            <!-- Body -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.AttrBody}" VerticalAlignment="Center" Classes="body"/>
+                            <NumericUpDown Grid.Row="0" Grid.Column="1" Classes="prominent"
+                                           Value="{Binding BodyValue}"
+                                           Minimum="1" Maximum="6"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2"
+                                       Text="{Binding BodyRacialMod, StringFormat='{}{0:+#;-#;0}'}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       Classes="data" FontSize="11"
+                                       Foreground="{StaticResource AccentCyberBrush}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="3"
+                                       Text="{Binding BodyDisplay}"
+                                       HorizontalAlignment="Center"
+                                       Classes="stat-value-lg"/>
+
+                            <!-- Quickness -->
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.AttrQuickness}" VerticalAlignment="Center" Classes="body"/>
+                            <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="prominent"
+                                           Value="{Binding QuicknessValue}"
+                                           Minimum="1" Maximum="6"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2"
+                                       Text="{Binding QuicknessRacialMod, StringFormat='{}{0:+#;-#;0}'}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       Classes="data" FontSize="11"
+                                       Foreground="{StaticResource AccentCyberBrush}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="3"
+                                       Text="{Binding QuicknessDisplay}"
+                                       HorizontalAlignment="Center"
+                                       Classes="stat-value-lg"/>
+
+                            <!-- Strength -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static res:Strings.AttrStrength}" VerticalAlignment="Center" Classes="body"/>
+                            <NumericUpDown Grid.Row="2" Grid.Column="1" Classes="prominent"
+                                           Value="{Binding StrengthValue}"
+                                           Minimum="1" Maximum="6"/>
+                            <TextBlock Grid.Row="2" Grid.Column="2"
+                                       Text="{Binding StrengthRacialMod, StringFormat='{}{0:+#;-#;0}'}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       Classes="data" FontSize="11"
+                                       Foreground="{StaticResource AccentCyberBrush}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="3"
+                                       Text="{Binding StrengthDisplay}"
+                                       HorizontalAlignment="Center"
+                                       Classes="stat-value-lg"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Mental -->
+                <Border Grid.Column="2" Classes="panel">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{x:Static res:Strings.SectionMental}" Classes="section-header"/>
+                        <Grid ColumnDefinitions="*,100,40,80">
+                            <TextBlock Grid.Column="1" Text="{x:Static res:Strings.HeaderBase}" Classes="attr-header"/>
+                            <TextBlock Grid.Column="2" Text="{x:Static res:Strings.HeaderMod}" Classes="attr-header"/>
+                            <TextBlock Grid.Column="3" Text="{x:Static res:Strings.HeaderTotal}" Classes="attr-header"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,100,40,80" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                            <!-- Charisma -->
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.AttrCharisma}" VerticalAlignment="Center" Classes="body"/>
+                            <NumericUpDown Grid.Row="0" Grid.Column="1" Classes="prominent"
+                                           Value="{Binding CharismaValue}"
+                                           Minimum="1" Maximum="6"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2"
+                                       Text="{Binding CharismaRacialMod, StringFormat='{}{0:+#;-#;0}'}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       Classes="data" FontSize="11"
+                                       Foreground="{StaticResource AccentCyberBrush}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="3"
+                                       Text="{Binding CharismaDisplay}"
+                                       HorizontalAlignment="Center"
+                                       Classes="stat-value-lg"/>
+
+                            <!-- Intelligence -->
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.AttrIntelligence}" VerticalAlignment="Center" Classes="body"/>
+                            <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="prominent"
+                                           Value="{Binding IntelligenceValue}"
+                                           Minimum="1" Maximum="6"/>
+                            <TextBlock Grid.Row="1" Grid.Column="2"
+                                       Text="{Binding IntelligenceRacialMod, StringFormat='{}{0:+#;-#;0}'}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       Classes="data" FontSize="11"
+                                       Foreground="{StaticResource AccentCyberBrush}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="3"
+                                       Text="{Binding IntelligenceDisplay}"
+                                       HorizontalAlignment="Center"
+                                       Classes="stat-value-lg"/>
+
+                            <!-- Willpower -->
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static res:Strings.AttrWillpower}" VerticalAlignment="Center" Classes="body"/>
+                            <NumericUpDown Grid.Row="2" Grid.Column="1" Classes="prominent"
+                                           Value="{Binding WillpowerValue}"
+                                           Minimum="1" Maximum="6"/>
+                            <TextBlock Grid.Row="2" Grid.Column="2"
+                                       Text="{Binding WillpowerRacialMod, StringFormat='{}{0:+#;-#;0}'}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"
+                                       Classes="data" FontSize="11"
+                                       Foreground="{StaticResource AccentCyberBrush}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="3"
+                                       Text="{Binding WillpowerDisplay}"
+                                       HorizontalAlignment="Center"
+                                       Classes="stat-value-lg"/>
+                        </Grid>
                     </StackPanel>
                 </Border>
             </Grid>
 
-            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
-                <!-- Physical Attributes -->
-                <Border Grid.Row="0" Grid.Column="0" Classes="panel" Margin="0,0,6,0">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="PHYSICAL" Classes="section-header"/>
-
-                        <Grid ColumnDefinitions="90,80,50,50" RowDefinitions="Auto,Auto,Auto,Auto">
-                            <!-- Headers -->
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Base" FontSize="9"
-                                       Foreground="{StaticResource InkMutedBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Mod" FontSize="9"
-                                       Foreground="{StaticResource InkMutedBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Row="0" Grid.Column="3" Text="Total" FontSize="9"
-                                       Foreground="{StaticResource InkMutedBrush}" HorizontalAlignment="Center"/>
-
-                            <!-- Body -->
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Body" VerticalAlignment="Center" FontSize="11"/>
-                            <NumericUpDown Grid.Row="1" Grid.Column="1"
-                                           Value="{Binding BodyValue}"
-                                           Minimum="1" Maximum="6"
-                                           Width="70" Margin="0,2"/>
-                            <TextBlock Grid.Row="1" Grid.Column="2"
-                                       Text="{Binding BodyRacialMod, StringFormat='{}{0:+#;-#;0}'}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontFamily="JetBrains Mono, monospace" FontSize="11"
-                                       Foreground="{StaticResource AccentCyberBrush}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="3"
-                                       Text="{Binding BodyTotal}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontWeight="Bold" FontFamily="JetBrains Mono, monospace" FontSize="13"/>
-
-                            <!-- Quickness -->
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Quickness" VerticalAlignment="Center" FontSize="11"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="1"
-                                           Value="{Binding QuicknessValue}"
-                                           Minimum="1" Maximum="6"
-                                           Width="70" Margin="0,2"/>
-                            <TextBlock Grid.Row="2" Grid.Column="2"
-                                       Text="{Binding QuicknessRacialMod, StringFormat='{}{0:+#;-#;0}'}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontFamily="JetBrains Mono, monospace" FontSize="11"
-                                       Foreground="{StaticResource AccentCyberBrush}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="3"
-                                       Text="{Binding QuicknessTotal}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontWeight="Bold" FontFamily="JetBrains Mono, monospace" FontSize="13"/>
-
-                            <!-- Strength -->
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Strength" VerticalAlignment="Center" FontSize="11"/>
-                            <NumericUpDown Grid.Row="3" Grid.Column="1"
-                                           Value="{Binding StrengthValue}"
-                                           Minimum="1" Maximum="6"
-                                           Width="70" Margin="0,2"/>
-                            <TextBlock Grid.Row="3" Grid.Column="2"
-                                       Text="{Binding StrengthRacialMod, StringFormat='{}{0:+#;-#;0}'}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontFamily="JetBrains Mono, monospace" FontSize="11"
-                                       Foreground="{StaticResource AccentCyberBrush}"/>
-                            <TextBlock Grid.Row="3" Grid.Column="3"
-                                       Text="{Binding StrengthTotal}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontWeight="Bold" FontFamily="JetBrains Mono, monospace" FontSize="13"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <!-- Mental Attributes -->
-                <Border Grid.Row="0" Grid.Column="1" Classes="panel" Margin="6,0,0,0">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="MENTAL" Classes="section-header"/>
-
-                        <Grid ColumnDefinitions="90,80,50,50" RowDefinitions="Auto,Auto,Auto,Auto">
-                            <!-- Headers -->
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="Base" FontSize="9"
-                                       Foreground="{StaticResource InkMutedBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Row="0" Grid.Column="2" Text="Mod" FontSize="9"
-                                       Foreground="{StaticResource InkMutedBrush}" HorizontalAlignment="Center"/>
-                            <TextBlock Grid.Row="0" Grid.Column="3" Text="Total" FontSize="9"
-                                       Foreground="{StaticResource InkMutedBrush}" HorizontalAlignment="Center"/>
-
-                            <!-- Charisma -->
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Charisma" VerticalAlignment="Center" FontSize="11"/>
-                            <NumericUpDown Grid.Row="1" Grid.Column="1"
-                                           Value="{Binding CharismaValue}"
-                                           Minimum="1" Maximum="6"
-                                           Width="70" Margin="0,2"/>
-                            <TextBlock Grid.Row="1" Grid.Column="2"
-                                       Text="{Binding CharismaRacialMod, StringFormat='{}{0:+#;-#;0}'}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontFamily="JetBrains Mono, monospace" FontSize="11"
-                                       Foreground="{StaticResource AccentCyberBrush}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="3"
-                                       Text="{Binding CharismaTotal}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontWeight="Bold" FontFamily="JetBrains Mono, monospace" FontSize="13"/>
-
-                            <!-- Intelligence -->
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Intelligence" VerticalAlignment="Center" FontSize="11"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="1"
-                                           Value="{Binding IntelligenceValue}"
-                                           Minimum="1" Maximum="6"
-                                           Width="70" Margin="0,2"/>
-                            <TextBlock Grid.Row="2" Grid.Column="2"
-                                       Text="{Binding IntelligenceRacialMod, StringFormat='{}{0:+#;-#;0}'}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontFamily="JetBrains Mono, monospace" FontSize="11"
-                                       Foreground="{StaticResource AccentCyberBrush}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="3"
-                                       Text="{Binding IntelligenceTotal}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontWeight="Bold" FontFamily="JetBrains Mono, monospace" FontSize="13"/>
-
-                            <!-- Willpower -->
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Willpower" VerticalAlignment="Center" FontSize="11"/>
-                            <NumericUpDown Grid.Row="3" Grid.Column="1"
-                                           Value="{Binding WillpowerValue}"
-                                           Minimum="1" Maximum="6"
-                                           Width="70" Margin="0,2"/>
-                            <TextBlock Grid.Row="3" Grid.Column="2"
-                                       Text="{Binding WillpowerRacialMod, StringFormat='{}{0:+#;-#;0}'}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontFamily="JetBrains Mono, monospace" FontSize="11"
-                                       Foreground="{StaticResource AccentCyberBrush}"/>
-                            <TextBlock Grid.Row="3" Grid.Column="3"
-                                       Text="{Binding WillpowerTotal}"
-                                       VerticalAlignment="Center" HorizontalAlignment="Center"
-                                       FontWeight="Bold" FontFamily="JetBrains Mono, monospace" FontSize="13"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <!-- Derived Attributes -->
-                <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Classes="panel-inset" Margin="0,12,0,0">
+            <!-- Derived Attributes -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="{x:Static res:Strings.SectionDerived}" Classes="section-header"/>
+                <Border Classes="panel-inset" Padding="16,10">
                     <Grid ColumnDefinitions="*,*,*">
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="Reaction" FontSize="11"
-                                       Foreground="{StaticResource InkSecondaryBrush}" VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding ReactionValue}"
-                                       FontWeight="Bold" FontFamily="JetBrains Mono, monospace" FontSize="13"
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10"
+                                    HorizontalAlignment="Left">
+                            <TextBlock Text="{x:Static res:Strings.AttrReaction}" Classes="body"
+                                       Foreground="{StaticResource InkSecondaryBrush}"
                                        VerticalAlignment="Center"/>
-                            <TextBlock Text="(QCK+INT)/2" FontSize="9"
-                                       Foreground="{StaticResource InkMutedBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding ReactionDisplay}" Classes="stat-value-lg"/>
+                            <TextBlock Text="{x:Static res:Strings.AttrReactionFormula}" FontSize="10"
+                                       Foreground="{StaticResource InkMutedBrush}"
+                                       VerticalAlignment="Center"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-                            <TextBlock Text="Essence" FontSize="11"
-                                       Foreground="{StaticResource InkSecondaryBrush}" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                                    HorizontalAlignment="Center">
+                            <TextBlock Text="{x:Static res:Strings.AttrEssence}" Classes="body"
+                                       Foreground="{StaticResource InkSecondaryBrush}"
+                                       VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding EssenceDisplay}"
-                                       FontWeight="Bold" FontFamily="JetBrains Mono, monospace" FontSize="13"
-                                       Foreground="{StaticResource AccentCyberBrush}" VerticalAlignment="Center"/>
+                                       Classes="stat-value-lg"
+                                       Foreground="{StaticResource AccentCyberBrush}"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                            <TextBlock Text="Magic" FontSize="11"
-                                       Foreground="{StaticResource InkSecondaryBrush}" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
+                                    HorizontalAlignment="Right">
+                            <TextBlock Text="{x:Static res:Strings.AttrMagic}" Classes="body"
+                                       Foreground="{StaticResource InkSecondaryBrush}"
+                                       VerticalAlignment="Center"/>
                             <TextBlock Text="{Binding MagicValue}"
-                                       FontWeight="Bold" FontFamily="JetBrains Mono, monospace" FontSize="13"
-                                       Foreground="{StaticResource AccentManaBrush}" VerticalAlignment="Center"/>
+                                       Classes="stat-value-lg"
+                                       Foreground="{StaticResource AccentManaBrush}"/>
                         </StackPanel>
                     </Grid>
                 </Border>
-            </Grid>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

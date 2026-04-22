@@ -3,104 +3,137 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
              x:Class="SR3Generator.Avalonia.Views.Tabs.ContactsView"
              x:DataType="vm:ContactsViewModel">
 
-    <Grid RowDefinitions="Auto,*" Margin="12">
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
         <!-- Header -->
-        <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,12">
-            <TextBlock Text="Contacts" Classes="page-title"/>
-            <TextBlock Text="2 free Level 1 contacts. Additional contacts cost nuyen."
-                       FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="{x:Static res:Strings.ContactsTitle}" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="{x:Static res:Strings.ContactsSubtitle}"/>
         </StackPanel>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,*">
+        <!-- Resource bar -->
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelFreeContacts}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value">
+                        <Run Text="{Binding FreeContactsUsed}"
+                             Foreground="{StaticResource AccentKarmaBrush}"/>
+                        <Run Text=" / 2" Foreground="{StaticResource InkMutedBrush}"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelSpentOnContacts}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding NuyenSpentOnContacts, StringFormat='{}{0:N0}¥'}"
+                               Classes="stat-value"
+                               Foreground="{StaticResource AccentNuyenBrush}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,12,*">
             <!-- Left: Add Contacts -->
-            <StackPanel Grid.Column="0" Spacing="12" Margin="0,0,6,0">
+            <StackPanel Grid.Column="0" Spacing="12">
                 <!-- Free Contacts -->
                 <Border Classes="panel">
                     <StackPanel Spacing="8">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="FREE CONTACTS" Classes="section-header"/>
-                            <TextBlock Grid.Column="1" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}">
-                                <Run Text="{Binding FreeContactsUsed}"/>
-                                <Run Text=" / 2"/>
-                            </TextBlock>
-                        </Grid>
-                        <TextBlock Text="Level 1 contacts only." FontSize="10"
+                        <TextBlock Text="{x:Static res:Strings.SectionAddFreeContact}" Classes="section-header"/>
+                        <TextBlock Text="{x:Static res:Strings.ContactsFreeOnly}"
+                                   FontSize="10"
                                    Foreground="{StaticResource InkMutedBrush}"/>
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBox Text="{Binding NewContactName}" Watermark="Contact name..." Margin="0,0,8,0"/>
-                            <Button Grid.Column="1" Content="Add Free" Command="{Binding AddFreeContactCommand}" Classes="compact"/>
+                        <Grid ColumnDefinitions="*,8,Auto">
+                            <TextBox Text="{Binding NewContactName}"
+                                     Watermark="{x:Static res:Strings.WatermarkContactName}"/>
+                            <Button Grid.Column="2" Content="{x:Static res:Strings.ButtonAddFree}"
+                                    Classes="primary action"
+                                    Command="{Binding AddFreeContactCommand}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
 
                 <!-- Purchase Contacts -->
                 <Border Classes="panel">
-                    <StackPanel Spacing="8">
-                        <TextBlock Text="BUY CONTACTS" Classes="section-header"/>
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{x:Static res:Strings.SectionBuyContact}" Classes="section-header"/>
 
-                        <!-- Level Reference -->
-                        <Border Classes="panel-inset">
-                            <Grid ColumnDefinitions="60,*,80" RowDefinitions="Auto,Auto,Auto">
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Lvl 1" FontSize="10"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="Contact" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
-                                <TextBlock Grid.Row="0" Grid.Column="2" Text="5,000¥" FontSize="10"
-                                           FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"
+                        <Border Classes="panel-inset" Padding="8,6">
+                            <Grid ColumnDefinitions="60,*,90"
+                                  RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.ContactsTierLvl1}" Classes="body-sm"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Static res:Strings.ContactsTierContact}" Classes="body-sm"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static res:Strings.ContactsCostLvl1}" Classes="data" FontSize="10"
+                                           HorizontalAlignment="Right"
                                            Foreground="{StaticResource AccentNuyenBrush}"/>
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Lvl 2" FontSize="10" Margin="0,2"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="Buddy" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Margin="0,2"/>
-                                <TextBlock Grid.Row="1" Grid.Column="2" Text="10,000¥" FontSize="10"
-                                           FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.ContactsTierLvl2}" Classes="body-sm"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Static res:Strings.ContactsTierBuddy}" Classes="body-sm"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="2" Text="{x:Static res:Strings.ContactsCostLvl2}" Classes="data" FontSize="10"
+                                           HorizontalAlignment="Right"
                                            Foreground="{StaticResource AccentNuyenBrush}"/>
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Lvl 3" FontSize="10" Margin="0,2"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="Friend for Life" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}" Margin="0,2"/>
-                                <TextBlock Grid.Row="2" Grid.Column="2" Text="200,000¥" FontSize="10"
-                                           FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static res:Strings.ContactsTierLvl3}" Classes="body-sm"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Static res:Strings.ContactsTierFriendForLife}" Classes="body-sm"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="{x:Static res:Strings.ContactsCostLvl3}" Classes="data" FontSize="10"
+                                           HorizontalAlignment="Right"
                                            Foreground="{StaticResource AccentNuyenBrush}"/>
                             </Grid>
                         </Border>
 
-                        <Grid ColumnDefinitions="*,100,Auto">
-                            <TextBox Grid.Column="0" Text="{Binding NewContactName}" Watermark="Contact name..." Margin="0,0,8,0"/>
-                            <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableLevels}"
-                                      SelectedItem="{Binding NewContactLevel}" Margin="0,0,8,0"/>
-                            <Button Grid.Column="2" Content="Buy" Command="{Binding BuyContactCommand}" Classes="compact"/>
+                        <Grid ColumnDefinitions="*,8,110,8,Auto">
+                            <TextBox Grid.Column="0" Text="{Binding NewContactName}"
+                                     Watermark="{x:Static res:Strings.WatermarkContactName}"/>
+                            <ComboBox Grid.Column="2" ItemsSource="{Binding AvailableLevels}"
+                                      SelectedItem="{Binding NewContactLevel}"
+                                      HorizontalAlignment="Stretch"/>
+                            <Button Grid.Column="4" Content="{x:Static res:Strings.ButtonBuy}"
+                                    Classes="action"
+                                    Command="{Binding BuyContactCommand}"/>
                         </Grid>
                     </StackPanel>
                 </Border>
             </StackPanel>
 
             <!-- Right: Contact List -->
-            <Border Grid.Column="1" Classes="panel" Margin="6,0,0,0">
-                <DockPanel>
-                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,8">
-                        <TextBlock Text="YOUR CONTACTS" Classes="section-header"/>
-                        <Button Grid.Column="1" Content="Remove" Command="{Binding RemoveContactCommand}" Classes="compact"/>
+            <Border Grid.Column="2" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="12,12,12,8">
+                        <TextBlock Text="{x:Static res:Strings.SectionYourContacts}" Classes="section-header"/>
+                        <Button Grid.Column="1" Content="{x:Static res:Strings.ButtonRemove}"
+                                Classes="compact"
+                                Command="{Binding RemoveContactCommand}"/>
                     </Grid>
 
-                    <DockPanel DockPanel.Dock="Bottom">
-                        <TextBlock Text="{Binding NuyenSpentOnContacts, StringFormat='Spent: {0:N0}¥'}"
-                                   FontSize="10" FontFamily="JetBrains Mono, monospace"
-                                   Foreground="{StaticResource InkSecondaryBrush}" Margin="0,8,0,0"/>
-                    </DockPanel>
-
                     <ListBox ItemsSource="{Binding Contacts}"
-                             SelectedItem="{Binding SelectedContact}">
+                             SelectedItem="{Binding SelectedContact}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Grid ColumnDefinitions="*,80,60">
-                                    <TextBlock Text="{Binding Name}" FontSize="11"/>
+                                <Grid ColumnDefinitions="*,100,80">
+                                    <TextBlock Text="{Binding Name}" Classes="body"
+                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="1" Text="{Binding LevelDisplay}"
-                                               FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
+                                               FontSize="10"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding CostDisplay}"
-                                               FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                               Classes="data" FontSize="10"
                                                HorizontalAlignment="Right"
-                                               Foreground="{StaticResource AccentNuyenBrush}"/>
+                                               Foreground="{StaticResource AccentNuyenBrush}"
+                                               VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

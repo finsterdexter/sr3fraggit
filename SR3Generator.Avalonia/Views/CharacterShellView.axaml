@@ -3,227 +3,238 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels"
+             xmlns:vmt="using:SR3Generator.Avalonia.ViewModels.Tabs"
              xmlns:tabs="using:SR3Generator.Avalonia.Views.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="850"
              x:Class="SR3Generator.Avalonia.Views.CharacterShellView"
              x:DataType="vm:CharacterShellViewModel">
 
+    <UserControl.Styles>
+        <Style Selector="TextBlock.sidebar-stat">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBlock.sidebar-value">
+            <Setter Property="FontFamily" Value="JetBrains Mono, monospace"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
+
     <Grid RowDefinitions="Auto,*">
-        <!-- Resource Bar - Always visible at top -->
+        <!-- Top resource bar -->
         <Border Grid.Row="0"
                 Background="{StaticResource Surface100Brush}"
                 BorderBrush="{StaticResource BorderSubtleBrush}"
                 BorderThickness="0,0,0,1"
-                Padding="12,8">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto">
-                <!-- Character Identity -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" Margin="0,0,24,0">
-                    <StackPanel Spacing="0">
-                        <TextBlock Text="RACE" Classes="section-header" FontSize="9"/>
+                Padding="16,10">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+                <!-- Identity -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="{x:Static res:Strings.LabelRace}" Classes="micro-label"/>
                         <TextBlock Text="{Binding SelectedRace}" FontWeight="SemiBold" FontSize="12"/>
                     </StackPanel>
-                    <StackPanel Spacing="0">
-                        <TextBlock Text="ASPECT" Classes="section-header" FontSize="9"/>
-                        <TextBlock Text="{Binding SelectedMagicAspect}" FontWeight="SemiBold" FontSize="12"/>
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="{x:Static res:Strings.LabelAspect}" Classes="micro-label"/>
+                        <TextBlock Text="{Binding SelectedMagicAspect}" FontWeight="SemiBold" FontSize="12"
+                                   Foreground="{StaticResource AccentManaBrush}"/>
                     </StackPanel>
                 </StackPanel>
 
-                <Border Grid.Column="1" Width="1" Background="{StaticResource BorderSubtleBrush}" Margin="0,0,24,0"/>
+                <Border Grid.Column="1" Width="1" Background="{StaticResource BorderSubtleBrush}" Margin="20,2"/>
 
-                <!-- Resource Pools -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="20">
-                    <!-- Attribute Points -->
+                <!-- Resource pools -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="24">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="ATTR" Classes="section-header" FontSize="9" VerticalAlignment="Center"/>
-                        <TextBlock FontFamily="JetBrains Mono, monospace" VerticalAlignment="Center">
-                            <Run Text="{Binding AttributePointsRemaining}" FontWeight="Bold" Foreground="{StaticResource AccentCyberBrush}"/>
-                            <Run Text="/" Foreground="{StaticResource InkMutedBrush}"/>
-                            <Run Text="{Binding AttributePointsAllowance}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                        <TextBlock Text="{x:Static res:Strings.LabelAttributeShort}" Classes="micro-label"/>
+                        <TextBlock Classes="stat-value">
+                            <Run Text="{Binding AttributePointsRemaining}"
+                                 Foreground="{StaticResource AccentCyberBrush}"/>
+                            <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                            <Run Text="{Binding AttributePointsAllowance}"
+                                 Foreground="{StaticResource InkSecondaryBrush}"/>
                         </TextBlock>
                     </StackPanel>
 
-                    <!-- Skill Points -->
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="SKILL" Classes="section-header" FontSize="9" VerticalAlignment="Center"/>
-                        <TextBlock FontFamily="JetBrains Mono, monospace" VerticalAlignment="Center">
-                            <Run Text="{Binding SkillPointsRemaining}" FontWeight="Bold" Foreground="{StaticResource AccentCyberBrush}"/>
-                            <Run Text="/" Foreground="{StaticResource InkMutedBrush}"/>
-                            <Run Text="{Binding SkillPointsAllowance}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                        <TextBlock Text="{x:Static res:Strings.LabelSkillShort}" Classes="micro-label"/>
+                        <TextBlock Classes="stat-value">
+                            <Run Text="{Binding SkillPointsRemaining}"
+                                 Foreground="{StaticResource AccentCyberBrush}"/>
+                            <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                            <Run Text="{Binding SkillPointsAllowance}"
+                                 Foreground="{StaticResource InkSecondaryBrush}"/>
                         </TextBlock>
                     </StackPanel>
 
-                    <!-- Spell Points (conditional) -->
                     <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasMagic}">
-                        <TextBlock Text="SPELL" Classes="section-header" FontSize="9" VerticalAlignment="Center"/>
-                        <TextBlock FontFamily="JetBrains Mono, monospace" VerticalAlignment="Center">
-                            <Run Text="{Binding SpellPointsRemaining}" FontWeight="Bold" Foreground="{StaticResource AccentManaBrush}"/>
-                            <Run Text="/" Foreground="{StaticResource InkMutedBrush}"/>
-                            <Run Text="{Binding SpellPointsAllowance}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                        <TextBlock Text="{x:Static res:Strings.LabelSpellShort}" Classes="micro-label"/>
+                        <TextBlock Classes="stat-value">
+                            <Run Text="{Binding SpellPointsRemaining}"
+                                 Foreground="{StaticResource AccentManaBrush}"/>
+                            <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                            <Run Text="{Binding SpellPointsAllowance}"
+                                 Foreground="{StaticResource InkSecondaryBrush}"/>
                         </TextBlock>
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Nuyen - Right side -->
-                <Border Grid.Column="6" Width="1" Background="{StaticResource BorderSubtleBrush}" Margin="24,0"/>
+                <Border Grid.Column="4" Width="1" Background="{StaticResource BorderSubtleBrush}" Margin="20,2"/>
 
-                <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="NUYEN" Classes="section-header" FontSize="9" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{x:Static res:Strings.LabelNuyen}" Classes="micro-label"/>
                     <TextBlock Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}¥'}"
-                               FontFamily="JetBrains Mono, monospace"
-                               FontWeight="Bold"
-                               Foreground="{StaticResource AccentNuyenBrush}"
-                               VerticalAlignment="Center"/>
+                               Classes="stat-value"
+                               Foreground="{StaticResource AccentNuyenBrush}"/>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Main Content Area -->
+        <!-- Main area -->
         <Grid Grid.Row="1" ColumnDefinitions="*,240">
-            <!-- Tab Content -->
             <TabControl Grid.Column="0"
                         SelectedIndex="{Binding SelectedTabIndex}"
                         Margin="8,8,0,8"
                         Padding="0">
-                <TabItem Header="Priorities">
+                <TabItem Header="{x:Static res:Strings.TabPriorities}">
                     <tabs:PrioritiesView DataContext="{Binding PrioritiesVM}"/>
                 </TabItem>
-
-                <TabItem Header="Race">
+                <TabItem Header="{x:Static res:Strings.TabRace}">
                     <tabs:RaceView DataContext="{Binding RaceVM}"/>
                 </TabItem>
-
-                <TabItem Header="Magic">
-                    <tabs:MagicView DataContext="{Binding MagicVM}"/>
+                <TabItem Header="{x:Static res:Strings.TabMagic}" IsVisible="{Binding CanChooseMagic}">
+                    <tabs:MagicContainerView DataContext="{Binding MagicContainerVM}"/>
                 </TabItem>
-
-                <TabItem Header="Attributes">
+                <TabItem Header="{x:Static res:Strings.TabAttributes}">
                     <tabs:AttributesView DataContext="{Binding AttributesVM}"/>
                 </TabItem>
-
-                <TabItem Header="Skills">
+                <TabItem Header="{x:Static res:Strings.TabSkills}">
                     <tabs:SkillsView DataContext="{Binding SkillsVM}"/>
                 </TabItem>
-
-                <TabItem Header="Spells" IsVisible="{Binding HasSorcery}">
-                    <tabs:SpellsView DataContext="{Binding SpellsVM}"/>
-                </TabItem>
-
-                <TabItem Header="Adept" IsVisible="{Binding IsAdept}">
-                    <tabs:AdeptPowersView DataContext="{Binding AdeptPowersVM}"/>
-                </TabItem>
-
-                <TabItem Header="Foci" IsVisible="{Binding HasMagic}">
-                    <tabs:FociView DataContext="{Binding FociVM}"/>
-                </TabItem>
-
-                <TabItem Header="Gear">
+                <TabItem Header="{x:Static res:Strings.TabGear}">
                     <tabs:GearView DataContext="{Binding GearVM}"/>
                 </TabItem>
-
-                <TabItem Header="Augments">
+                <TabItem Header="{x:Static res:Strings.TabAugments}">
                     <tabs:AugmentationsView DataContext="{Binding AugmentationsVM}"/>
                 </TabItem>
-
-                <TabItem Header="Contacts">
+                <TabItem Header="{x:Static res:Strings.TabContacts}">
                     <tabs:ContactsView DataContext="{Binding ContactsVM}"/>
                 </TabItem>
-
-                <TabItem Header="Summary">
+                <TabItem Header="{x:Static res:Strings.TabSummary}">
                     <tabs:SummaryView DataContext="{Binding SummaryVM}"/>
                 </TabItem>
             </TabControl>
 
-            <!-- Right Sidebar - Compact Summary -->
+            <!-- Right sidebar - compact live summary -->
             <Border Grid.Column="1"
                     Background="{StaticResource Surface100Brush}"
                     BorderBrush="{StaticResource BorderSubtleBrush}"
-                    BorderThickness="1,0,0,0"
-                    Margin="0,8,8,8">
-                <ScrollViewer Padding="12">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="QUICK VIEW" Classes="section-header"/>
+                    BorderThickness="1,0,0,0">
+                <ScrollViewer Padding="16">
+                    <StackPanel Spacing="16">
+                        <TextBlock Text="{x:Static res:Strings.SectionQuickView}" Classes="section-header"/>
 
-                        <!-- Essence Tracker -->
-                        <Border Classes="panel-inset">
-                            <StackPanel Spacing="4">
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Text="Essence" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
-                                    <TextBlock Grid.Column="1"
-                                               Text="6.00"
-                                               FontFamily="JetBrains Mono, monospace"
-                                               FontWeight="Bold"
-                                               Foreground="{StaticResource AccentCyberBrush}"/>
+                        <!-- Attributes -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{x:Static res:Strings.SectionAttributes}" Classes="micro-label"/>
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="16" RowSpacing="3"
+                                  RowDefinitions="Auto,Auto,Auto">
+                                <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrBody}" Classes="sidebar-stat"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding SummaryVM.BodyDisplay}" Classes="sidebar-value"/>
                                 </Grid>
-                                <ProgressBar Minimum="0" Maximum="6" Value="6" Height="3"/>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Magic Rating (if applicable) -->
-                        <Border Classes="panel-inset" IsVisible="{Binding HasMagic}">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="Magic Rating" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
-                                <TextBlock Grid.Column="1"
-                                           Text="6"
-                                           FontFamily="JetBrains Mono, monospace"
-                                           FontWeight="Bold"
-                                           Foreground="{StaticResource AccentManaBrush}"/>
-                            </Grid>
-                        </Border>
-
-                        <Separator/>
-
-                        <!-- Dice Pools Preview -->
-                        <TextBlock Text="DICE POOLS" Classes="section-header"/>
-                        <StackPanel Spacing="4">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="Combat" FontSize="10"/>
-                                <TextBlock Text="--" FontFamily="JetBrains Mono, monospace" FontSize="10"
-                                           Foreground="{StaticResource InkSecondaryBrush}"/>
-                            </Grid>
-                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasMagic}">
-                                <TextBlock Text="Spell" FontSize="10"/>
-                                <TextBlock Text="--" FontFamily="JetBrains Mono, monospace" FontSize="10"
-                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrQuickness}" Classes="sidebar-stat"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding SummaryVM.QuicknessDisplay}" Classes="sidebar-value"/>
+                                </Grid>
+                                <Grid Grid.Row="2" Grid.Column="0" ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrStrength}" Classes="sidebar-stat"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding SummaryVM.StrengthDisplay}" Classes="sidebar-value"/>
+                                </Grid>
+                                <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrCharisma}" Classes="sidebar-stat"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding SummaryVM.CharismaDisplay}" Classes="sidebar-value"/>
+                                </Grid>
+                                <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrIntelligence}" Classes="sidebar-stat"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding SummaryVM.IntelligenceDisplay}" Classes="sidebar-value"/>
+                                </Grid>
+                                <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{x:Static res:Strings.AbbrWillpower}" Classes="sidebar-stat"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding SummaryVM.WillpowerDisplay}" Classes="sidebar-value"/>
+                                </Grid>
                             </Grid>
                         </StackPanel>
 
-                        <Separator/>
+                        <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}"/>
 
-                        <!-- Quick Stats -->
-                        <TextBlock Text="ATTRIBUTES" Classes="section-header"/>
-                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,4">
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="BOD" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
+                        <!-- Derived -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{x:Static res:Strings.SectionDerived}" Classes="micro-label"/>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{x:Static res:Strings.AttrReaction}" Classes="sidebar-stat"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SummaryVM.ReactionDisplay}" Classes="sidebar-value"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{x:Static res:Strings.AttrInitiative}" Classes="sidebar-stat"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SummaryVM.InitiativeDisplay}" Classes="sidebar-value"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="{x:Static res:Strings.AttrEssence}" Classes="sidebar-stat"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SummaryVM.EssenceDisplay}" Classes="sidebar-value"
+                                           Foreground="{StaticResource AccentCyberBrush}"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding HasMagic}">
+                                <TextBlock Text="{x:Static res:Strings.AttrMagic}" Classes="sidebar-stat"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SummaryVM.Magic}" Classes="sidebar-value"
+                                           Foreground="{StaticResource AccentManaBrush}"/>
+                            </Grid>
+                        </StackPanel>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="QCK" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
+                        <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}"/>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="STR" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
-                            <TextBlock Grid.Row="2" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
-
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="CHA" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
-                            <TextBlock Grid.Row="3" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
-
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="INT" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
-                            <TextBlock Grid.Row="4" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
-
-                            <TextBlock Grid.Row="5" Grid.Column="0" Text="WIL" FontSize="10" Foreground="{StaticResource InkSecondaryBrush}"/>
-                            <TextBlock Grid.Row="5" Grid.Column="1" Text="--" FontSize="10" FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
-                        </Grid>
-
-                        <Separator/>
-
-                        <!-- Validation Status -->
-                        <TextBlock Text="STATUS" Classes="section-header"/>
-                        <Border Background="#1522c55e"
-                                BorderBrush="#3022c55e"
-                                BorderThickness="1"
-                                CornerRadius="2"
-                                Padding="8,6">
-                            <TextBlock Text="Ready"
-                                       FontSize="10"
-                                       Foreground="{StaticResource SuccessBrush}"/>
-                        </Border>
+                        <!-- Status -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{x:Static res:Strings.LabelStatus}" Classes="micro-label"/>
+                            <Border Background="#1522c55e"
+                                    BorderBrush="#3022c55e"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    Padding="8,6"
+                                    IsVisible="{Binding SummaryVM.IsValid}">
+                                <TextBlock Text="{x:Static res:Strings.SummaryReadyToFinalize}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource SuccessBrush}"/>
+                            </Border>
+                            <ItemsControl ItemsSource="{Binding SummaryVM.ValidationIssues}"
+                                          IsVisible="{Binding !SummaryVM.IsValid}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vmt:ValidationIssueItem">
+                                        <Border Margin="0,0,0,4"
+                                                Background="#15ef4444"
+                                                BorderBrush="#30ef4444"
+                                                BorderThickness="1"
+                                                CornerRadius="3"
+                                                Padding="8,6">
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{Binding Severity}"
+                                                           FontSize="9" FontWeight="SemiBold"
+                                                           LetterSpacing="0.5"
+                                                           Foreground="{StaticResource DestructiveBrush}"/>
+                                                <TextBlock Text="{Binding Message}"
+                                                           FontSize="10" TextWrapping="Wrap"
+                                                           Foreground="{StaticResource InkPrimaryBrush}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </Border>

@@ -39,22 +39,37 @@ public partial class RaceViewModel : ViewModelBase
 
     private void RefreshAvailableRaces()
     {
+        var newRaces = _characterService.Builder.RacesAllowed.ToList();
+
+        // Detect whether the allowed set actually changed (e.g. after a Race priority shift).
+        var previousNames = AvailableRaces.Select(r => r.Name).ToHashSet();
+        var newNames = newRaces.Select(r => r.Name).ToHashSet();
+        var allowedSetChanged = !previousNames.SetEquals(newNames);
+
         var currentSelection = SelectedRace;
         AvailableRaces.Clear();
-
-        foreach (var race in _characterService.Builder.RacesAllowed)
+        foreach (var race in newRaces)
         {
             AvailableRaces.Add(race);
         }
 
-        // Restore selection if still valid, otherwise select first
-        if (currentSelection != null && AvailableRaces.Any(r => r.Name == currentSelection.Name))
+        if (AvailableRaces.Count == 0)
         {
-            SelectedRace = AvailableRaces.First(r => r.Name == currentSelection.Name);
+            SelectedRace = null;
+            return;
         }
-        else if (AvailableRaces.Count > 0 && SelectedRace == null)
+
+        // When the allowed set changes, snap to the first available — the headline race
+        // for the current Race priority.
+        if (allowedSetChanged || currentSelection is null ||
+            !AvailableRaces.Any(r => r.Name == currentSelection.Name))
         {
             SelectedRace = AvailableRaces[0];
+        }
+        else
+        {
+            // Same list, rebind to the new instance to preserve the user's pick.
+            SelectedRace = AvailableRaces.First(r => r.Name == currentSelection.Name);
         }
     }
 

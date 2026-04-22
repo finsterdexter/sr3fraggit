@@ -168,18 +168,17 @@ public partial class GearViewModel : ViewModelBase
 
         NuyenAllowance = builder.ResourcesAllowance;
 
-        // Calculate nuyen spent from owned gear
+        // Rebuild the owned-gear view list. Budget accounting uses Character.Nuyen
+        // (which tracks every purchase: gear, cyber/bio, contacts, etc.) so both
+        // the Gear and Augmentations tabs show consistent remaining-vs-allowance.
         OwnedGear.Clear();
-        NuyenSpent = 0;
-
         foreach (var gear in character.Gear.Values)
         {
-            var item = new OwnedGearItem(gear);
-            OwnedGear.Add(item);
-            NuyenSpent += gear.Cost;
+            OwnedGear.Add(new OwnedGearItem(gear));
         }
 
-        NuyenRemaining = NuyenAllowance - NuyenSpent;
+        NuyenSpent = -character.Nuyen;
+        NuyenRemaining = builder.ResourcesAllowance + character.Nuyen;
     }
 
     [RelayCommand]

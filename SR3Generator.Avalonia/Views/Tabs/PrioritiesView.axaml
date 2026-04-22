@@ -3,175 +3,209 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
              mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
              x:Class="SR3Generator.Avalonia.Views.Tabs.PrioritiesView"
              x:DataType="vm:PrioritiesViewModel">
 
-    <ScrollViewer Padding="12">
-        <StackPanel Spacing="12">
-            <!-- Header -->
-            <StackPanel Spacing="2">
-                <TextBlock Text="Priority Selection" Classes="page-title"/>
-                <TextBlock Text="Assign A through E. Each priority used once. Selections auto-swap on conflict."
-                           FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
+    <UserControl.Styles>
+        <!-- Row: 1px border, 4px radius, 8px vertical padding, 4px bottom gap -->
+        <Style Selector="Border.priority-row">
+            <Setter Property="Background" Value="{StaticResource Surface100Brush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+        <Style Selector="Border.priority-row:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+        </Style>
+        <Style Selector="Border.priority-row.dragging">
+            <Setter Property="Opacity" Value="0.25"/>
+        </Style>
+
+        <!-- Rank badge: on-scale 20px bold -->
+        <Style Selector="TextBlock.rank-badge">
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, monospace"/>
+            <Setter Property="Foreground" Value="{StaticResource AccentCyberBrush}"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Nudge buttons: grid-aligned 24x16, muted icon button -->
+        <Style Selector="Button.nudge">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="MinWidth" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}"/>
+        </Style>
+        <Style Selector="Button.nudge:pointerover">
+            <Setter Property="Foreground" Value="{StaticResource InkPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.nudge:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource Surface300Brush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <!-- Two-layer root: content + drag overlay -->
+    <Grid Name="DragHost"
+          PointerMoved="OnHostPointerMoved"
+          PointerReleased="OnHostPointerReleased"
+          PointerCaptureLost="OnHostPointerCaptureLost">
+        <ScrollViewer Padding="16">
+            <StackPanel Spacing="16" MaxWidth="780" HorizontalAlignment="Left">
+                <!-- Header -->
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{x:Static res:Strings.PrioritiesTitle}" Classes="page-title"/>
+                    <TextBlock Classes="page-subtitle"
+                               Text="{x:Static res:Strings.PrioritiesSubtitle}"/>
+                </StackPanel>
+
+                <!-- Draggable list -->
+                <ItemsControl Name="PriorityList" ItemsSource="{Binding OrderedPriorities}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:PriorityRow">
+                            <Border Classes="priority-row"
+                                    Classes.dragging="{Binding IsDragging}"
+                                    Cursor="SizeNorthSouth"
+                                    PointerPressed="OnRowPointerPressed">
+                                <Grid ColumnDefinitions="24,8,40,12,112,*,28" VerticalAlignment="Center">
+                                    <TextBlock Grid.Column="0" Text="⋮"
+                                               FontSize="16"
+                                               Foreground="{StaticResource InkMutedBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding RankDisplay}" Classes="rank-badge"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding DisplayName}"
+                                               FontSize="12" FontWeight="SemiBold"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="5" Text="{Binding Benefits}"
+                                               FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Grid.Column="6" Spacing="0" VerticalAlignment="Center">
+                                        <Button Classes="nudge" Content="▲"
+                                                Command="{Binding $parent[UserControl].((vm:PrioritiesViewModel)DataContext).MoveUpCommand}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip.Tip="{x:Static res:Strings.TooltipRaisePriority}"/>
+                                        <Button Classes="nudge" Content="▼"
+                                                Command="{Binding $parent[UserControl].((vm:PrioritiesViewModel)DataContext).MoveDownCommand}"
+                                                CommandParameter="{Binding}"
+                                                ToolTip.Tip="{x:Static res:Strings.TooltipLowerPriority}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Reference table -->
+                <StackPanel Spacing="4" Margin="0,8,0,0">
+                    <TextBlock Text="{x:Static res:Strings.SectionPriorityReference}" Classes="section-header"/>
+                    <Border Classes="panel-inset" Padding="0">
+                        <Grid ColumnDefinitions="48,*,*,70,70,110"
+                              RowDefinitions="Auto,1,Auto,Auto,Auto,Auto,Auto">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.LabelRank}" Classes="micro-label" Padding="8,6,0,6"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Static res:Strings.HeaderRace}" Classes="micro-label" Padding="8,6,0,6"/>
+                            <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static res:Strings.HeaderMagic}" Classes="micro-label" Padding="8,6,0,6"/>
+                            <TextBlock Grid.Row="0" Grid.Column="3" Text="{x:Static res:Strings.HeaderAttr}" Classes="micro-label"
+                                       HorizontalAlignment="Right" Padding="0,6,8,6"/>
+                            <TextBlock Grid.Row="0" Grid.Column="4" Text="{x:Static res:Strings.HeaderSkill}" Classes="micro-label"
+                                       HorizontalAlignment="Right" Padding="0,6,8,6"/>
+                            <TextBlock Grid.Row="0" Grid.Column="5" Text="{x:Static res:Strings.HeaderNuyen}" Classes="micro-label"
+                                       HorizontalAlignment="Right" Padding="0,6,8,6"/>
+
+                            <Border Grid.Row="1" Grid.ColumnSpan="6" Background="{StaticResource BorderSubtleBrush}" Height="1"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="A" FontWeight="Bold"
+                                       Foreground="{StaticResource AccentCyberBrush}" Padding="8,4"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Static res:Strings.PriorityRaceA}" FontSize="10" Padding="8,4"
+                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="2" Text="{x:Static res:Strings.PriorityMagicA}" FontSize="10" Padding="8,4"
+                                       Foreground="{StaticResource AccentManaBrush}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="3" Text="30" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"/>
+                            <TextBlock Grid.Row="2" Grid.Column="4" Text="50" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"/>
+                            <TextBlock Grid.Row="2" Grid.Column="5" Text="1,000,000¥" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"
+                                       Foreground="{StaticResource AccentNuyenBrush}"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="B" FontWeight="Bold"
+                                       Foreground="{StaticResource AccentCyberBrush}" Padding="8,4"/>
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{x:Static res:Strings.PriorityRaceB}" FontSize="10" Padding="8,4"
+                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="3" Grid.Column="2" Text="{x:Static res:Strings.PriorityMagicB}" FontSize="10" Padding="8,4"
+                                       Foreground="{StaticResource AccentManaBrush}"/>
+                            <TextBlock Grid.Row="3" Grid.Column="3" Text="27" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"/>
+                            <TextBlock Grid.Row="3" Grid.Column="4" Text="40" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"/>
+                            <TextBlock Grid.Row="3" Grid.Column="5" Text="400,000¥" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"
+                                       Foreground="{StaticResource AccentNuyenBrush}"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="C" FontWeight="Bold"
+                                       Foreground="{StaticResource AccentCyberBrush}" Padding="8,4"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{x:Static res:Strings.PriorityRaceC}" FontSize="10" Padding="8,4"
+                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="4" Grid.Column="2" Text="{x:Static res:Strings.PriorityMagicMundane}" FontSize="10" Padding="8,4"
+                                       Foreground="{StaticResource InkMutedBrush}"/>
+                            <TextBlock Grid.Row="4" Grid.Column="3" Text="24" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"/>
+                            <TextBlock Grid.Row="4" Grid.Column="4" Text="34" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"/>
+                            <TextBlock Grid.Row="4" Grid.Column="5" Text="90,000¥" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"
+                                       Foreground="{StaticResource AccentNuyenBrush}"/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="D" FontWeight="Bold"
+                                       Foreground="{StaticResource AccentCyberBrush}" Padding="8,4"/>
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{x:Static res:Strings.PriorityRaceD}" FontSize="10" Padding="8,4"
+                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="5" Grid.Column="2" Text="{x:Static res:Strings.PriorityMagicMundane}" FontSize="10" Padding="8,4"
+                                       Foreground="{StaticResource InkMutedBrush}"/>
+                            <TextBlock Grid.Row="5" Grid.Column="3" Text="21" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"/>
+                            <TextBlock Grid.Row="5" Grid.Column="4" Text="30" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"/>
+                            <TextBlock Grid.Row="5" Grid.Column="5" Text="20,000¥" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"
+                                       Foreground="{StaticResource AccentNuyenBrush}"/>
+
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="E" FontWeight="Bold"
+                                       Foreground="{StaticResource AccentCyberBrush}" Padding="8,4"/>
+                            <TextBlock Grid.Row="6" Grid.Column="1" Text="{x:Static res:Strings.PriorityRaceE}" FontSize="10" Padding="8,4"
+                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <TextBlock Grid.Row="6" Grid.Column="2" Text="{x:Static res:Strings.PriorityMagicMundane}" FontSize="10" Padding="8,4"
+                                       Foreground="{StaticResource InkMutedBrush}"/>
+                            <TextBlock Grid.Row="6" Grid.Column="3" Text="18" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"/>
+                            <TextBlock Grid.Row="6" Grid.Column="4" Text="27" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"/>
+                            <TextBlock Grid.Row="6" Grid.Column="5" Text="5,000¥" FontSize="10" FontFamily="JetBrains Mono, monospace"
+                                       HorizontalAlignment="Right" Padding="0,4,8,4"
+                                       Foreground="{StaticResource AccentNuyenBrush}"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
             </StackPanel>
+        </ScrollViewer>
 
-            <!-- Priority Matrix - The signature element -->
-            <Border Classes="panel">
-                <Grid ColumnDefinitions="100,70,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
-                    <!-- Headers -->
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="CATEGORY" Classes="section-header"/>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="RANK" Classes="section-header"/>
-                    <TextBlock Grid.Row="0" Grid.Column="2" Text="BENEFIT" Classes="section-header"/>
-
-                    <!-- Race -->
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Race" VerticalAlignment="Center" Margin="0,6"/>
-                    <ComboBox Grid.Row="1" Grid.Column="1"
-                              ItemsSource="{Binding AvailableRanks}"
-                              SelectedItem="{Binding RacePriority}"
-                              Width="50" Margin="0,4" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding RaceBenefits}"
-                               VerticalAlignment="Center" FontSize="11"
-                               Foreground="{StaticResource InkSecondaryBrush}" Margin="8,6,0,6"/>
-
-                    <!-- Magic -->
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Magic" VerticalAlignment="Center" Margin="0,6"/>
-                    <ComboBox Grid.Row="2" Grid.Column="1"
-                              ItemsSource="{Binding AvailableRanks}"
-                              SelectedItem="{Binding MagicPriority}"
-                              Width="50" Margin="0,4" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding MagicBenefits}"
-                               VerticalAlignment="Center" FontSize="11"
-                               Foreground="{StaticResource AccentManaBrush}" Margin="8,6,0,6"/>
-
-                    <!-- Attributes -->
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Attributes" VerticalAlignment="Center" Margin="0,6"/>
-                    <ComboBox Grid.Row="3" Grid.Column="1"
-                              ItemsSource="{Binding AvailableRanks}"
-                              SelectedItem="{Binding AttributesPriority}"
-                              Width="50" Margin="0,4" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="3" Grid.Column="2" Text="{Binding AttributesBenefits}"
-                               VerticalAlignment="Center" FontSize="11"
-                               Foreground="{StaticResource InkSecondaryBrush}" Margin="8,6,0,6"/>
-
-                    <!-- Skills -->
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Skills" VerticalAlignment="Center" Margin="0,6"/>
-                    <ComboBox Grid.Row="4" Grid.Column="1"
-                              ItemsSource="{Binding AvailableRanks}"
-                              SelectedItem="{Binding SkillsPriority}"
-                              Width="50" Margin="0,4" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding SkillsBenefits}"
-                               VerticalAlignment="Center" FontSize="11"
-                               Foreground="{StaticResource InkSecondaryBrush}" Margin="8,6,0,6"/>
-
-                    <!-- Resources -->
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Resources" VerticalAlignment="Center" Margin="0,6"/>
-                    <ComboBox Grid.Row="5" Grid.Column="1"
-                              ItemsSource="{Binding AvailableRanks}"
-                              SelectedItem="{Binding ResourcesPriority}"
-                              Width="50" Margin="0,4" HorizontalAlignment="Left"/>
-                    <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding ResourcesBenefits}"
-                               VerticalAlignment="Center" FontSize="11"
-                               Foreground="{StaticResource AccentNuyenBrush}" Margin="8,6,0,6"/>
-                </Grid>
-            </Border>
-
-            <!-- Reference Table - Dense grid -->
-            <StackPanel Spacing="4">
-                <TextBlock Text="PRIORITY REFERENCE" Classes="section-header"/>
-                <Border Classes="panel-inset">
-                    <Grid ColumnDefinitions="40,*,*,60,60,80" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
-                        <!-- Headers -->
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Rank" FontSize="10" FontWeight="SemiBold"
-                                   Foreground="{StaticResource InkMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Race" FontSize="10" FontWeight="SemiBold"
-                                   Foreground="{StaticResource InkMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Grid.Row="0" Grid.Column="2" Text="Magic" FontSize="10" FontWeight="SemiBold"
-                                   Foreground="{StaticResource InkMutedBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Grid.Row="0" Grid.Column="3" Text="Attr" FontSize="10" FontWeight="SemiBold"
-                                   Foreground="{StaticResource InkMutedBrush}" Margin="0,0,0,6" HorizontalAlignment="Right"/>
-                        <TextBlock Grid.Row="0" Grid.Column="4" Text="Skill" FontSize="10" FontWeight="SemiBold"
-                                   Foreground="{StaticResource InkMutedBrush}" Margin="0,0,0,6" HorizontalAlignment="Right"/>
-                        <TextBlock Grid.Row="0" Grid.Column="5" Text="Nuyen" FontSize="10" FontWeight="SemiBold"
-                                   Foreground="{StaticResource InkMutedBrush}" Margin="0,0,0,6" HorizontalAlignment="Right"/>
-
-                        <!-- A -->
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="A" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentCyberBrush}" FontSize="11"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" Text="Any" FontSize="10"
-                                   Foreground="{StaticResource InkSecondaryBrush}"/>
-                        <TextBlock Grid.Row="1" Grid.Column="2" Text="Full Magician" FontSize="10"
-                                   Foreground="{StaticResource AccentManaBrush}"/>
-                        <TextBlock Grid.Row="1" Grid.Column="3" Text="30" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
-                        <TextBlock Grid.Row="1" Grid.Column="4" Text="50" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"/>
-                        <TextBlock Grid.Row="1" Grid.Column="5" Text="1,000,000" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right"
-                                   Foreground="{StaticResource AccentNuyenBrush}"/>
-
-                        <!-- B -->
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="B" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentCyberBrush}" FontSize="11" Margin="0,2"/>
-                        <TextBlock Grid.Row="2" Grid.Column="1" Text="Any" FontSize="10"
-                                   Foreground="{StaticResource InkSecondaryBrush}" Margin="0,2"/>
-                        <TextBlock Grid.Row="2" Grid.Column="2" Text="Adept/Aspected" FontSize="10"
-                                   Foreground="{StaticResource AccentManaBrush}" Margin="0,2"/>
-                        <TextBlock Grid.Row="2" Grid.Column="3" Text="27" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"/>
-                        <TextBlock Grid.Row="2" Grid.Column="4" Text="40" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"/>
-                        <TextBlock Grid.Row="2" Grid.Column="5" Text="400,000" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"
-                                   Foreground="{StaticResource AccentNuyenBrush}"/>
-
-                        <!-- C -->
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="C" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentCyberBrush}" FontSize="11" Margin="0,2"/>
-                        <TextBlock Grid.Row="3" Grid.Column="1" Text="Elf/Troll" FontSize="10"
-                                   Foreground="{StaticResource InkSecondaryBrush}" Margin="0,2"/>
-                        <TextBlock Grid.Row="3" Grid.Column="2" Text="Mundane" FontSize="10"
-                                   Foreground="{StaticResource InkMutedBrush}" Margin="0,2"/>
-                        <TextBlock Grid.Row="3" Grid.Column="3" Text="24" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"/>
-                        <TextBlock Grid.Row="3" Grid.Column="4" Text="34" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"/>
-                        <TextBlock Grid.Row="3" Grid.Column="5" Text="90,000" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"
-                                   Foreground="{StaticResource AccentNuyenBrush}"/>
-
-                        <!-- D -->
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="D" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentCyberBrush}" FontSize="11" Margin="0,2"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" Text="Dwarf/Ork/Human" FontSize="10"
-                                   Foreground="{StaticResource InkSecondaryBrush}" Margin="0,2"/>
-                        <TextBlock Grid.Row="4" Grid.Column="2" Text="Mundane" FontSize="10"
-                                   Foreground="{StaticResource InkMutedBrush}" Margin="0,2"/>
-                        <TextBlock Grid.Row="4" Grid.Column="3" Text="21" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"/>
-                        <TextBlock Grid.Row="4" Grid.Column="4" Text="30" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"/>
-                        <TextBlock Grid.Row="4" Grid.Column="5" Text="20,000" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"
-                                   Foreground="{StaticResource AccentNuyenBrush}"/>
-
-                        <!-- E -->
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="E" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentCyberBrush}" FontSize="11" Margin="0,2"/>
-                        <TextBlock Grid.Row="5" Grid.Column="1" Text="Human only" FontSize="10"
-                                   Foreground="{StaticResource InkSecondaryBrush}" Margin="0,2"/>
-                        <TextBlock Grid.Row="5" Grid.Column="2" Text="Mundane" FontSize="10"
-                                   Foreground="{StaticResource InkMutedBrush}" Margin="0,2"/>
-                        <TextBlock Grid.Row="5" Grid.Column="3" Text="18" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"/>
-                        <TextBlock Grid.Row="5" Grid.Column="4" Text="27" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"/>
-                        <TextBlock Grid.Row="5" Grid.Column="5" Text="5,000" FontSize="10"
-                                   FontFamily="JetBrains Mono, monospace" HorizontalAlignment="Right" Margin="0,2"
-                                   Foreground="{StaticResource AccentNuyenBrush}"/>
-                    </Grid>
-                </Border>
-            </StackPanel>
-        </StackPanel>
-    </ScrollViewer>
+        <!-- Drag overlay: a floating ghost that follows the cursor -->
+        <Canvas Name="DragOverlay" IsHitTestVisible="False">
+            <Image Name="DragGhost" IsVisible="False" Opacity="0.92"/>
+        </Canvas>
+    </Grid>
 </UserControl>

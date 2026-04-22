@@ -52,6 +52,37 @@ public class CharacterBuilderService : ICharacterBuilderService
         OnCharacterChanged();
     }
 
+    public void SetTradition(Tradition tradition)
+    {
+        _builder.WithTradition(tradition);
+        OnCharacterChanged();
+    }
+
+    public void SetTotem(Totem totem)
+    {
+        _builder.WithTotem(totem);
+        OnCharacterChanged();
+    }
+
+    public void SetHermeticElement(HermeticElement element)
+    {
+        _builder.WithHermeticElement(element);
+        OnCharacterChanged();
+    }
+
+    public BondedSpirit? AddBondedSpirit(Spirit spirit, int services)
+    {
+        var bonded = _builder.AddBondedSpirit(spirit, services);
+        if (bonded is not null) OnCharacterChanged();
+        return bonded;
+    }
+
+    public void RemoveBondedSpirit(Guid id)
+    {
+        _builder.RemoveBondedSpirit(id);
+        OnCharacterChanged();
+    }
+
     public void SetAttribute(Attribute attribute)
     {
         _builder.WithAttribute(attribute);
@@ -227,6 +258,7 @@ public class CharacterBuilderService : ICharacterBuilderService
 
     public List<ValidationIssue> GetValidationIssues()
     {
+        _builder.Validate();
         return _builder.ValidationIssues;
     }
 

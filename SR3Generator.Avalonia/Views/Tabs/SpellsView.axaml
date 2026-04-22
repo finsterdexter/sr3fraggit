@@ -3,103 +3,215 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
              mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="700"
              x:Class="SR3Generator.Avalonia.Views.Tabs.SpellsView"
              x:DataType="vm:SpellsViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="12">
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
         <!-- Header -->
-        <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,8">
-            <TextBlock Text="Spells" Classes="page-title"/>
-            <TextBlock Text="Purchase spells with spell points. Only for characters with Sorcery."
-                       FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="{x:Static res:Strings.SpellsTitle}" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="{x:Static res:Strings.SpellsSubtitle}"/>
         </StackPanel>
 
-        <!-- No Magic Warning -->
-        <Border Grid.Row="1" Background="#15ef4444" BorderBrush="#30ef4444" BorderThickness="1"
-                CornerRadius="2" Padding="10" Margin="0,0,0,8"
-                IsVisible="{Binding !HasSorcery}">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="!" FontWeight="Bold" FontSize="11"
-                           Foreground="{StaticResource DestructiveBrush}"/>
-                <TextBlock Text="Cannot cast spells. Select a magical aspect with Sorcery."
-                           FontSize="11" Foreground="{StaticResource DestructiveBrush}"/>
-            </StackPanel>
-        </Border>
-
-        <!-- Spell Points Summary -->
-        <Border Grid.Row="1" Classes="panel" Padding="8" Margin="0,0,0,8"
+        <!-- Resource bar -->
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12"
                 IsVisible="{Binding HasSorcery}">
-            <Grid ColumnDefinitions="*,Auto,Auto">
-                <TextBlock Text="SPELL POINTS" Classes="section-header" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="1" FontFamily="JetBrains Mono, monospace" VerticalAlignment="Center" Margin="0,0,16,0">
-                    <Run Text="{Binding SpellPointsRemaining}" FontWeight="Bold"
-                         Foreground="{StaticResource AccentManaBrush}"/>
-                    <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
-                    <Run Text="{Binding SpellPointsAllowance}" Foreground="{StaticResource InkSecondaryBrush}"/>
-                </TextBlock>
-                <Button Grid.Column="2" Content="Buy Point (25k¥)" Command="{Binding BuySpellPointsCommand}"
-                        Classes="compact"/>
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelSpellPoints}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value-lg">
+                        <Run Text="{Binding SpellPointsRemaining}"
+                             Foreground="{StaticResource AccentManaBrush}"/>
+                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                        <Run Text="{Binding SpellPointsAllowance}"
+                             Foreground="{StaticResource InkSecondaryBrush}"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <Button Grid.Column="2" Command="{Binding BuySpellPointsCommand}"
+                        Content="{x:Static res:Strings.SpellsBuyPointButton}" Classes="compact"/>
             </Grid>
         </Border>
 
-        <!-- Main Content -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,*" IsVisible="{Binding HasSorcery}">
+        <!-- Warning for non-sorcerer -->
+        <Border Grid.Row="1" Background="#15ef4444" BorderBrush="#30ef4444"
+                BorderThickness="1" CornerRadius="4"
+                Padding="12,12" Margin="0,0,0,12"
+                IsVisible="{Binding !HasSorcery}">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="!" FontWeight="Bold" FontSize="14"
+                           Foreground="{StaticResource DestructiveBrush}"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Static res:Strings.SpellsNoSorceryWarning}"
+                           Classes="body"
+                           Foreground="{StaticResource DestructiveBrush}"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main: Available | Controls | Purchased -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,180,12,*"
+              IsVisible="{Binding HasSorcery}">
             <!-- Available Spells -->
-            <Border Grid.Column="0" Classes="panel" Margin="0,0,6,0">
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,8">
-                        <TextBlock Text="AVAILABLE SPELLS" Classes="section-header"/>
-                        <ComboBox ItemsSource="{Binding AvailableCategories}"
-                                  SelectedItem="{Binding SelectedCategory}"
-                                  HorizontalAlignment="Stretch"/>
+            <Border Grid.Column="0" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="12,12,12,8">
+                        <TextBlock Text="{x:Static res:Strings.SectionAvailable}" Classes="section-header"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{x:Static res:Strings.LabelCategory}" Classes="micro-label"/>
+                            <ComboBox ItemsSource="{Binding CategoryFilters}"
+                                      SelectedItem="{Binding CategoryFilter}"
+                                      MinWidth="160"/>
+                        </StackPanel>
+                        <TextBox Text="{Binding SearchText}"
+                                 Watermark="{x:Static res:Strings.WatermarkSearchSpells}"/>
                     </StackPanel>
-                    <TreeView ItemsSource="{Binding SpellCategories}">
-                        <TreeView.ItemTemplate>
-                            <TreeDataTemplate ItemsSource="{Binding Spells}">
-                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="10"/>
-                            </TreeDataTemplate>
-                        </TreeView.ItemTemplate>
-                        <TreeView.Styles>
-                            <Style Selector="TreeViewItem">
-                                <Setter Property="IsExpanded" Value="True"/>
-                            </Style>
-                        </TreeView.Styles>
-                    </TreeView>
+                    <ListBox ItemsSource="{Binding FilteredSpells}"
+                             SelectedItem="{Binding SelectedAvailableSpell}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:SpellItem">
+                                <Grid ColumnDefinitions="*,80,24,60">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" Classes="body"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding CategoryName}"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource AccentManaBrush}"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding Drain}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding TypeDisplay}"
+                                               Classes="data" FontSize="11" FontWeight="Bold"
+                                               Foreground="{StaticResource InkMutedBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               ToolTip.Tip="P = Physical, M = Mana"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </DockPanel>
             </Border>
 
-            <!-- Add Controls -->
-            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="8" Margin="6,0">
-                <StackPanel Spacing="4">
-                    <TextBlock Text="Force" FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
-                    <NumericUpDown Value="{Binding NewSpellForce}" Minimum="1" Maximum="6" Width="60"/>
+            <!-- Controls -->
+            <Border Grid.Column="1" Classes="panel" Margin="12,0,0,0">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="{x:Static res:Strings.SectionAddSpell}" Classes="section-header"/>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{x:Static res:Strings.LabelForce}" Classes="micro-label"/>
+                        <NumericUpDown Value="{Binding NewSpellForce}"
+                                       Minimum="1" Maximum="6"
+                                       Classes="prominent"
+                                       HorizontalAlignment="Stretch"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <CheckBox Content="{x:Static res:Strings.CheckExclusive}"
+                                  IsChecked="{Binding NewSpellExclusive}">
+                            <ToolTip.Tip>
+                                <StackPanel MaxWidth="320" Spacing="4">
+                                    <TextBlock Text="{Binding ExclusiveRule.Title}" FontWeight="SemiBold"/>
+                                    <TextBlock TextWrapping="Wrap"
+                                               Text="{Binding ExclusiveRule.Body}"/>
+                                    <TextBlock TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               Text="{Binding ExclusiveRule.CostNote}"/>
+                                    <TextBlock TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkMutedBrush}"
+                                               FontSize="10"
+                                               Text="{Binding ExclusiveRule.Citation}"
+                                               IsVisible="{Binding ExclusiveRule.Citation, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                </StackPanel>
+                            </ToolTip.Tip>
+                        </CheckBox>
+
+                        <CheckBox Content="{x:Static res:Strings.CheckFetishLimited}"
+                                  IsChecked="{Binding NewSpellFetishLimited}">
+                            <ToolTip.Tip>
+                                <StackPanel MaxWidth="320" Spacing="4">
+                                    <TextBlock Text="{Binding FetishRule.Title}" FontWeight="SemiBold"/>
+                                    <TextBlock TextWrapping="Wrap"
+                                               Text="{Binding FetishRule.Body}"/>
+                                    <TextBlock TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               Text="{Binding FetishRule.CostNote}"/>
+                                    <TextBlock TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkMutedBrush}"
+                                               FontSize="10"
+                                               Text="{Binding FetishRule.Citation}"
+                                               IsVisible="{Binding FetishRule.Citation, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                </StackPanel>
+                            </ToolTip.Tip>
+                        </CheckBox>
+                    </StackPanel>
+
+                    <!-- Cost preview -->
+                    <Border Classes="panel-inset" Padding="8,6">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="{x:Static res:Strings.LabelCost}" Classes="micro-label"/>
+                            <TextBlock Grid.Column="1" Text="{Binding PendingCostDisplay}"
+                                       Classes="stat-value"
+                                       Foreground="{StaticResource AccentManaBrush}"/>
+                        </Grid>
+                    </Border>
+
+                    <Button Content="{x:Static res:Strings.SpellsAddButton}"
+                            Classes="primary action"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding AddSpellCommand}"/>
+
+                    <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,4"/>
+
+                    <Button Content="{x:Static res:Strings.ButtonRemoveSelected}"
+                            Classes="action"
+                            HorizontalAlignment="Stretch"
+                            Command="{Binding RemoveSpellCommand}"/>
                 </StackPanel>
-                <CheckBox Content="Exclusive" IsChecked="{Binding NewSpellExclusive}" FontSize="10"/>
-                <TextBlock Text="(-2 cost)" FontSize="9" Foreground="{StaticResource InkMutedBrush}"
-                           Margin="16,0,0,0"/>
-                <Button Content="Add" HorizontalAlignment="Stretch" Classes="compact"/>
-                <Button Content="Remove" Command="{Binding RemoveSpellCommand}" HorizontalAlignment="Stretch" Classes="compact"/>
-            </StackPanel>
+            </Border>
 
             <!-- Purchased Spells -->
-            <Border Grid.Column="2" Classes="panel" Margin="6,0,0,0">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" Text="PURCHASED" Classes="section-header" Margin="0,0,0,4"/>
+            <Border Grid.Column="3" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionPurchased}"
+                               Classes="section-header" Margin="12,12,12,8"/>
                     <ListBox ItemsSource="{Binding PurchasedSpells}"
-                             SelectedItem="{Binding SelectedPurchasedSpell}">
+                             SelectedItem="{Binding SelectedPurchasedSpell}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="*,50,30,40">
-                                    <TextBlock Text="{Binding Name}" FontSize="10" TextTrimming="CharacterEllipsis"/>
+                            <DataTemplate DataType="vm:SpellItem">
+                                <Grid ColumnDefinitions="*,24,48,60">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" Classes="body"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding CategoryName}"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource AccentManaBrush}"/>
+                                    </StackPanel>
                                     <TextBlock Grid.Column="1" Text="{Binding TypeDisplay}"
-                                               FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
+                                               Classes="data" FontSize="11" FontWeight="Bold"
+                                               Foreground="{StaticResource InkMutedBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="2" Text="{Binding Force, StringFormat='F{0}'}"
-                                               FontWeight="Bold" FontFamily="JetBrains Mono, monospace"
-                                               FontSize="10" Foreground="{StaticResource AccentManaBrush}"/>
+                                               Classes="stat-value"
+                                               Foreground="{StaticResource AccentManaBrush}"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"/>
                                     <TextBlock Grid.Column="3" Text="{Binding CostDisplay}"
-                                               FontSize="9" Foreground="{StaticResource InkMutedBrush}"
-                                               HorizontalAlignment="Right"/>
+                                               FontSize="10"
+                                               Foreground="{StaticResource InkMutedBrush}"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -107,14 +219,5 @@
                 </DockPanel>
             </Border>
         </Grid>
-
-        <!-- Reference -->
-        <Border Grid.Row="3" Classes="panel-inset" Margin="0,8,0,0" IsVisible="{Binding HasSorcery}">
-            <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock Text="Cost = Force (1-6)" FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
-                <TextBlock Text="Exclusive: -2 cost (min 1)" FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
-                <TextBlock Text="Buy points: 25,000¥ each" FontSize="9" Foreground="{StaticResource InkMutedBrush}"/>
-            </StackPanel>
-        </Border>
     </Grid>
 </UserControl>

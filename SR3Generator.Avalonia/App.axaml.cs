@@ -64,6 +64,9 @@ public partial class App : Application
         services.AddSingleton<AugmentationDatabase>();
         services.AddSingleton<AdeptPowerDatabase>();
         services.AddSingleton<FocusDatabase>();
+        services.AddSingleton<SpellDatabase>();
+        services.AddSingleton<RulesGlossary>();
+        services.AddSingleton<TotemDatabase>();
 
         // Character builder service
         services.AddSingleton<ICharacterBuilderService, CharacterBuilderService>();
@@ -72,9 +75,11 @@ public partial class App : Application
         services.AddTransient<PrioritiesViewModel>();
         services.AddTransient<RaceViewModel>();
         services.AddTransient<MagicViewModel>();
+        services.AddTransient<MagicContainerViewModel>();
         services.AddTransient<AttributesViewModel>();
         services.AddTransient<SkillsViewModel>();
         services.AddTransient<SpellsViewModel>();
+        services.AddTransient<SpiritsViewModel>();
         services.AddTransient<AdeptPowersViewModel>();
         services.AddTransient<FociViewModel>();
         services.AddTransient<GearViewModel>();
