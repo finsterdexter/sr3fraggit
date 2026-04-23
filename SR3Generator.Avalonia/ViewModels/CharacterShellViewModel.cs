@@ -124,9 +124,9 @@ public partial class CharacterShellViewModel : ViewModelBase
         AttributePointsSpent = CalculateAttributePointsSpent(character);
         AttributePointsRemaining = AttributePointsAllowance - AttributePointsSpent;
 
-        // Skill points
+        // Skill points — defer to the builder's calc so top bar matches Skills tab and validation.
         SkillPointsAllowance = builder.SkillPointsAllowance;
-        SkillPointsSpent = CalculateSkillPointsSpent(character);
+        SkillPointsSpent = builder.ActiveSkillPointsSpent;
         SkillPointsRemaining = SkillPointsAllowance - SkillPointsSpent;
 
         // Spell points
@@ -171,9 +171,4 @@ public partial class CharacterShellViewModel : ViewModelBase
             .Sum(name => character.Attributes[name].BaseValue);
     }
 
-    private int CalculateSkillPointsSpent(Character character)
-    {
-        // For now, simple sum - actual calculation would need linked attribute costs
-        return character.ActiveSkills.Values.Sum(s => s.BaseValue);
-    }
 }

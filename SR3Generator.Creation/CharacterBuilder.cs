@@ -66,7 +66,7 @@ namespace SR3Generator.Creation
 
         /// <summary>Active-skill points spent, accounting for SR3 free-specialization adjustment.</summary>
         public int ActiveSkillPointsSpent =>
-            ComputeSkillPoints(Character.ActiveSkills.Values, physicalCostsDouble: true);
+            ComputeSkillPoints(Character.ActiveSkills.Values);
 
         /// <summary>Knowledge-skill allowance: (Intelligence base + racial mod) × 5.</summary>
         public int KnowledgeSkillPointsAllowance
@@ -81,21 +81,28 @@ namespace SR3Generator.Creation
         }
 
         public int KnowledgeSkillPointsSpent =>
-            ComputeSkillPoints(Character.KnowledgeSkills.Values, physicalCostsDouble: false);
+            ComputeSkillPoints(Character.KnowledgeSkills.Values);
 
-        private static int ComputeSkillPoints(IEnumerable<Skill> skills, bool physicalCostsDouble)
+        /// <summary>
+        /// SR3 core p. 54: ranks at or below the linked-attribute rating cost 1 skill point each;
+        /// ranks above the attribute cost 2 each. Specialization is free — the "original" rating
+        /// used for cost is the spec rating minus 1 (the base drops by one when specializing).
+        /// </summary>
+        private int ComputeSkillPoints(IEnumerable<Skill> skills)
         {
             var skillList = skills.ToList();
             int total = 0;
             foreach (var baseSkill in skillList.Where(s => !s.IsSpecialization))
             {
-                // SR3: specialization is free — actual cost is based on the "original" rating,
-                // which is spec rating - 1 (the base drops by one when specializing).
                 var spec = skillList.FirstOrDefault(s => s.IsSpecialization && s.BaseSkillName == baseSkill.Name);
                 var originalRating = spec is not null ? spec.BaseValue - 1 : baseSkill.BaseValue;
-                var isPhysical = physicalCostsDouble && baseSkill.Attribute is
-                    AttributeName.Body or AttributeName.Quickness or AttributeName.Strength;
-                total += originalRating * (isPhysical ? 2 : 1);
+
+                var attrRating = Character.Attributes.TryGetValue(baseSkill.Attribute, out var attr)
+                    ? (int)attr.BaseValue
+                    : 0;
+                var cheap = System.Math.Min(originalRating, attrRating);
+                var expensive = System.Math.Max(0, originalRating - attrRating);
+                total += cheap + expensive * 2;
             }
             return total;
         }
