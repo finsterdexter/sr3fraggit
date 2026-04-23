@@ -19,15 +19,18 @@ public partial class PrioritiesViewModel : ViewModelBase
     {
         _characterService = characterService;
 
-        // Default top-to-bottom: A through E
-        OrderedPriorities.Add(new PriorityRow(PriorityType.Race));
-        OrderedPriorities.Add(new PriorityRow(PriorityType.Magic));
-        OrderedPriorities.Add(new PriorityRow(PriorityType.Attributes));
-        OrderedPriorities.Add(new PriorityRow(PriorityType.Skills));
-        OrderedPriorities.Add(new PriorityRow(PriorityType.Resources));
+        // Order the rows by the builder's current ranks so loaded characters show their
+        // actual priority layout rather than being clobbered by a hardcoded default.
+        // Rank A (enum value 4) goes on top, rank E (value 0) on the bottom.
+        var current = _characterService.Builder.Priorities;
+        foreach (var p in current.OrderByDescending(p => (int)p.Rank))
+        {
+            OrderedPriorities.Add(new PriorityRow(p.Type));
+        }
 
         RefreshRanks();
-        ApplyPriorities();
+        // Intentionally no ApplyPriorities() here — we're reflecting existing builder state,
+        // not mutating it. Only user-driven reorders should push back through the service.
     }
 
     public void MovePriority(int fromIndex, int toIndex)

@@ -95,6 +95,20 @@ public partial class SummaryViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<string> _contactsSummary = new();
 
+    // Dice pools — mirror Character.DicePools which the service keeps fresh via Build().
+    [ObservableProperty] private int _combatPool;
+    [ObservableProperty] private int _spellPool;
+    [ObservableProperty] private int _astralCombatPool;
+    [ObservableProperty] private int _hackingPool;
+    [ObservableProperty] private int _controlPool;
+    [ObservableProperty] private int _karmaPool;
+
+    // Combat + Karma are always shown. The rest only when the formula resolves to > 0.
+    public bool HasSpellPool => SpellPool > 0;
+    public bool HasAstralCombatPool => AstralCombatPool > 0;
+    public bool HasHackingPool => HackingPool > 0;
+    public bool HasControlPool => ControlPool > 0;
+
     // Resources
     [ObservableProperty]
     private long _nuyenRemaining;
@@ -170,6 +184,18 @@ public partial class SummaryViewModel : ViewModelBase
         OnPropertyChanged(nameof(IntelligenceDisplay));
         OnPropertyChanged(nameof(WillpowerDisplay));
         OnPropertyChanged(nameof(ReactionDisplay));
+
+        // Dice pools — service calls Build() on every change so Character.DicePools is fresh.
+        CombatPool = character.DicePools[DicePoolType.Combat].Value;
+        SpellPool = character.DicePools[DicePoolType.Spell].Value;
+        AstralCombatPool = character.DicePools[DicePoolType.AstralCombat].Value;
+        HackingPool = character.DicePools[DicePoolType.Hacking].Value;
+        ControlPool = character.DicePools[DicePoolType.Control].Value;
+        KarmaPool = character.DicePools[DicePoolType.Karma].Value;
+        OnPropertyChanged(nameof(HasSpellPool));
+        OnPropertyChanged(nameof(HasAstralCombatPool));
+        OnPropertyChanged(nameof(HasHackingPool));
+        OnPropertyChanged(nameof(HasControlPool));
 
         // Skills
         ActiveSkillsSummary.Clear();

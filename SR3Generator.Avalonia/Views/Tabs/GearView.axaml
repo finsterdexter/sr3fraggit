@@ -143,12 +143,14 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="vm:StatDisplay">
-                                            <Border Classes="tag-cyber" Margin="0,0,4,4">
-                                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                                    <TextBlock Text="{Binding Label}" FontSize="10" FontWeight="SemiBold"/>
+                                            <Border Classes="tag-cyber" Margin="0,0,4,4" MaxWidth="240">
+                                                <DockPanel LastChildFill="True">
+                                                    <TextBlock Text="{Binding Label}" FontSize="10" FontWeight="SemiBold"
+                                                               DockPanel.Dock="Left" Margin="0,0,4,0" VerticalAlignment="Top"/>
                                                     <TextBlock Text="{Binding Value}" FontSize="10"
+                                                               TextWrapping="Wrap"
                                                                Foreground="{StaticResource AccentCyberBrush}"/>
-                                                </StackPanel>
+                                                </DockPanel>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
@@ -221,12 +223,14 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="vm:StatDisplay">
-                                            <Border Classes="tag-cyber" Margin="0,0,4,4">
-                                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                                    <TextBlock Text="{Binding Label}" FontSize="10" FontWeight="SemiBold"/>
+                                            <Border Classes="tag-cyber" Margin="0,0,4,4" MaxWidth="240">
+                                                <DockPanel LastChildFill="True">
+                                                    <TextBlock Text="{Binding Label}" FontSize="10" FontWeight="SemiBold"
+                                                               DockPanel.Dock="Left" Margin="0,0,4,0" VerticalAlignment="Top"/>
                                                     <TextBlock Text="{Binding Value}" FontSize="10"
+                                                               TextWrapping="Wrap"
                                                                Foreground="{StaticResource AccentCyberBrush}"/>
-                                                </StackPanel>
+                                                </DockPanel>
                                             </Border>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>

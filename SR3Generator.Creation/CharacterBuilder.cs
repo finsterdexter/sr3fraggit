@@ -1159,31 +1159,55 @@ namespace SR3Generator.Creation
             return this;
         }
 
+        /// <summary>
+        /// Recomputes all derived character state (reaction, dice pools) and runs validators.
+        /// Intended to be called after every mutation during character creation so the UI,
+        /// validators, and persisted character stay in sync. Idempotent and cheap.
+        /// </summary>
         public Character Build()
         {
-            // calculate base reaction
-            Character.Attributes[AttributeName.Reaction].BaseValue = 
+            // Base reaction = (Quickness + Intelligence) / 2 (SR3 core p. 52).
+            Character.Attributes[AttributeName.Reaction].BaseValue =
                 (Character.Attributes[AttributeName.Intelligence].BaseValue + Character.Attributes[AttributeName.Quickness].BaseValue) / 2;
 
-            // calculate DicePools
-            Character.DicePools[DicePoolType.Combat].Value = 
-                (Character.Attributes[AttributeName.Intelligence].BaseValue + Character.Attributes[AttributeName.Quickness].BaseValue + Character.Attributes[AttributeName.Willpower].BaseValue) / 2;
-            Character.DicePools[DicePoolType.Spell].Value = 
-                (Character.Attributes[AttributeName.Intelligence].BaseValue + Character.Attributes[AttributeName.Willpower].BaseValue + Character.Attributes[AttributeName.Magic].BaseValue) / 3;
-            var equippedDeck = Character.Gear.Values.FirstOrDefault(g => g is Cyberdeck && g.IsEquipped);
-            if (equippedDeck != null)
+            // Combat Pool = (Quickness + Intelligence + Willpower) / 2 (SR3 core p. 40).
+            Character.DicePools[DicePoolType.Combat].Value =
+                (Character.Attributes[AttributeName.Quickness].BaseValue
+                 + Character.Attributes[AttributeName.Intelligence].BaseValue
+                 + Character.Attributes[AttributeName.Willpower].BaseValue) / 2;
+
+            // Magic-only pools. Zero out for mundane so stale values don't linger after
+            // a priority shift drops magic.
+            if (Character.MagicAspect?.HasSorcery == true)
             {
-                Character.DicePools[DicePoolType.Hacking].Value = 
-                    (Character.Attributes[AttributeName.Intelligence].BaseValue + ((Cyberdeck)equippedDeck).MPCP) / 3;
+                Character.DicePools[DicePoolType.Spell].Value =
+                    (Character.Attributes[AttributeName.Intelligence].BaseValue
+                     + Character.Attributes[AttributeName.Willpower].BaseValue
+                     + Character.Attributes[AttributeName.Magic].BaseValue) / 3;
+                Character.DicePools[DicePoolType.AstralCombat].Value =
+                    (Character.Attributes[AttributeName.Intelligence].BaseValue
+                     + Character.Attributes[AttributeName.Willpower].BaseValue
+                     + Character.Attributes[AttributeName.Charisma].BaseValue) / 2;
             }
-            var vcr = Character.Gear.Values.FirstOrDefault(g => g is VehicleControlRig && g.IsEquipped);
-            if (vcr != null && vcr.Rating.HasValue)
+            else
             {
-                Character.DicePools[DicePoolType.Control].Value =
-                    Character.Attributes[AttributeName.Reaction].BaseValue + (vcr.Rating.Value * 2);
+                Character.DicePools[DicePoolType.Spell].Value = 0;
+                Character.DicePools[DicePoolType.AstralCombat].Value = 0;
             }
-            Character.DicePools[DicePoolType.AstralCombat].Value = 
-                (Character.Attributes[AttributeName.Intelligence].BaseValue + Character.Attributes[AttributeName.Willpower].BaseValue + Character.Attributes[AttributeName.Charisma].BaseValue) / 2;
+
+            // Hacking and Control only exist when the gear is actually equipped.
+            var deck = Character.Gear.Values.FirstOrDefault(g => g is Cyberdeck && g.IsEquipped) as Cyberdeck;
+            Character.DicePools[DicePoolType.Hacking].Value = deck is null
+                ? 0
+                : (Character.Attributes[AttributeName.Intelligence].BaseValue + deck.MPCP) / 3;
+
+            var vcr = Character.Gear.Values.FirstOrDefault(g => g is VehicleControlRig && g.IsEquipped) as VehicleControlRig;
+            Character.DicePools[DicePoolType.Control].Value = vcr?.Rating is null
+                ? 0
+                : Character.Attributes[AttributeName.Reaction].BaseValue + (vcr.Rating.Value * 2);
+
+            // Single validation pass so ValidationIssues reflects current state too.
+            Validate();
 
             return Character;
         }

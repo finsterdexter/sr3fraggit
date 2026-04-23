@@ -45,6 +45,9 @@ public class CharacterBuilderService : ICharacterBuilderService
     private void OnCharacterChanged()
     {
         if (!_suppressDirty) IsDirty = true;
+        // Build() recomputes reaction, dice pools, and runs validators. Called after every
+        // mutation so the UI sees coherent state in a single refresh.
+        _builder.Build();
         CharacterChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -272,7 +275,8 @@ public class CharacterBuilderService : ICharacterBuilderService
 
     public List<ValidationIssue> GetValidationIssues()
     {
-        _builder.Validate();
+        // Build() already ran Validate() when the character last changed — reuse that result
+        // and augment with settings-driven warnings the builder doesn't know about.
         var issues = new List<ValidationIssue>(_builder.ValidationIssues);
         issues.AddRange(CollectDisabledBookWarnings());
         return issues;

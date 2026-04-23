@@ -162,7 +162,8 @@ namespace SR3Generator.Creation.Validation
 
         private CharacterPriorityValidator ValidateAttributes(CharacterBuilder builder)
         {
-            var character = builder.Build();
+            // Read current state directly; Build() would recurse back into this validator.
+            var character = builder.Character;
 
             // basic validation
             if (character.Attributes.Count != 10

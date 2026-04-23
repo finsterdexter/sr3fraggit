@@ -154,6 +154,48 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Dice Pools -->
+                    <Border Classes="panel">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="DICE POOLS" Classes="section-header"/>
+                            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto"
+                                  RowSpacing="6" ColumnSpacing="16">
+                                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+                                    <TextBlock Text="Combat" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding CombatPool}" Classes="summary-value"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal"
+                                            IsVisible="{Binding HasSpellPool}">
+                                    <TextBlock Text="Spell" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding SpellPool}" Classes="summary-value"
+                                               Foreground="{StaticResource AccentManaBrush}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal"
+                                            IsVisible="{Binding HasAstralCombatPool}">
+                                    <TextBlock Text="Astral" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding AstralCombatPool}" Classes="summary-value"
+                                               Foreground="{StaticResource AccentManaBrush}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal"
+                                            IsVisible="{Binding HasHackingPool}">
+                                    <TextBlock Text="Hacking" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding HackingPool}" Classes="summary-value"
+                                               Foreground="{StaticResource AccentCyberBrush}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal"
+                                            IsVisible="{Binding HasControlPool}">
+                                    <TextBlock Text="Control" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding ControlPool}" Classes="summary-value"/>
+                                </StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
+                                    <TextBlock Text="Karma" Classes="summary-label"/>
+                                    <TextBlock Text="{Binding KarmaPool}" Classes="summary-value"
+                                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Active Skills -->
                     <Border Classes="panel">
                         <StackPanel Spacing="6">

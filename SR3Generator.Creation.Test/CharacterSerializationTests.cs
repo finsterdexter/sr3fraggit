@@ -111,12 +111,40 @@ namespace SR3Generator.Creation.Test
             Assert.True(restored.Character.Contacts.ContainsKey(primaryContactId));
             Assert.Single(restored.Character.Contacts[primaryContactId].FriendsOfAFriend);
 
-            // Priority list round-trips
-            Assert.Equal(original.Priorities.Count, restored.Priorities.Count);
+            // Priority list round-trips: exactly five entries, one per PriorityType, with
+            // ranks matching the originals. Use a map rather than Contains so duplicates or
+            // missing types are caught.
+            Assert.Equal(5, restored.Priorities.Count);
+            var restoredByType = restored.Priorities.ToDictionary(p => p.Type, p => p.Rank);
+            Assert.Equal(5, restoredByType.Count); // no duplicate types
             foreach (var p in original.Priorities)
             {
-                Assert.Contains(restored.Priorities, r => r.Type == p.Type && r.Rank == p.Rank);
+                Assert.True(restoredByType.TryGetValue(p.Type, out var rank),
+                    $"Restored priorities missing type {p.Type}");
+                Assert.Equal(p.Rank, rank);
             }
+
+            // Priority-derived allowances: confirm the restored builder used the restored
+            // priority list (not stale defaults).
+            Assert.Equal(
+                original.Priorities.First(p => p.Type == PriorityType.Attributes).GetAttributePoints(),
+                restored.AttributePointsAllowance);
+            Assert.Equal(
+                original.Priorities.First(p => p.Type == PriorityType.Skills).GetSkillPoints(),
+                restored.SkillPointsAllowance);
+            Assert.Equal(
+                original.Priorities.First(p => p.Type == PriorityType.Resources).GetNuyen(),
+                restored.ResourcesAllowance);
+
+            // Race and magic-aspect lists are derived from the Race / Magic priorities.
+            Assert.Equal(original.RacesAllowed.Count, restored.RacesAllowed.Count);
+            Assert.Equal(
+                original.RacesAllowed.Select(r => r.Name).OrderBy(n => n),
+                restored.RacesAllowed.Select(r => r.Name).OrderBy(n => n));
+            Assert.Equal(original.MagicAspectsAllowed.Count, restored.MagicAspectsAllowed.Count);
+            Assert.Equal(
+                original.MagicAspectsAllowed.Select(a => a.Name).OrderBy(n => n),
+                restored.MagicAspectsAllowed.Select(a => a.Name).OrderBy(n => n));
 
             // Validate produces the same issue count
             original.Validate();

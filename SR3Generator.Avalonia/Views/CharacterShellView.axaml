@@ -198,6 +198,41 @@
 
                         <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}"/>
 
+                        <!-- Dice Pools -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="DICE POOLS" Classes="micro-label"/>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Combat" Classes="sidebar-stat"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SummaryVM.CombatPool}" Classes="sidebar-value"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding SummaryVM.HasSpellPool}">
+                                <TextBlock Text="Spell" Classes="sidebar-stat"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SummaryVM.SpellPool}" Classes="sidebar-value"
+                                           Foreground="{StaticResource AccentManaBrush}"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding SummaryVM.HasAstralCombatPool}">
+                                <TextBlock Text="Astral" Classes="sidebar-stat"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SummaryVM.AstralCombatPool}" Classes="sidebar-value"
+                                           Foreground="{StaticResource AccentManaBrush}"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding SummaryVM.HasHackingPool}">
+                                <TextBlock Text="Hacking" Classes="sidebar-stat"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SummaryVM.HackingPool}" Classes="sidebar-value"
+                                           Foreground="{StaticResource AccentCyberBrush}"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding SummaryVM.HasControlPool}">
+                                <TextBlock Text="Control" Classes="sidebar-stat"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SummaryVM.ControlPool}" Classes="sidebar-value"/>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Text="Karma" Classes="sidebar-stat"/>
+                                <TextBlock Grid.Column="1" Text="{Binding SummaryVM.KarmaPool}" Classes="sidebar-value"
+                                           Foreground="{StaticResource AccentKarmaBrush}"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}"/>
+
                         <!-- Status -->
                         <StackPanel Spacing="6">
                             <TextBlock Text="{x:Static res:Strings.LabelStatus}" Classes="micro-label"/>
