@@ -17,10 +17,15 @@ public class CharacterBuilderService : ICharacterBuilderService
     private readonly SkillDatabase _skillDatabase;
     private readonly ILogger<CharacterBuilder> _builderLogger;
     private CharacterBuilder _builder;
+    private bool _suppressDirty;
 
     public CharacterBuilder Builder => _builder;
 
     public event EventHandler? CharacterChanged;
+
+    public bool IsDirty { get; private set; }
+
+    public void ClearDirty() => IsDirty = false;
 
     public CharacterBuilderService(SkillDatabase skillDatabase, ILogger<CharacterBuilder> builderLogger)
     {
@@ -31,6 +36,7 @@ public class CharacterBuilderService : ICharacterBuilderService
 
     private void OnCharacterChanged()
     {
+        if (!_suppressDirty) IsDirty = true;
         CharacterChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -265,6 +271,18 @@ public class CharacterBuilderService : ICharacterBuilderService
     public void NewCharacter()
     {
         _builder = new CharacterBuilder(_skillDatabase, _builderLogger);
-        OnCharacterChanged();
+        _suppressDirty = true;
+        try { OnCharacterChanged(); }
+        finally { _suppressDirty = false; }
+        IsDirty = false;
+    }
+
+    public void LoadCharacter(CharacterBuilder restored)
+    {
+        _builder = restored;
+        _suppressDirty = true;
+        try { OnCharacterChanged(); }
+        finally { _suppressDirty = false; }
+        IsDirty = false;
     }
 }

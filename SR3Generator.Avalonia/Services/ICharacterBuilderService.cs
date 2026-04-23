@@ -87,4 +87,16 @@ public interface ICharacterBuilderService
 
     // State management
     void NewCharacter();
+
+    /// <summary>
+    /// Replace the current builder with a restored one (from a loaded file).
+    /// Fires <see cref="CharacterChanged"/> and clears the dirty flag.
+    /// </summary>
+    void LoadCharacter(CharacterBuilder restored);
+
+    /// <summary>True after any mutation since the last load/save/new. </summary>
+    bool IsDirty { get; }
+
+    /// <summary>Mark the current character state as clean (called after save/load/new). </summary>
+    void ClearDirty();
 }

@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="SR3Generator.Avalonia.Views.ConfirmDialog"
+        Width="420" SizeToContent="Height"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource Surface100Brush}"
+        Title="">
+    <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1" Padding="20">
+        <StackPanel Spacing="16">
+            <TextBlock x:Name="TitleText"
+                       FontSize="14" FontWeight="SemiBold"
+                       Foreground="{StaticResource InkPrimaryBrush}"/>
+            <TextBlock x:Name="MessageText"
+                       FontSize="12"
+                       TextWrapping="Wrap"
+                       Foreground="{StaticResource InkSecondaryBrush}"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button x:Name="CancelButton" Classes="default" Content="Cancel" Click="OnCancel"/>
+                <Button x:Name="OkButton" Classes="primary" Content="OK" Click="OnOk" IsDefault="True"/>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

@@ -51,6 +51,9 @@ namespace SR3Generator.Creation
         public List<Race> RacesAllowed { get; set; }
         public List<MagicAspect> MagicAspectsAllowed { get; set; }
 
+        /// <summary>The priority list last passed to <see cref="WithPriorities"/>. </summary>
+        public List<Priority> Priorities { get; private set; } = new List<Priority>();
+
         // ---- Derived spent/allowance helpers ------------------------------------------------
         // These mirror the math the tab VMs use so validators and other consumers don't need to
         // duplicate it. They read live Character state and are cheap — no caching needed.
@@ -126,8 +129,39 @@ namespace SR3Generator.Creation
             MagicAspectsAllowed = initialPriorities.First(p => p.Type == PriorityType.Magic).GetAllowedMagicAspects();
         }
 
+        /// <summary>
+        /// Restore-from-file constructor. Assigns the loaded character and priority-driven
+        /// allowances directly, bypassing any side-effectful fluent calls (which would wipe
+        /// bound spirits, reset spell-point spent, etc.).
+        /// </summary>
+        public CharacterBuilder(
+            SkillDatabase skillDatabase,
+            ILogger<CharacterBuilder> logger,
+            Character character,
+            List<Priority> priorities,
+            int spellPointsAllowance,
+            int spellPointsSpent)
+        {
+            _skillDatabase = skillDatabase;
+            _logger = logger;
+            Character = character;
+            Priorities = priorities;
+
+            // Set priority-derived allowances without running consistency enforcement
+            // (WithPriorities would mutate the loaded Character on aspect mismatch).
+            AttributePointsAllowance = priorities.FirstOrDefault(p => p.Type == PriorityType.Attributes)?.GetAttributePoints() ?? 0;
+            SkillPointsAllowance = priorities.FirstOrDefault(p => p.Type == PriorityType.Skills)?.GetSkillPoints() ?? 0;
+            ResourcesAllowance = priorities.FirstOrDefault(p => p.Type == PriorityType.Resources)?.GetNuyen() ?? 0;
+            RacesAllowed = priorities.FirstOrDefault(p => p.Type == PriorityType.Race)?.GetAllowedRaces() ?? new List<Race>();
+            MagicAspectsAllowed = priorities.FirstOrDefault(p => p.Type == PriorityType.Magic)?.GetAllowedMagicAspects() ?? new List<MagicAspect>();
+
+            SpellPointsAllowance = spellPointsAllowance;
+            SpellPointsSpent = spellPointsSpent;
+        }
+
         public CharacterBuilder WithPriorities(List<Priority> priorities)
         {
+            Priorities = priorities;
             foreach (var priority in priorities)
             {
                 if (priority.Type == PriorityType.Attributes)

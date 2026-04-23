@@ -32,10 +32,15 @@ public partial class App : Application
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
+            var mainWindow = new MainWindow
             {
                 DataContext = Services.GetRequiredService<MainWindowViewModel>()
             };
+            desktop.MainWindow = mainWindow;
+
+            // Hand the dialog service a reference to the owner window so it can resolve
+            // StorageProvider and parent modal dialogs.
+            Services.GetRequiredService<DialogService>().SetOwner(mainWindow);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -70,6 +75,11 @@ public partial class App : Application
 
         // Character builder service
         services.AddSingleton<ICharacterBuilderService, CharacterBuilderService>();
+
+        // File + dialog services
+        services.AddSingleton<DialogService>();
+        services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
+        services.AddSingleton<ICharacterFileService, CharacterFileService>();
 
         // Tab ViewModels
         services.AddTransient<PrioritiesViewModel>();

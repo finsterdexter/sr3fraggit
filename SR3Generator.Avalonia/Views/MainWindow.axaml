@@ -15,6 +15,12 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCharacterCommand}"/>
+        <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveCharacterAsCommand}"/>
+        <KeyBinding Gesture="Ctrl+O" Command="{Binding LoadCharacterCommand}"/>
+    </Window.KeyBindings>
+
     <DockPanel>
         <!-- Compact Menu Bar -->
         <Border DockPanel.Dock="Top"
@@ -24,6 +30,9 @@
             <Menu Background="Transparent" Margin="4,2">
                 <MenuItem Header="_File">
                     <MenuItem Header="_New Character" Command="{Binding NewCharacterCommand}" />
+                    <MenuItem Header="_Save Character" Command="{Binding SaveCharacterCommand}" InputGesture="Ctrl+S"/>
+                    <MenuItem Header="Save Character _As..." Command="{Binding SaveCharacterAsCommand}" InputGesture="Ctrl+Shift+S"/>
+                    <MenuItem Header="_Load Character..." Command="{Binding LoadCharacterCommand}" InputGesture="Ctrl+O"/>
                     <Separator/>
                     <MenuItem Header="E_xit" />
                 </MenuItem>
