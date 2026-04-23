@@ -94,7 +94,6 @@ namespace SR3Generator.Creation.Test
             Name = name,
             Force = force,
             Type = type,
-            AttributeFuncs = new Dictionary<Attribute.AttributeName, Func<int, Attribute>>(),
         };
 
         [Fact]

@@ -16,11 +16,11 @@ namespace SR3Generator.Database
         {
             CurrentPriorities = new List<Priority>
             {
-                new(PriorityType.Attributes, PriorityRank.A) { BenefitsGetterFunc = GetBenefits },
-                new(PriorityType.Skills, PriorityRank.B) { BenefitsGetterFunc = GetBenefits },
-                new(PriorityType.Resources, PriorityRank.C) { BenefitsGetterFunc = GetBenefits },
-                new(PriorityType.Magic, PriorityRank.D) { BenefitsGetterFunc = GetBenefits },
-                new(PriorityType.Race, PriorityRank.E) { BenefitsGetterFunc = GetBenefits }
+                new(PriorityType.Attributes, PriorityRank.A),
+                new(PriorityType.Skills, PriorityRank.B),
+                new(PriorityType.Resources, PriorityRank.C),
+                new(PriorityType.Magic, PriorityRank.D),
+                new(PriorityType.Race, PriorityRank.E)
             };
 
         }
@@ -143,49 +143,6 @@ namespace SR3Generator.Database
                 case PriorityRank.E:
                 default:
                     return new List<MagicAspect>();
-            }
-        }
-
-        public static string GetBenefits(this Priority priority)
-        {
-            switch (priority.Type)
-            {
-                case PriorityType.Attributes:
-                    return $"{priority.GetAttributePoints()}";
-                case PriorityType.Skills:
-                    return $"{priority.GetSkillPoints()}";
-                case PriorityType.Resources:
-                    return $"{priority.GetNuyen().ToString("##,#¥")}";
-                case PriorityType.Magic:
-                    switch (priority.Rank)
-                    {
-                        case PriorityRank.A:
-                            return "Full Magician";
-                        case PriorityRank.B:
-                            return "Adept/Aspected Macgician";
-                        case PriorityRank.C:
-                        case PriorityRank.D:
-                        case PriorityRank.E:
-                        default:
-                            return "--";
-                    }
-                case PriorityType.Race:
-                    switch (priority.Rank)
-                    {
-                        case PriorityRank.A:
-                            return "--";
-                        case PriorityRank.B:
-                            return "--";
-                        case PriorityRank.C:
-                            return "Troll/Elf";
-                        case PriorityRank.D:
-                            return "Dwarf/Ork";
-                        case PriorityRank.E:
-                        default:
-                            return "Human";
-                    }
-                default:
-                    throw new ArgumentOutOfRangeException("priority.Type");
             }
         }
 

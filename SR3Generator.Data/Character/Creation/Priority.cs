@@ -10,21 +10,12 @@ namespace SR3Generator.Data.Character.Creation
     {
         public PriorityType Type { get; set; }
         public PriorityRank Rank { get; set; }
-        public string Benefits 
-        { 
-            get
-            {
-                return BenefitsGetterFunc(this);
-            }
-        }
 
         public Priority(PriorityType type, PriorityRank rank)
         {
             Type = type;
             Rank = rank;
         }
-
-        public Func<Priority, string> BenefitsGetterFunc { get; set; } = (p) => { throw new NotImplementedException("BenefitsGetterFunc not set on Priority"); };
     }
 
     public enum PriorityRank

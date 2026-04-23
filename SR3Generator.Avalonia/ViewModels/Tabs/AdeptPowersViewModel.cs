@@ -161,7 +161,7 @@ public class AdeptPowerItem
     {
         Power = power;
         Name = power.Name;
-        DisplayName = power.DisplayName;
+        DisplayName = power.Name?.TrimEnd('*') ?? string.Empty;
         Cost = power.Cost;
         CostDisplay = power.Cost.ToString("F2");
         IsLeveled = power.IsLeveled;
@@ -195,7 +195,7 @@ public class PurchasedPowerItem
     {
         PowerKey = powerKey;
         Name = power.Name;
-        DisplayName = power.DisplayName;
+        DisplayName = power.Name?.TrimEnd('*') ?? string.Empty;
         Level = power.Level;
         TotalCost = power.TotalCost;
         CostDisplay = power.TotalCost.ToString("F2");

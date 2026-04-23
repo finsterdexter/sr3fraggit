@@ -25,11 +25,6 @@ namespace SR3Generator.Data.Magic
         public bool IsLeveled => Name?.Contains('*') ?? false;
 
         /// <summary>
-        /// Display name without the level indicator.
-        /// </summary>
-        public string DisplayName => Name?.TrimEnd('*') ?? string.Empty;
-
-        /// <summary>
         /// Total power point cost based on level.
         /// </summary>
         public decimal TotalCost => Cost * Level;

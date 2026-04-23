@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Attribute = SR3Generator.Data.Character.Attribute;
 
 namespace SR3Generator.Avalonia.ViewModels.Tabs;
 
@@ -186,9 +185,6 @@ public partial class SpiritsViewModel : ViewModelBase
             Name = name,
             Force = NewSpiritForce,
             Type = spiritType,
-            // Empty attribute funcs — chargen tracks identity, force and services only.
-            // Combat/play-time stats are computed when the spirit is summoned at the table.
-            AttributeFuncs = new Dictionary<Attribute.AttributeName, Func<int, Attribute>>(),
         };
 
         var bonded = _characterService.AddBondedSpirit(spirit, NewSpiritServices);
