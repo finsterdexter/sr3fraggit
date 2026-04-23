@@ -21,8 +21,11 @@
         </Style>
     </UserControl.Styles>
 
-    <ScrollViewer Padding="16">
-        <StackPanel Spacing="12">
+    <Grid RowDefinitions="*">
+    <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled">
+        <!-- Padding goes on the inner Margin, not ScrollViewer.Padding: Avalonia issue #12182
+             causes ScrollViewer.Padding to break the scroll extent so the bottom is unreachable. -->
+        <StackPanel Spacing="12" Margin="16">
             <!-- Header -->
             <StackPanel Spacing="4">
                 <TextBlock Text="{x:Static res:Strings.SummaryTitle}" Classes="page-title"/>
@@ -154,48 +157,6 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Dice Pools -->
-                    <Border Classes="panel">
-                        <StackPanel Spacing="10">
-                            <TextBlock Text="DICE POOLS" Classes="section-header"/>
-                            <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto"
-                                  RowSpacing="6" ColumnSpacing="16">
-                                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
-                                    <TextBlock Text="Combat" Classes="summary-label"/>
-                                    <TextBlock Text="{Binding CombatPool}" Classes="summary-value"/>
-                                </StackPanel>
-                                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal"
-                                            IsVisible="{Binding HasSpellPool}">
-                                    <TextBlock Text="Spell" Classes="summary-label"/>
-                                    <TextBlock Text="{Binding SpellPool}" Classes="summary-value"
-                                               Foreground="{StaticResource AccentManaBrush}"/>
-                                </StackPanel>
-                                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal"
-                                            IsVisible="{Binding HasAstralCombatPool}">
-                                    <TextBlock Text="Astral" Classes="summary-label"/>
-                                    <TextBlock Text="{Binding AstralCombatPool}" Classes="summary-value"
-                                               Foreground="{StaticResource AccentManaBrush}"/>
-                                </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal"
-                                            IsVisible="{Binding HasHackingPool}">
-                                    <TextBlock Text="Hacking" Classes="summary-label"/>
-                                    <TextBlock Text="{Binding HackingPool}" Classes="summary-value"
-                                               Foreground="{StaticResource AccentCyberBrush}"/>
-                                </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal"
-                                            IsVisible="{Binding HasControlPool}">
-                                    <TextBlock Text="Control" Classes="summary-label"/>
-                                    <TextBlock Text="{Binding ControlPool}" Classes="summary-value"/>
-                                </StackPanel>
-                                <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal">
-                                    <TextBlock Text="Karma" Classes="summary-label"/>
-                                    <TextBlock Text="{Binding KarmaPool}" Classes="summary-value"
-                                               Foreground="{StaticResource AccentKarmaBrush}"/>
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
                     <!-- Active Skills -->
                     <Border Classes="panel">
                         <StackPanel Spacing="6">
@@ -228,6 +189,71 @@
                                            Classes="stat-value-lg"
                                            Foreground="{StaticResource AccentNuyenBrush}"/>
                             </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Dice Pools -->
+                    <Border Classes="panel">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="DICE POOLS" Classes="section-header"/>
+                            <StackPanel Spacing="3">
+                                <StackPanel.Styles>
+                                    <Style Selector="TextBlock.pool-label">
+                                        <Setter Property="FontSize" Value="11"/>
+                                        <Setter Property="Width" Value="64"/>
+                                        <Setter Property="Foreground" Value="{StaticResource InkSecondaryBrush}"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                    <Style Selector="TextBlock.pool-value">
+                                        <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, monospace"/>
+                                        <Setter Property="FontSize" Value="11"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Width" Value="32"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                    <Style Selector="TextBlock.pool-formula">
+                                        <Setter Property="FontFamily" Value="JetBrains Mono, Cascadia Code, monospace"/>
+                                        <Setter Property="FontSize" Value="10"/>
+                                        <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}"/>
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                    </Style>
+                                </StackPanel.Styles>
+
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Combat" Classes="pool-label"/>
+                                    <TextBlock Text="{Binding CombatPool}" Classes="pool-value"/>
+                                    <TextBlock Text="(QCK + INT + WIL) ÷ 2" Classes="pool-formula"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" IsVisible="{Binding HasSpellPool}">
+                                    <TextBlock Text="Spell" Classes="pool-label"/>
+                                    <TextBlock Text="{Binding SpellPool}" Classes="pool-value"
+                                               Foreground="{StaticResource AccentManaBrush}"/>
+                                    <TextBlock Text="(INT + WIL + MAG) ÷ 3" Classes="pool-formula"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" IsVisible="{Binding HasAstralCombatPool}">
+                                    <TextBlock Text="Astral" Classes="pool-label"/>
+                                    <TextBlock Text="{Binding AstralCombatPool}" Classes="pool-value"
+                                               Foreground="{StaticResource AccentManaBrush}"/>
+                                    <TextBlock Text="(INT + WIL + CHA) ÷ 2" Classes="pool-formula"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" IsVisible="{Binding HasHackingPool}">
+                                    <TextBlock Text="Hacking" Classes="pool-label"/>
+                                    <TextBlock Text="{Binding HackingPool}" Classes="pool-value"
+                                               Foreground="{StaticResource AccentCyberBrush}"/>
+                                    <TextBlock Text="(INT + MPCP) ÷ 3" Classes="pool-formula"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" IsVisible="{Binding HasControlPool}">
+                                    <TextBlock Text="Control" Classes="pool-label"/>
+                                    <TextBlock Text="{Binding ControlPool}" Classes="pool-value"/>
+                                    <TextBlock Text="REA + (VCR × 2)" Classes="pool-formula"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Karma" Classes="pool-label"/>
+                                    <TextBlock Text="{Binding KarmaPool}" Classes="pool-value"
+                                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                                    <TextBlock Text="1 + karma ÷ 10 (human) / ÷ 20 (metahuman)" Classes="pool-formula"/>
+                                </StackPanel>
+                            </StackPanel>
                         </StackPanel>
                     </Border>
 
@@ -285,4 +311,5 @@
             </Grid>
         </StackPanel>
     </ScrollViewer>
+    </Grid>
 </UserControl>

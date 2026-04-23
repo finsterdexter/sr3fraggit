@@ -197,22 +197,18 @@ public partial class SummaryViewModel : ViewModelBase
         OnPropertyChanged(nameof(HasHackingPool));
         OnPropertyChanged(nameof(HasControlPool));
 
-        // Skills
+        // Skills — list them all; the outer ScrollViewer handles overflow.
         ActiveSkillsSummary.Clear();
-        foreach (var skill in character.ActiveSkills.Values.OrderByDescending(s => s.BaseValue).Take(10))
+        foreach (var skill in character.ActiveSkills.Values.OrderByDescending(s => s.BaseValue))
         {
             ActiveSkillsSummary.Add($"{skill.Name} {skill.BaseValue}");
         }
-        if (character.ActiveSkills.Count > 10)
-            ActiveSkillsSummary.Add($"... and {character.ActiveSkills.Count - 10} more");
 
         KnowledgeSkillsSummary.Clear();
-        foreach (var skill in character.KnowledgeSkills.Values.OrderByDescending(s => s.BaseValue).Take(5))
+        foreach (var skill in character.KnowledgeSkills.Values.OrderByDescending(s => s.BaseValue))
         {
             KnowledgeSkillsSummary.Add($"{skill.Name} {skill.BaseValue}");
         }
-        if (character.KnowledgeSkills.Count > 5)
-            KnowledgeSkillsSummary.Add($"... and {character.KnowledgeSkills.Count - 5} more");
 
         // Spells
         SpellsSummary.Clear();
