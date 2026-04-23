@@ -17,7 +17,7 @@
         </Style>
     </UserControl.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16">
         <!-- Header -->
         <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
             <TextBlock Text="{x:Static res:Strings.SkillsTitle}" Classes="page-title"/>
@@ -26,9 +26,38 @@
         </StackPanel>
 
         <!-- Resource bar -->
-        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
-            <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,8">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelActive}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value">
+                        <Run Text="{Binding ActivePointsRemaining}"
+                             Foreground="{StaticResource AccentCyberBrush}"/>
+                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                        <Run Text="{Binding ActivePointsAllowance}"
+                             Foreground="{StaticResource InkSecondaryBrush}"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="{x:Static res:Strings.LabelKnowledge}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value">
+                        <Run Text="{Binding KnowledgePointsRemaining}"
+                             Foreground="{StaticResource AccentManaBrush}"/>
+                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                        <Run Text="{Binding KnowledgePointsAllowance}"
+                             Foreground="{StaticResource InkSecondaryBrush}"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Filter bar -->
+        <Border Grid.Row="2" Classes="resource-bar" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="12">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <TextBlock Text="{x:Static res:Strings.LabelCategory}" Classes="micro-label"/>
                     <ComboBox ItemsSource="{Binding Categories}"
                               SelectedItem="{Binding SelectedCategory}"
@@ -46,262 +75,229 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
-
-                <Rectangle Grid.Column="1" Width="1" Fill="{StaticResource BorderSubtleBrush}" Margin="16,4"/>
-
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock Text="{x:Static res:Strings.LabelActive}" Classes="micro-label"/>
-                    <TextBlock Classes="stat-value">
-                        <Run Text="{Binding ActivePointsRemaining}"
-                             Foreground="{StaticResource AccentCyberBrush}"/>
-                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
-                        <Run Text="{Binding ActivePointsAllowance}"
-                             Foreground="{StaticResource InkSecondaryBrush}"/>
-                    </TextBlock>
-                </StackPanel>
-
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10"
-                            VerticalAlignment="Center" Margin="20,0,0,0">
-                    <TextBlock Text="{x:Static res:Strings.LabelKnowledge}" Classes="micro-label"/>
-                    <TextBlock Classes="stat-value">
-                        <Run Text="{Binding KnowledgePointsRemaining}"
-                             Foreground="{StaticResource AccentManaBrush}"/>
-                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
-                        <Run Text="{Binding KnowledgePointsAllowance}"
-                             Foreground="{StaticResource InkSecondaryBrush}"/>
-                    </TextBlock>
-                </StackPanel>
+                <TextBox Grid.Column="2"
+                         Text="{Binding FilterText}"
+                         Watermark="{x:Static res:Strings.WatermarkSearchSkills}"
+                         MinWidth="200"
+                         HorizontalAlignment="Left"/>
             </Grid>
         </Border>
 
-        <!-- Dual list: Available | Purchased -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,12,*">
-            <!-- Available Skills -->
-            <Border Grid.Column="0" Classes="panel" Padding="0">
+        <!-- Detail 20% | Available 50% | Purchased 30% -->
+        <Grid Grid.Row="3" ColumnDefinitions="2*,12,5*,12,3*">
+            <!-- Detail -->
+            <Border Grid.Column="0" Classes="panel">
                 <DockPanel LastChildFill="True">
-                    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="12,12,12,8">
-                        <TextBlock Text="{x:Static res:Strings.SectionAvailable}" Classes="section-header"/>
-                        <TextBox Text="{Binding FilterText}" Watermark="{x:Static res:Strings.WatermarkSearchSkills}"/>
-                    </StackPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="DETAIL" Classes="section-header"/>
+                    <ScrollViewer>
+                        <Grid>
+                            <!-- Empty state -->
+                            <TextBlock Text="Select a skill to see details."
+                                       Classes="body" TextWrapping="Wrap"
+                                       Foreground="{StaticResource InkMutedBrush}"
+                                       IsVisible="{Binding DetailSkill, Converter={x:Static ObjectConverters.IsNull}}"/>
 
-                    <ScrollViewer Padding="8,0,8,8">
-                        <ItemsControl ItemsSource="{Binding FilteredSkills}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="vm:AvailableSkillItem">
-                                    <StackPanel>
-                                        <Border Classes="list-row"
-                                                Cursor="Hand"
-                                                PointerPressed="OnAvailableSkillPressed">
-                                            <Grid ColumnDefinitions="20,*,50">
-                                                <Button Grid.Column="0"
-                                                        Classes="icon"
-                                                        Command="{Binding ToggleExpandCommand}"
-                                                        IsVisible="{Binding HasSpecializations}"
-                                                        Width="20" Height="20">
-                                                    <TextBlock Text="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
-                                                               FontSize="10"/>
-                                                </Button>
-                                                <TextBlock Grid.Column="1" Text="{Binding Name}"
-                                                           Classes="body"
-                                                           VerticalAlignment="Center"
-                                                           TextTrimming="CharacterEllipsis"
-                                                           Opacity="{Binding IsPurchased, Converter={StaticResource BoolToOpacityConverter}}"/>
-                                                <TextBlock Grid.Column="2" Text="{Binding AttributeDisplay}"
-                                                           FontSize="10"
-                                                           Foreground="{StaticResource InkMutedBrush}"
-                                                           HorizontalAlignment="Right"
-                                                           VerticalAlignment="Center"/>
-                                            </Grid>
-                                        </Border>
+                            <!-- Unified skill detail (shows rating 0 for unpurchased skills) -->
+                            <StackPanel Spacing="10"
+                                        IsVisible="{Binding DetailSkill, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding DetailSkill.Name}"
+                                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding DetailSkill.SkillClass}"
+                                               FontSize="10"
+                                               Foreground="{StaticResource AccentCyberBrush}"/>
+                                    <TextBlock Text="·" FontSize="10"
+                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                    <TextBlock Text="{Binding DetailSkill.AttributeDisplay}"
+                                               FontSize="10"
+                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                </StackPanel>
 
-                                        <ItemsControl ItemsSource="{Binding Specializations}"
-                                                      IsVisible="{Binding IsExpanded}"
-                                                      Margin="20,0,0,0">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate DataType="vm:AvailableSpecItem">
-                                                    <Border Classes="list-row-sub">
-                                                        <Grid ColumnDefinitions="*,40">
-                                                            <TextBlock Text="{Binding Name}"
-                                                                       Classes="body-sm"
-                                                                       Foreground="{StaticResource InkSecondaryBrush}"
-                                                                       TextTrimming="CharacterEllipsis"/>
-                                                            <TextBlock Grid.Column="1" Text="{x:Static res:Strings.BadgeSpec}"
-                                                                       FontSize="10"
-                                                                       Foreground="{StaticResource InkMutedBrush}"
-                                                                       HorizontalAlignment="Right"
-                                                                       VerticalAlignment="Center"/>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
+                                <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,4"/>
+
+                                <!-- Rating +/- -->
+                                <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                                    <TextBlock Text="RATING" Classes="micro-label"
+                                               VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                                VerticalAlignment="Center">
+                                        <Button Classes="icon" Content="-"
+                                                FontSize="12" FontWeight="Bold"
+                                                Width="24" Height="24"
+                                                Command="{Binding DecrementDetailRatingCommand}"/>
+                                        <TextBlock Text="{Binding DetailSkill.RatingDisplay}"
+                                                   Classes="stat-value"
+                                                   Foreground="{StaticResource AccentCyberBrush}"
+                                                   MinWidth="40" TextAlignment="Center"
+                                                   VerticalAlignment="Center"/>
+                                        <Button Classes="icon" Content="+"
+                                                FontSize="12" FontWeight="Bold"
+                                                Width="24" Height="24"
+                                                Command="{Binding IncrementDetailRatingCommand}"/>
                                     </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                                </Grid>
+
+                                <!-- Add Skill button — visible when not yet purchased -->
+                                <Button Content="Add Skill"
+                                        Classes="primary action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding AddDetailSkillCommand}"
+                                        IsVisible="{Binding !DetailSkill.IsPurchased}"/>
+
+                                <!-- Specialization section — only shown once the skill is purchased -->
+                                <StackPanel Spacing="10"
+                                            IsVisible="{Binding DetailSkill.IsPurchased}">
+                                    <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,4"/>
+                                    <TextBlock Text="SPECIALIZATION" Classes="micro-label"/>
+
+                                    <!-- Has spec: show name + rating + remove -->
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8"
+                                          IsVisible="{Binding DetailSkill.HasSpecialization}">
+                                        <TextBlock Text="{Binding DetailSkill.SpecializationName}"
+                                                   Classes="body"
+                                                   Foreground="{StaticResource AccentManaBrush}"
+                                                   VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding DetailSkill.SpecializationRating}"
+                                                   Classes="stat-value"
+                                                   Foreground="{StaticResource AccentManaBrush}"
+                                                   VerticalAlignment="Center"/>
+                                        <Button Grid.Column="2" Classes="icon danger"
+                                                Content="×" FontSize="12"
+                                                Width="24" Height="24"
+                                                Command="{Binding RemoveSelectedSpecializationCommand}"
+                                                ToolTip.Tip="Remove specialization"/>
+                                    </Grid>
+
+                                    <!-- Needs higher rating hint -->
+                                    <StackPanel Spacing="2"
+                                                IsVisible="{Binding DetailSkill.NeedsHigherRatingToSpecialize}">
+                                        <TextBlock Text="{Binding SpecializationRule.Title}"
+                                                   FontSize="10" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource WarningBrush}"/>
+                                        <TextBlock Text="{Binding SpecializationRule.Body}"
+                                                   FontSize="10" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    </StackPanel>
+
+                                    <!-- Can specialize: show picker -->
+                                    <StackPanel Spacing="8"
+                                                IsVisible="{Binding DetailSkill.CanSpecializeNow}">
+                                        <ComboBox ItemsSource="{Binding DetailSkill.AvailableSpecializations}"
+                                                  SelectedItem="{Binding SelectedSpecTemplate}"
+                                                  HorizontalAlignment="Stretch"
+                                                  PlaceholderText="Pick a specialization">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate DataType="vm:AvailableSpecItem">
+                                                    <TextBlock Text="{Binding DisplayName}"/>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <TextBox Text="{Binding CustomSpecName}"
+                                                 Watermark="{Binding SelectedSpecTemplate.InputPlaceholder}"
+                                                 IsVisible="{Binding SelectedSpecTemplate.RequiresUserInput, FallbackValue=False}"/>
+                                        <Button Content="Add Specialization"
+                                                Classes="action"
+                                                HorizontalAlignment="Stretch"
+                                                Command="{Binding AddSelectedSpecializationCommand}"/>
+                                    </StackPanel>
+
+                                    <!-- No specs available -->
+                                    <TextBlock Text="No specializations available for this skill."
+                                               FontSize="10" TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkMutedBrush}">
+                                        <TextBlock.IsVisible>
+                                            <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                                <Binding Path="!DetailSkill.HasSpecialization"/>
+                                                <Binding Path="!DetailSkill.HasAvailableSpecs"/>
+                                            </MultiBinding>
+                                        </TextBlock.IsVisible>
+                                    </TextBlock>
+
+                                    <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,4"/>
+
+                                    <Button Content="Remove Skill"
+                                            Classes="action"
+                                            HorizontalAlignment="Stretch"
+                                            Command="{Binding RemoveDetailSkillCommand}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
 
-            <!-- Purchased Skills -->
+            <!-- Available -->
             <Border Grid.Column="2" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionAvailable}"
+                               Classes="section-header" Margin="12,12,12,8"/>
+                    <ListBox Name="AvailableList"
+                             ItemsSource="{Binding FilteredSkills}"
+                             SelectedItem="{Binding SelectedAvailableSkill}"
+                             DoubleTapped="OnAvailableListDoubleTapped"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:AvailableSkillItem">
+                                <Grid ColumnDefinitions="*,40,40">
+                                    <TextBlock Text="{Binding Name}"
+                                               Classes="body" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center"
+                                               Opacity="{Binding IsPurchased, Converter={StaticResource BoolToOpacityConverter}}"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Specializations.Count, StringFormat='{}{0} spec'}"
+                                               FontSize="10"
+                                               Foreground="{StaticResource InkMutedBrush}"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               IsVisible="{Binding HasSpecializations}"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding AttributeDisplay}"
+                                               FontSize="10"
+                                               Foreground="{StaticResource InkMutedBrush}"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Purchased -->
+            <Border Grid.Column="4" Classes="panel" Padding="0">
                 <DockPanel LastChildFill="True">
                     <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionPurchased}"
                                Classes="section-header" Margin="12,12,12,8"/>
-
-                    <ScrollViewer Padding="8,0,8,8">
-                        <ItemsControl ItemsSource="{Binding PurchasedSkills}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="vm:PurchasedSkillItem">
-                                    <StackPanel>
-                                        <Border Classes="list-row">
-                                            <Grid ColumnDefinitions="20,64,*,40,24">
-                                                <Button Grid.Column="0"
-                                                        Classes="icon"
-                                                        Command="{Binding ToggleExpandCommand}"
-                                                        IsVisible="{Binding HasAvailableSpecs}"
-                                                        Width="20" Height="20">
-                                                    <TextBlock Text="{Binding IsExpanded, Converter={StaticResource BoolToChevronConverter}}"
-                                                               FontSize="10"/>
-                                                </Button>
-
-                                                <StackPanel Grid.Column="1" Orientation="Horizontal"
-                                                            Spacing="2" VerticalAlignment="Center">
-                                                    <Button Classes="icon" Command="{Binding DecrementCommand}"
-                                                            Content="-" FontSize="12" FontWeight="Bold"
-                                                            Width="20" Height="20"/>
-                                                    <TextBlock Text="{Binding Rating}"
-                                                               Classes="stat-value"
-                                                               Foreground="{StaticResource AccentCyberBrush}"
-                                                               Width="20" TextAlignment="Center"
-                                                               VerticalAlignment="Center"/>
-                                                    <Button Classes="icon" Command="{Binding IncrementCommand}"
-                                                            Content="+" FontSize="12" FontWeight="Bold"
-                                                            Width="20" Height="20"/>
-                                                </StackPanel>
-
-                                                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0">
-                                                    <TextBlock Text="{Binding Name}" Classes="body"
-                                                               TextTrimming="CharacterEllipsis"/>
-                                                    <StackPanel Orientation="Horizontal" Spacing="6"
-                                                                IsVisible="{Binding HasSpecialization}">
-                                                        <TextBlock Text="{Binding SpecializationName}"
-                                                                   FontSize="10"
-                                                                   Foreground="{StaticResource AccentManaBrush}"
-                                                                   TextTrimming="CharacterEllipsis"/>
-                                                        <TextBlock Text="{Binding SpecializationRating}"
-                                                                   FontSize="10" FontWeight="Bold"
-                                                                   Foreground="{StaticResource AccentManaBrush}"/>
-                                                        <Button Classes="icon"
-                                                                Command="{Binding RemoveSpecCommand}"
-                                                                Content="×" FontSize="10"
-                                                                Width="16" Height="16"
-                                                                HorizontalContentAlignment="Center"
-                                                                VerticalContentAlignment="Center"
-                                                                ToolTip.Tip="Remove specialization"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-
-                                                <TextBlock Grid.Column="3" Text="{Binding AttributeDisplay}"
-                                                           FontSize="10"
-                                                           Foreground="{StaticResource InkMutedBrush}"
-                                                           HorizontalAlignment="Right"
-                                                           VerticalAlignment="Center"/>
-
-                                                <Button Grid.Column="4" Classes="icon danger"
-                                                        Command="{Binding RemoveCommand}"
-                                                        Content="×" FontSize="12"
-                                                        Width="20" Height="20"
-                                                        HorizontalContentAlignment="Center"
-                                                        VerticalContentAlignment="Center"
-                                                        ToolTip.Tip="Remove skill"/>
-                                            </Grid>
-                                        </Border>
-
-                                        <!-- Rating-too-low hint (from rules_glossary: skill.specialization) -->
-                                        <Border Classes="list-row-sub"
-                                                Margin="20,0,0,0"
-                                                Padding="8,6">
-                                            <Border.IsVisible>
-                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                    <Binding Path="IsExpanded"/>
-                                                    <Binding Path="NeedsHigherRatingToSpecialize"/>
-                                                </MultiBinding>
-                                            </Border.IsVisible>
-                                            <StackPanel Spacing="2">
-                                                <TextBlock Text="{Binding $parent[UserControl].((vm:SkillsViewModel)DataContext).SpecializationRule.Title}"
-                                                           FontSize="10" FontWeight="SemiBold"
-                                                           Foreground="{StaticResource WarningBrush}"/>
-                                                <TextBlock Text="{Binding $parent[UserControl].((vm:SkillsViewModel)DataContext).SpecializationRule.Body}"
-                                                           FontSize="10" TextWrapping="Wrap"
-                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
-                                            </StackPanel>
-                                        </Border>
-
-                                        <ItemsControl ItemsSource="{Binding AvailableSpecializations}"
-                                                      Margin="20,0,0,0">
-                                            <ItemsControl.IsVisible>
-                                                <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                    <Binding Path="IsExpanded"/>
-                                                    <Binding Path="CanSpecializeNow"/>
-                                                </MultiBinding>
-                                            </ItemsControl.IsVisible>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate DataType="vm:AvailableSpecItem">
-                                                    <Border Classes="list-row-sub">
-                                                        <Panel>
-                                                            <Grid ColumnDefinitions="*,40"
-                                                                  IsVisible="{Binding !RequiresUserInput}"
-                                                                  Cursor="Hand"
-                                                                  PointerPressed="OnPurchasedSpecPressed">
-                                                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                                                    <TextBlock Text="+"
-                                                                               Foreground="{StaticResource AccentKarmaBrush}"
-                                                                               FontWeight="Bold"
-                                                                               VerticalAlignment="Center"/>
-                                                                    <TextBlock Text="{Binding DisplayName}"
-                                                                               Classes="body-sm"
-                                                                               Foreground="{StaticResource InkSecondaryBrush}"
-                                                                               TextTrimming="CharacterEllipsis"/>
-                                                                </StackPanel>
-                                                                <TextBlock Grid.Column="1" Text="{x:Static res:Strings.BadgeFree}"
-                                                                           FontSize="10"
-                                                                           Foreground="{StaticResource AccentKarmaBrush}"
-                                                                           HorizontalAlignment="Right"
-                                                                           VerticalAlignment="Center"/>
-                                                            </Grid>
-                                                            <Grid ColumnDefinitions="Auto,*,Auto"
-                                                                  IsVisible="{Binding RequiresUserInput}">
-                                                                <TextBlock Text="{Binding DisplayName, StringFormat='{}{0}:'}"
-                                                                           Classes="body-sm"
-                                                                           Foreground="{StaticResource InkMutedBrush}"
-                                                                           VerticalAlignment="Center"
-                                                                           Margin="0,0,8,0"/>
-                                                                <TextBox Grid.Column="1"
-                                                                         Watermark="{Binding InputPlaceholder}"
-                                                                         FontSize="10"
-                                                                         MinHeight="24"
-                                                                         Padding="8,4"
-                                                                         KeyDown="OnSpecNameKeyDown"/>
-                                                                <Button Grid.Column="2"
-                                                                        Content="+"
-                                                                        FontSize="11" FontWeight="Bold"
-                                                                        Width="24" Height="24"
-                                                                        Padding="0"
-                                                                        Margin="4,0,0,0"
-                                                                        Click="OnAddCustomSpecClick"
-                                                                        ToolTip.Tip="Add specialization"/>
-                                                            </Grid>
-                                                        </Panel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
+                    <ListBox Name="PurchasedList"
+                             ItemsSource="{Binding PurchasedSkills}"
+                             SelectedItem="{Binding SelectedPurchasedSkill}"
+                             DoubleTapped="OnPurchasedListDoubleTapped"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:PurchasedSkillItem">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}"
+                                                   Classes="body" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding SpecializationName}"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource AccentManaBrush}"
+                                                   IsVisible="{Binding HasSpecialization}"
+                                                   TextTrimming="CharacterEllipsis"/>
                                     </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                                    <TextBlock Grid.Column="1" Text="{Binding RatingDisplay}"
+                                               Classes="stat-value"
+                                               Foreground="{StaticResource AccentCyberBrush}"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </DockPanel>
             </Border>
         </Grid>

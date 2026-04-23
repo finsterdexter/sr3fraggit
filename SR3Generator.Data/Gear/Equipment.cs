@@ -36,5 +36,20 @@ namespace SR3Generator.Data.Gear
         /// Keys are column names (e.g., "damage", "ballistic", "reach"), values are the data.
         /// </summary>
         public Dictionary<string, string> Stats { get; set; } = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Produces a copy suitable for storing on a character: each purchase needs its own
+        /// <see cref="PaidCost"/> slot, otherwise buying the same catalog entry twice at
+        /// different street-index settings overwrites the earlier purchase's recorded price.
+        /// Preserves the runtime type (Weapon / Cyberware / Focus / …) via MemberwiseClone.
+        /// </summary>
+        public Equipment CloneForPurchase()
+        {
+            var clone = (Equipment)MemberwiseClone();
+            clone.CategoryTree = new List<string>(CategoryTree);
+            clone.Mods = new List<Mod>(Mods);
+            clone.Stats = new Dictionary<string, string>(Stats);
+            return clone;
+        }
     }
 }

@@ -8,7 +8,20 @@
              x:Class="SR3Generator.Avalonia.Views.Tabs.GearView"
              x:DataType="vm:GearViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
+    <UserControl.Styles>
+        <Style Selector="TextBlock.crumb-sep">
+            <Setter Property="Text" Value="›"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="4,0"/>
+        </Style>
+        <Style Selector="ComboBox.crumb">
+            <Setter Property="MinWidth" Value="140"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16">
         <!-- Header -->
         <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
             <TextBlock Text="{x:Static res:Strings.GearTitle}" Classes="page-title"/>
@@ -17,12 +30,11 @@
         </StackPanel>
 
         <!-- Resource bar -->
-        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,8">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <CheckBox Grid.Column="0" Content="{x:Static res:Strings.CheckStreetIndex}"
                           IsChecked="{Binding UseStreetIndex}"
                           VerticalAlignment="Center"/>
-
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
                             VerticalAlignment="Center">
                     <TextBlock Text="{x:Static res:Strings.LabelNuyen}" Classes="micro-label"/>
@@ -38,67 +50,232 @@
             </Grid>
         </Border>
 
-        <!-- Main: Categories | List | Controls | Owned -->
-        <Grid Grid.Row="2" ColumnDefinitions="180,12,*,80,12,*">
-            <!-- Categories -->
-            <Border Grid.Column="0" Classes="panel" Padding="0">
+        <!-- Breadcrumb bar -->
+        <Border Grid.Row="2" Classes="resource-bar" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                <ItemsControl Grid.Column="0"
+                              ItemsSource="{Binding BreadcrumbSteps}"
+                              VerticalAlignment="Center">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:BreadcrumbStep">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Classes="crumb-sep" IsVisible="{Binding Depth}"/>
+                                <ComboBox Classes="crumb"
+                                          ItemsSource="{Binding Options}"
+                                          SelectedItem="{Binding SelectedValue}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Grid.Column="1" Content="{x:Static res:Strings.ButtonClear}"
+                        Classes="compact"
+                        Command="{Binding ClearFiltersCommand}"/>
+                <TextBox Grid.Column="2"
+                         Text="{Binding FilterText}"
+                         Watermark="{x:Static res:Strings.WatermarkSearch}"
+                         MinWidth="200"/>
+            </Grid>
+        </Border>
+
+        <!-- Detail 20% | Available 50% | Owned 30% -->
+        <Grid Grid.Row="3" ColumnDefinitions="2*,12,5*,12,3*">
+            <!-- Detail -->
+            <Border Grid.Column="0" Classes="panel">
                 <DockPanel LastChildFill="True">
-                    <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="12,12,12,8">
-                        <TextBlock Text="{x:Static res:Strings.SectionCategories}" Classes="section-header"/>
-                        <Border Classes="panel-inset" Padding="6,4">
-                            <TextBlock Text="{Binding Breadcrumb}" TextWrapping="Wrap"
-                                       FontSize="10"
-                                       Foreground="{StaticResource InkSecondaryBrush}"/>
-                        </Border>
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
-                            <Button Grid.Column="0" Content="{x:Static res:Strings.ButtonUp}"
-                                    Command="{Binding NavigateUpCommand}"
-                                    Classes="compact" HorizontalAlignment="Stretch"/>
-                            <Button Grid.Column="1" Content="{x:Static res:Strings.ButtonClear}"
-                                    Command="{Binding ClearFiltersCommand}"
-                                    Classes="compact" HorizontalAlignment="Stretch"/>
+                    <TextBlock DockPanel.Dock="Top" Text="DETAIL" Classes="section-header"/>
+                    <ScrollViewer>
+                        <Grid>
+                            <TextBlock Text="Select gear to see details."
+                                       Classes="body" TextWrapping="Wrap"
+                                       Foreground="{StaticResource InkMutedBrush}">
+                                <TextBlock.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                        <Binding Path="SelectedGearItem" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                        <Binding Path="SelectedOwnedGear" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                    </MultiBinding>
+                                </TextBlock.IsVisible>
+                            </TextBlock>
+
+                            <!-- Owned gear detail (Sell action) -->
+                            <StackPanel Spacing="10"
+                                        IsVisible="{Binding SelectedOwnedGear, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding SelectedOwnedGear.Name}"
+                                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedOwnedGear.CategoryDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           TextWrapping="Wrap"/>
+
+                                <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                      RowDefinitions="Auto,Auto,Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="PAID" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedOwnedGear.PaidCostDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource AccentNuyenBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="AVAIL" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedOwnedGear.Availability}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="CONCEAL" Classes="micro-label"
+                                               IsVisible="{Binding SelectedOwnedGear.Concealability, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedOwnedGear.Concealability}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               IsVisible="{Binding SelectedOwnedGear.Concealability, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="LEGALITY" Classes="micro-label"
+                                               IsVisible="{Binding SelectedOwnedGear.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedOwnedGear.Legality}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               IsVisible="{Binding SelectedOwnedGear.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding SelectedOwnedGear.Stats}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:StatDisplay">
+                                            <Border Classes="tag-cyber" Margin="0,0,4,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="{Binding Label}" FontSize="10" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Value}" FontSize="10"
+                                                               Foreground="{StaticResource AccentCyberBrush}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <StackPanel Spacing="2"
+                                            IsVisible="{Binding SelectedOwnedGear.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <TextBlock Text="NOTES" Classes="micro-label"/>
+                                    <TextBlock Text="{Binding SelectedOwnedGear.Notes}"
+                                               Classes="body" TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding SelectedOwnedGear.BookPageDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           IsVisible="{Binding SelectedOwnedGear.BookPageDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                <Button Content="{x:Static res:Strings.ButtonSell}"
+                                        Classes="action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding SellGearCommand}"
+                                        Margin="0,8,0,0"/>
+                            </StackPanel>
+
+                            <!-- Available gear detail (Buy action) -->
+                            <StackPanel Spacing="10"
+                                        IsVisible="{Binding SelectedGearItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding SelectedGearItem.Name}"
+                                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedGearItem.CategoryDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           TextWrapping="Wrap"/>
+
+                                <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                      RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.LabelNuyen}" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedGearItem.CostDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource AccentNuyenBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="AVAIL" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedGearItem.Availability}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="CONCEAL" Classes="micro-label"
+                                               IsVisible="{Binding SelectedGearItem.Concealability, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedGearItem.Concealability}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               IsVisible="{Binding SelectedGearItem.Concealability, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="LEGALITY" Classes="micro-label"
+                                               IsVisible="{Binding SelectedGearItem.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedGearItem.Legality}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               IsVisible="{Binding SelectedGearItem.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="STREET IDX" Classes="micro-label"
+                                               IsVisible="{Binding SelectedGearItem.StreetIndexDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedGearItem.StreetIndexDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               IsVisible="{Binding SelectedGearItem.StreetIndexDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                </Grid>
+
+                                <ItemsControl ItemsSource="{Binding SelectedGearItem.Stats}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:StatDisplay">
+                                            <Border Classes="tag-cyber" Margin="0,0,4,4">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <TextBlock Text="{Binding Label}" FontSize="10" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Value}" FontSize="10"
+                                                               Foreground="{StaticResource AccentCyberBrush}"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <StackPanel Spacing="2"
+                                            IsVisible="{Binding SelectedGearItem.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <TextBlock Text="NOTES" Classes="micro-label"/>
+                                    <TextBlock Text="{Binding SelectedGearItem.Notes}"
+                                               Classes="body" TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding SelectedGearItem.BookPageDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           IsVisible="{Binding SelectedGearItem.BookPageDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                <Button Content="{x:Static res:Strings.ButtonBuy}"
+                                        Classes="primary action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding BuyGearCommand}"
+                                        Margin="0,8,0,0"/>
+                            </StackPanel>
                         </Grid>
-                        <TextBox Text="{Binding FilterText}" Watermark="{x:Static res:Strings.WatermarkSearch}"/>
-                        <TextBlock Text="{Binding FilteredCount, StringFormat='{}{0} items'}"
-                                   FontSize="10" Foreground="{StaticResource InkMutedBrush}"/>
-                    </StackPanel>
-                    <ScrollViewer Padding="8,0,8,8">
-                        <ItemsControl ItemsSource="{Binding CategoryFacets}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="vm:FacetValue">
-                                    <Button Classes="ghost"
-                                            Margin="0,1"
-                                            HorizontalAlignment="Stretch"
-                                            Command="{Binding $parent[UserControl].((vm:GearViewModel)DataContext).SelectCategoryCommand}"
-                                            CommandParameter="{Binding}">
-                                        <Grid ColumnDefinitions="*,Auto">
-                                            <TextBlock Text="{Binding Name}" Classes="body"
-                                                       TextTrimming="CharacterEllipsis"/>
-                                            <TextBlock Grid.Column="1" Text="{Binding Count, StringFormat='({0})'}"
-                                                       FontSize="10"
-                                                       Foreground="{StaticResource InkMutedBrush}"
-                                                       Margin="6,0,0,0"/>
-                                        </Grid>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
                     </ScrollViewer>
                 </DockPanel>
             </Border>
 
-            <!-- Gear List -->
+            <!-- Available -->
             <Border Grid.Column="2" Classes="panel" Padding="0">
                 <DockPanel LastChildFill="True">
-                    <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionAvailable}"
-                               Classes="section-header" Margin="12,12,12,8"/>
-                    <ListBox ItemsSource="{Binding FilteredGear}"
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="12,12,12,8">
+                        <TextBlock Text="{x:Static res:Strings.SectionAvailable}"
+                                   Classes="section-header"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding FilteredCount, StringFormat='{}{0} items'}"
+                                   FontSize="10"
+                                   Foreground="{StaticResource InkMutedBrush}"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                    <ListBox Name="AvailableList"
+                             ItemsSource="{Binding FilteredGear}"
                              SelectedItem="{Binding SelectedGearItem}"
+                             DoubleTapped="OnAvailableListDoubleTapped"
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="*,70,70,50">
+                            <DataTemplate DataType="vm:GearItem">
+                                <Grid ColumnDefinitions="*,60,80,40">
                                     <TextBlock Text="{Binding Name}" Classes="body"
                                                TextTrimming="CharacterEllipsis"
                                                VerticalAlignment="Center"/>
@@ -113,6 +290,7 @@
                                     <TextBlock Grid.Column="3" Text="{Binding Availability}"
                                                FontSize="10"
                                                Foreground="{StaticResource InkMutedBrush}"
+                                               HorizontalAlignment="Right"
                                                VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
@@ -121,37 +299,24 @@
                 </DockPanel>
             </Border>
 
-            <!-- Controls -->
-            <Border Grid.Column="3" Classes="panel" Margin="12,0,0,0">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="{x:Static res:Strings.SectionActions}" Classes="section-header"/>
-                    <Button Content="{x:Static res:Strings.ButtonBuy}"
-                            Classes="primary action"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding BuyGearCommand}"/>
-                    <Button Content="{x:Static res:Strings.ButtonSell}"
-                            Classes="action"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding SellGearCommand}"/>
-                </StackPanel>
-            </Border>
-
             <!-- Owned -->
-            <Border Grid.Column="5" Classes="panel" Padding="0">
+            <Border Grid.Column="4" Classes="panel" Padding="0">
                 <DockPanel LastChildFill="True">
                     <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionOwned}"
                                Classes="section-header" Margin="12,12,12,8"/>
-                    <ListBox ItemsSource="{Binding OwnedGear}"
+                    <ListBox Name="OwnedList"
+                             ItemsSource="{Binding OwnedGear}"
                              SelectedItem="{Binding SelectedOwnedGear}"
+                             DoubleTapped="OnOwnedListDoubleTapped"
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
-                            <DataTemplate>
+                            <DataTemplate DataType="vm:OwnedGearItem">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBlock Text="{Binding Name}" Classes="body"
                                                TextTrimming="CharacterEllipsis"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding CostDisplay}"
+                                    <TextBlock Grid.Column="1" Text="{Binding PaidCostDisplay}"
                                                Classes="data" FontSize="10"
                                                Foreground="{StaticResource InkMutedBrush}"
                                                VerticalAlignment="Center"/>
@@ -162,51 +327,5 @@
                 </DockPanel>
             </Border>
         </Grid>
-
-        <!-- Selected item details -->
-        <Border Grid.Row="3" Classes="panel-inset" Margin="0,12,0,0"
-                IsVisible="{Binding SelectedGearItem, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <StackPanel Spacing="6">
-                <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="{Binding SelectedGearItem.Name}"
-                                   Classes="body" FontWeight="SemiBold"/>
-                        <TextBlock Text="{Binding SelectedGearItem.CategoryDisplay}"
-                                   FontSize="10"
-                                   Foreground="{StaticResource InkMutedBrush}"/>
-                    </StackPanel>
-                    <TextBlock Grid.Column="1" Text="{Binding SelectedGearItem.CostDisplay}"
-                               Classes="stat-value"
-                               Foreground="{StaticResource AccentNuyenBrush}"
-                               VerticalAlignment="Center" Margin="12,0"/>
-                    <TextBlock Grid.Column="2" Text="{Binding SelectedGearItem.Availability, StringFormat='Avail {0}'}"
-                               Classes="body"
-                               Foreground="{StaticResource InkSecondaryBrush}"
-                               VerticalAlignment="Center" Margin="12,0"/>
-                    <TextBlock Grid.Column="3" Text="{Binding SelectedGearItem.Concealability, StringFormat='Conceal {0}'}"
-                               Classes="body"
-                               Foreground="{StaticResource InkSecondaryBrush}"
-                               VerticalAlignment="Center"/>
-                </Grid>
-                <ItemsControl ItemsSource="{Binding SelectedGearItem.Stats}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="vm:StatDisplay">
-                            <Border Classes="tag-cyber" Margin="0,0,6,4">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <TextBlock Text="{Binding Label}" FontSize="10" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Value}" FontSize="10"
-                                               Foreground="{StaticResource AccentCyberBrush}"/>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-        </Border>
     </Grid>
 </UserControl>

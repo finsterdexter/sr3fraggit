@@ -75,6 +75,79 @@ public partial class SkillsViewModel : ViewModelBase
     [ObservableProperty]
     private int _currentPointsAllowance;
 
+    // Detail-panel selection. Both selections co-exist and auto-sync so clicking either list
+    // highlights the matching row in the other one and the Detail panel always shows the
+    // canonical purchased state (rating 0 for skills not yet purchased).
+    [ObservableProperty]
+    private AvailableSkillItem? _selectedAvailableSkill;
+
+    [ObservableProperty]
+    private PurchasedSkillItem? _selectedPurchasedSkill;
+
+    [ObservableProperty]
+    private PurchasedSkillItem? _detailSkill;
+
+    // Spec picker (Detail panel)
+    [ObservableProperty]
+    private AvailableSpecItem? _selectedSpecTemplate;
+
+    [ObservableProperty]
+    private string _customSpecName = string.Empty;
+
+    private bool _syncingSelection;
+
+    partial void OnSelectedAvailableSkillChanged(AvailableSkillItem? value)
+    {
+        if (!_syncingSelection && value != null)
+        {
+            _syncingSelection = true;
+            // If purchased, point the Purchased selection at the matching row; otherwise clear it.
+            SelectedPurchasedSkill = PurchasedSkills.FirstOrDefault(p => p.Name == value.Name);
+            _syncingSelection = false;
+        }
+        UpdateDetailSkill();
+        SelectedSpecTemplate = null;
+        CustomSpecName = string.Empty;
+    }
+
+    partial void OnSelectedPurchasedSkillChanged(PurchasedSkillItem? value)
+    {
+        if (!_syncingSelection && value != null)
+        {
+            _syncingSelection = true;
+            var match = FilteredSkills.FirstOrDefault(a => a.Name == value.Name);
+            if (match != null) SelectedAvailableSkill = match;
+            _syncingSelection = false;
+        }
+        UpdateDetailSkill();
+        SelectedSpecTemplate = null;
+        CustomSpecName = string.Empty;
+    }
+
+    private void UpdateDetailSkill()
+    {
+        // Prefer the real purchased row when present so the Detail binds directly to the
+        // instance that gets rebuilt on CharacterChanged. Otherwise synthesize a rating-0 stub
+        // from the catalog entry so the panel still renders the name, category, and controls.
+        var name = SelectedPurchasedSkill?.Name ?? SelectedAvailableSkill?.Name;
+        if (name is null) { DetailSkill = null; return; }
+
+        var purchased = PurchasedSkills.FirstOrDefault(p => p.Name == name);
+        if (purchased is not null) { DetailSkill = purchased; return; }
+
+        var src = _allSkills.FirstOrDefault(s => s.Name == name);
+        if (src is null) { DetailSkill = null; return; }
+
+        var stubSkill = new Skill(src.Name, src.LinkedAttribute)
+        {
+            Type = src.Type,
+            BaseValue = 0,
+            SkillClass = src.SkillClass,
+        };
+        var specs = _specializationsBySkill.TryGetValue(src.Name, out var list) ? list : new();
+        DetailSkill = new PurchasedSkillItem(stubSkill, null, specs, this);
+    }
+
     public SkillsViewModel(
         ICharacterBuilderService characterService,
         SkillDatabase skillDatabase,
@@ -172,9 +245,10 @@ public partial class SkillsViewModel : ViewModelBase
         var character = builder.Character;
 
         ActivePointsAllowance = builder.SkillPointsAllowance;
-        KnowledgePointsAllowance = (character.Attributes[Attribute.AttributeName.Intelligence].BaseValue +
-                                    (character.Race?.AttributeMods
-                                        .FirstOrDefault(m => m.AttributeName == Attribute.AttributeName.Intelligence)?.ModValue ?? 0)) * 5;
+        KnowledgePointsAllowance = builder.KnowledgeSkillPointsAllowance;
+
+        // Remember the selection across the rebuild so the Detail panel stays pinned.
+        var previouslySelectedPurchasedName = SelectedPurchasedSkill?.Name;
 
         // Refresh purchased skills
         PurchasedSkills.Clear();
@@ -207,9 +281,15 @@ public partial class SkillsViewModel : ViewModelBase
             PurchasedSkills.Add(new PurchasedSkillItem(skill, spec, availableSpecs, this));
         }
 
+        if (previouslySelectedPurchasedName is not null)
+        {
+            SelectedPurchasedSkill = PurchasedSkills.FirstOrDefault(s => s.Name == previouslySelectedPurchasedName);
+        }
+
         RecalculatePoints();
         UpdateCurrentPoints();
         UpdateAvailableSkillStates();
+        UpdateDetailSkill();
     }
 
     private void UpdateAvailableSkillStates()
@@ -224,20 +304,10 @@ public partial class SkillsViewModel : ViewModelBase
 
     private void RecalculatePoints()
     {
-        // Calculate active skill points spent
-        // SR3 rules: Specializations are FREE - they don't cost extra points
-        // The cost is based on the "effective rating" which is spec rating - 1 (since base drops by 1)
-        // Or simply: we calculate cost based on the ORIGINAL rating before specialization adjustment
-        // Original rating = if specialized: spec rating - 1, else: base rating
-        ActivePointsSpent = PurchasedSkills
-            .Where(s => s.Type == SkillType.Active)
-            .Sum(s => CalculateSkillCost(s));
+        var builder = _characterService.Builder;
+        ActivePointsSpent = builder.ActiveSkillPointsSpent;
         ActivePointsRemaining = ActivePointsAllowance - ActivePointsSpent;
-
-        // Calculate knowledge skill points spent (same logic)
-        KnowledgePointsSpent = PurchasedSkills
-            .Where(s => s.Type != SkillType.Active)
-            .Sum(s => CalculateKnowledgeSkillCost(s));
+        KnowledgePointsSpent = builder.KnowledgeSkillPointsSpent;
         KnowledgePointsRemaining = KnowledgePointsAllowance - KnowledgePointsSpent;
     }
 
@@ -266,30 +336,10 @@ public partial class SkillsViewModel : ViewModelBase
         }
     }
 
-    private int CalculateSkillCost(PurchasedSkillItem skill)
-    {
-        // SR3: Specializations are free. The cost is based on the original rating.
-        // If specialized: original rating = specialization rating - 1
-        // If not specialized: original rating = base rating
-        var originalRating = skill.HasSpecialization ? skill.SpecializationRating - 1 : skill.Rating;
-
-        var isPhysical = skill.LinkedAttribute is
-            Attribute.AttributeName.Body or
-            Attribute.AttributeName.Quickness or
-            Attribute.AttributeName.Strength;
-
-        return originalRating * (isPhysical ? 2 : 1);
-    }
-
-    private int CalculateKnowledgeSkillCost(PurchasedSkillItem skill)
-    {
-        // Knowledge skills: 1 point per rating, specialization is free
-        var originalRating = skill.HasSpecialization ? skill.SpecializationRating - 1 : skill.Rating;
-        return originalRating;
-    }
-
     private void ApplyFilters()
     {
+        var previouslySelectedName = SelectedAvailableSkill?.Name;
+
         FilteredSkills.Clear();
 
         var query = _allSkills.AsEnumerable();
@@ -313,6 +363,11 @@ public partial class SkillsViewModel : ViewModelBase
         {
             FilteredSkills.Add(skill);
         }
+
+        if (previouslySelectedName is not null)
+        {
+            SelectedAvailableSkill = FilteredSkills.FirstOrDefault(s => s.Name == previouslySelectedName);
+        }
     }
 
     partial void OnSelectedCategoryChanged(SkillCategory? value)
@@ -327,16 +382,19 @@ public partial class SkillsViewModel : ViewModelBase
     }
 
     // Called by AvailableSkillItem when clicked
-    public void AddSkill(AvailableSkillItem skillItem)
+    public void AddSkill(AvailableSkillItem skillItem) => AddSkill(skillItem, 1);
+
+    public void AddSkill(AvailableSkillItem skillItem, int rating)
     {
         if (skillItem.IsPurchased) return;
+        rating = Math.Clamp(rating, 1, 6);
 
         var skillType = IsKnowledgeClass(skillItem.SkillClass) ? SkillType.Knowledge : SkillType.Active;
 
         var skill = new Skill(skillItem.Name, skillItem.LinkedAttribute)
         {
             Type = skillType,
-            BaseValue = 1,
+            BaseValue = rating,
             SkillClass = skillItem.SkillClass
         };
 
@@ -348,6 +406,66 @@ public partial class SkillsViewModel : ViewModelBase
         {
             _characterService.AddKnowledgeSkill(skill);
         }
+    }
+
+    // Detail-panel commands operate on whatever skill the Detail is currently showing.
+    // A rating-0 DetailSkill means "not purchased" — Increment adds it at rating 1; Decrement
+    // is a no-op. The last decrement from rating 1 removes the skill (existing DecrementSkillRating
+    // behavior), which takes the Detail back to the rating-0 stub via UpdateDetailSkill.
+    [RelayCommand]
+    private void IncrementDetailRating()
+    {
+        if (DetailSkill is null) return;
+        if (DetailSkill.Rating == 0)
+        {
+            var catalog = _allSkills.FirstOrDefault(s => s.Name == DetailSkill.Name);
+            if (catalog is not null) AddSkill(catalog, 1);
+            return;
+        }
+        IncrementSkillRating(DetailSkill);
+    }
+
+    [RelayCommand]
+    private void DecrementDetailRating()
+    {
+        if (DetailSkill is null || DetailSkill.Rating <= 0) return;
+        DecrementSkillRating(DetailSkill);
+    }
+
+    [RelayCommand]
+    private void AddDetailSkill()
+    {
+        if (DetailSkill is null || DetailSkill.IsPurchased) return;
+        var catalog = _allSkills.FirstOrDefault(s => s.Name == DetailSkill.Name);
+        if (catalog is not null) AddSkill(catalog, 1);
+    }
+
+    [RelayCommand]
+    private void RemoveDetailSkill()
+    {
+        if (DetailSkill is null || !DetailSkill.IsPurchased) return;
+        RemoveSkill(DetailSkill);
+    }
+
+    [RelayCommand]
+    private void AddSelectedSpecialization()
+    {
+        if (DetailSkill is null || !DetailSkill.CanSpecializeNow || SelectedSpecTemplate is null) return;
+        var customName = SelectedSpecTemplate.RequiresUserInput
+            ? (string.IsNullOrWhiteSpace(CustomSpecName) ? null : CustomSpecName.Trim())
+            : null;
+        if (SelectedSpecTemplate.RequiresUserInput && customName is null) return;
+
+        DetailSkill.SelectSpecialization(SelectedSpecTemplate, customName);
+        CustomSpecName = string.Empty;
+        SelectedSpecTemplate = null;
+    }
+
+    [RelayCommand]
+    private void RemoveSelectedSpecialization()
+    {
+        if (DetailSkill is null || !DetailSkill.HasSpecialization) return;
+        RemoveSpecialization(DetailSkill);
     }
 
     // Called when user selects a specialization for an existing skill
@@ -595,6 +713,9 @@ public partial class PurchasedSkillItem : ObservableObject
     [ObservableProperty]
     private bool _isExpanded;
 
+    // Rating 0 means this is a synthetic stub for a skill the character hasn't purchased yet.
+    public bool IsPurchased => Rating > 0;
+
     // Chevron/expand visibility: we have specs AND we haven't already chosen one.
     // (Rating is checked separately so we can show users WHY specs aren't clickable yet.)
     public bool HasAvailableSpecs => !HasSpecialization && AvailableSpecializations.Count > 0;
@@ -603,7 +724,8 @@ public partial class PurchasedSkillItem : ObservableObject
     public bool CanSpecializeNow => HasAvailableSpecs && Rating >= 2;
 
     // True when the skill has specs available but the base rating is too low to split.
-    public bool NeedsHigherRatingToSpecialize => HasAvailableSpecs && Rating < 2;
+    // Only meaningful once the skill is purchased — rating 0 stubs suppress the whole spec UI.
+    public bool NeedsHigherRatingToSpecialize => HasAvailableSpecs && Rating > 0 && Rating < 2;
 
     // Display text showing base and spec ratings
     public string RatingDisplay => HasSpecialization
@@ -612,6 +734,7 @@ public partial class PurchasedSkillItem : ObservableObject
 
     partial void OnRatingChanged(int value)
     {
+        OnPropertyChanged(nameof(IsPurchased));
         OnPropertyChanged(nameof(CanSpecializeNow));
         OnPropertyChanged(nameof(NeedsHigherRatingToSpecialize));
         OnPropertyChanged(nameof(RatingDisplay));

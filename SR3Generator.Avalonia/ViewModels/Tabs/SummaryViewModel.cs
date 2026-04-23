@@ -107,6 +107,9 @@ public partial class SummaryViewModel : ViewModelBase
     private bool _isValid;
 
     [ObservableProperty]
+    private bool _hasIssues;
+
+    [ObservableProperty]
     private string _validationStatus = "Checking...";
 
     public SummaryViewModel(ICharacterBuilderService characterService)
@@ -241,10 +244,15 @@ public partial class SummaryViewModel : ViewModelBase
             ValidationIssues.Add(new ValidationIssueItem(issue));
         }
 
-        IsValid = !issues.Any(i => i.Level == ValidationIssueLevel.Error);
-        ValidationStatus = IsValid
-            ? "Character is valid and ready to finalize!"
-            : $"{issues.Count(i => i.Level == ValidationIssueLevel.Error)} error(s) must be fixed";
+        var errorCount = issues.Count(i => i.Level == ValidationIssueLevel.Error);
+        var warningCount = issues.Count(i => i.Level == ValidationIssueLevel.Warning);
+        IsValid = errorCount == 0;
+        HasIssues = issues.Count > 0;
+        ValidationStatus = errorCount > 0
+            ? $"{errorCount} error(s) must be fixed"
+            : warningCount > 0
+                ? $"{warningCount} warning(s) — review before finalizing"
+                : "Character is valid and ready to finalize!";
     }
 
     [RelayCommand]
@@ -269,11 +277,14 @@ public class ValidationIssueItem
 {
     public string Message { get; }
     public string Severity { get; }
-    public string SeverityColor => Severity == "Error" ? "Red" : "Orange";
+    public ValidationIssueLevel Level { get; }
+    public bool IsError => Level == ValidationIssueLevel.Error;
+    public bool IsWarning => Level == ValidationIssueLevel.Warning;
 
     public ValidationIssueItem(ValidationIssue issue)
     {
         Message = issue.Message;
         Severity = issue.Level.ToString();
+        Level = issue.Level;
     }
 }

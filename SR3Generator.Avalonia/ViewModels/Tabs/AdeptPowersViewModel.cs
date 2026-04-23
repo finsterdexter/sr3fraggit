@@ -54,32 +54,30 @@ public partial class AdeptPowersViewModel : ViewModelBase
         _adeptPowerDatabase = adeptPowerDatabase;
         _characterService.CharacterChanged += OnCharacterChanged;
 
-        LoadAvailablePowers();
+        ApplyFilter();
         RefreshFromBuilder();
     }
 
-    private void OnCharacterChanged(object? sender, EventArgs e)
+    private void OnCharacterChanged(object? sender, EventArgs e) => RefreshFromBuilder();
+
+    // Mutually-exclusive selection: the Detail panel shows whichever list last picked a row.
+    partial void OnSelectedAvailablePowerChanged(AdeptPowerItem? value)
     {
-        RefreshFromBuilder();
+        if (value != null) SelectedPurchasedPower = null;
+        SelectedLevel = 1;
     }
 
-    private void LoadAvailablePowers()
+    partial void OnSelectedPurchasedPowerChanged(PurchasedPowerItem? value)
     {
-        AvailablePowers.Clear();
-        foreach (var power in _adeptPowerDatabase.AllPowers)
-        {
-            AvailablePowers.Add(new AdeptPowerItem(power));
-        }
-        ApplyFilter();
+        if (value != null) SelectedAvailablePower = null;
     }
 
-    partial void OnFilterTextChanged(string value)
-    {
-        ApplyFilter();
-    }
+    partial void OnFilterTextChanged(string value) => ApplyFilter();
 
     private void ApplyFilter()
     {
+        var previouslySelectedName = SelectedAvailablePower?.Name;
+
         var filtered = _adeptPowerDatabase.AllPowers
             .Where(p => string.IsNullOrWhiteSpace(FilterText) ||
                         p.Name.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ||
@@ -88,6 +86,11 @@ public partial class AdeptPowersViewModel : ViewModelBase
             .ToList();
 
         AvailablePowers = new ObservableCollection<AdeptPowerItem>(filtered);
+
+        if (previouslySelectedName is not null)
+        {
+            SelectedAvailablePower = AvailablePowers.FirstOrDefault(p => p.Name == previouslySelectedName);
+        }
     }
 
     [RelayCommand]
@@ -120,22 +123,24 @@ public partial class AdeptPowersViewModel : ViewModelBase
 
     private void RefreshFromBuilder()
     {
-        var character = _characterService.Builder.Character;
+        var builder = _characterService.Builder;
+        var character = builder.Character;
 
         IsAdept = character.MagicAspect?.HasPhysicalAdept ?? false;
         MagicRating = character.Attributes[AttributeName.Magic].BaseValue;
 
-        var spent = character.AdeptPowers.Values.Sum(p => p.TotalCost);
-        var remaining = MagicRating - spent;
+        PowerPointsSpentDisplay = builder.AdeptPowerPointsSpent.ToString("F2");
+        PowerPointsRemainingDisplay = builder.AdeptPowerPointsRemaining.ToString("F2");
 
-        PowerPointsSpentDisplay = spent.ToString("F2");
-        PowerPointsRemainingDisplay = remaining.ToString("F2");
-
-        // Refresh purchased powers
+        var previouslySelectedKey = SelectedPurchasedPower?.PowerKey;
         PurchasedPowers.Clear();
         foreach (var kvp in character.AdeptPowers)
         {
             PurchasedPowers.Add(new PurchasedPowerItem(kvp.Key, kvp.Value));
+        }
+        if (previouslySelectedKey is not null)
+        {
+            SelectedPurchasedPower = PurchasedPowers.FirstOrDefault(p => p.PowerKey == previouslySelectedKey);
         }
     }
 }
@@ -148,7 +153,8 @@ public class AdeptPowerItem
     public string CostDisplay { get; }
     public bool IsLeveled { get; }
     public string LeveledIndicator { get; }
-    public string Notes { get; }
+    public string? Notes { get; }
+    public string BookPageDisplay { get; }
     public AdeptPower Power { get; }
 
     public AdeptPowerItem(AdeptPower power)
@@ -160,7 +166,15 @@ public class AdeptPowerItem
         CostDisplay = power.Cost.ToString("F2");
         IsLeveled = power.IsLeveled;
         LeveledIndicator = power.IsLeveled ? "*" : "";
-        Notes = power.Notes ?? string.Empty;
+        Notes = power.Notes;
+        BookPageDisplay = FormatBookPage(power.Book, power.Page);
+    }
+
+    private static string FormatBookPage(string? book, int page)
+    {
+        if (string.IsNullOrEmpty(book)) return string.Empty;
+        var b = book.ToUpperInvariant();
+        return page > 0 ? $"{b} p.{page}" : b;
     }
 }
 
@@ -173,6 +187,9 @@ public class PurchasedPowerItem
     public decimal TotalCost { get; }
     public string CostDisplay { get; }
     public string LevelDisplay { get; }
+    public bool IsLeveled { get; }
+    public string? Notes { get; }
+    public string BookPageDisplay { get; }
 
     public PurchasedPowerItem(string powerKey, AdeptPower power)
     {
@@ -182,6 +199,16 @@ public class PurchasedPowerItem
         Level = power.Level;
         TotalCost = power.TotalCost;
         CostDisplay = power.TotalCost.ToString("F2");
+        IsLeveled = power.IsLeveled;
         LevelDisplay = power.IsLeveled ? $"Level {power.Level}" : "";
+        Notes = power.Notes;
+        BookPageDisplay = FormatBookPage(power.Book, power.Page);
+    }
+
+    private static string FormatBookPage(string? book, int page)
+    {
+        if (string.IsNullOrEmpty(book)) return string.Empty;
+        var b = book.ToUpperInvariant();
+        return page > 0 ? $"{b} p.{page}" : b;
     }
 }

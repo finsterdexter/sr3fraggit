@@ -8,7 +8,7 @@
              x:Class="SR3Generator.Avalonia.Views.Tabs.SpellsView"
              x:DataType="vm:SpellsViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16">
         <!-- Header -->
         <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
             <TextBlock Text="{x:Static res:Strings.SpellsTitle}" Classes="page-title"/>
@@ -16,8 +16,8 @@
                        Text="{x:Static res:Strings.SpellsSubtitle}"/>
         </StackPanel>
 
-        <!-- Resource bar -->
-        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12"
+        <!-- Resource bar / no-sorcery warning -->
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,8"
                 IsVisible="{Binding HasSorcery}">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
@@ -30,16 +30,13 @@
                              Foreground="{StaticResource InkSecondaryBrush}"/>
                     </TextBlock>
                 </StackPanel>
-
                 <Button Grid.Column="2" Command="{Binding BuySpellPointsCommand}"
                         Content="{x:Static res:Strings.SpellsBuyPointButton}" Classes="compact"/>
             </Grid>
         </Border>
-
-        <!-- Warning for non-sorcerer -->
         <Border Grid.Row="1" Background="#15ef4444" BorderBrush="#30ef4444"
                 BorderThickness="1" CornerRadius="4"
-                Padding="12,12" Margin="0,0,0,12"
+                Padding="12,12" Margin="0,0,0,8"
                 IsVisible="{Binding !HasSorcery}">
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <TextBlock Text="!" FontWeight="Bold" FontSize="14"
@@ -51,30 +48,195 @@
             </StackPanel>
         </Border>
 
-        <!-- Main: Available | Controls | Purchased -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,180,12,*"
+        <!-- Category filter + search bar -->
+        <Border Grid.Row="2" Classes="resource-bar" Margin="0,0,0,12"
+                IsVisible="{Binding HasSorcery}">
+            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="12">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelCategory}" Classes="micro-label"/>
+                    <ComboBox ItemsSource="{Binding CategoryFilters}"
+                              SelectedItem="{Binding CategoryFilter}"
+                              MinWidth="160"/>
+                </StackPanel>
+                <TextBox Grid.Column="2"
+                         Text="{Binding SearchText}"
+                         Watermark="{x:Static res:Strings.WatermarkSearchSpells}"
+                         MinWidth="200"
+                         HorizontalAlignment="Left"/>
+            </Grid>
+        </Border>
+
+        <!-- Detail 20% | Available 50% | Purchased 30% -->
+        <Grid Grid.Row="3" ColumnDefinitions="2*,12,5*,12,3*"
               IsVisible="{Binding HasSorcery}">
-            <!-- Available Spells -->
-            <Border Grid.Column="0" Classes="panel" Padding="0">
+            <!-- Detail -->
+            <Border Grid.Column="0" Classes="panel">
                 <DockPanel LastChildFill="True">
-                    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="12,12,12,8">
-                        <TextBlock Text="{x:Static res:Strings.SectionAvailable}" Classes="section-header"/>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{x:Static res:Strings.LabelCategory}" Classes="micro-label"/>
-                            <ComboBox ItemsSource="{Binding CategoryFilters}"
-                                      SelectedItem="{Binding CategoryFilter}"
-                                      MinWidth="160"/>
-                        </StackPanel>
-                        <TextBox Text="{Binding SearchText}"
-                                 Watermark="{x:Static res:Strings.WatermarkSearchSpells}"/>
-                    </StackPanel>
-                    <ListBox ItemsSource="{Binding FilteredSpells}"
+                    <TextBlock DockPanel.Dock="Top" Text="DETAIL" Classes="section-header"/>
+                    <ScrollViewer>
+                        <Grid>
+                            <TextBlock Text="Select a spell to see details."
+                                       Classes="body" TextWrapping="Wrap"
+                                       Foreground="{StaticResource InkMutedBrush}">
+                                <TextBlock.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                        <Binding Path="SelectedAvailableSpell" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                        <Binding Path="SelectedPurchasedSpell" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                    </MultiBinding>
+                                </TextBlock.IsVisible>
+                            </TextBlock>
+
+                            <!-- Purchased spell detail (with Remove) -->
+                            <StackPanel Spacing="10"
+                                        IsVisible="{Binding SelectedPurchasedSpell, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding SelectedPurchasedSpell.Name}"
+                                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedPurchasedSpell.CategoryName}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource AccentManaBrush}"/>
+                                <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="FORCE" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedPurchasedSpell.Force}"
+                                               Classes="stat-value"
+                                               Foreground="{StaticResource AccentManaBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="TYPE" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedPurchasedSpell.TypeDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="DRAIN" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedPurchasedSpell.Drain}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="RANGE" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedPurchasedSpell.RangeDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="DURATION" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedPurchasedSpell.DurationDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="COST" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SelectedPurchasedSpell.CostDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource AccentNuyenBrush}"/>
+                                </Grid>
+                                <StackPanel Spacing="2"
+                                            IsVisible="{Binding SelectedPurchasedSpell.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <TextBlock Text="NOTES" Classes="micro-label"/>
+                                    <TextBlock Text="{Binding SelectedPurchasedSpell.Notes}"
+                                               Classes="body" TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding SelectedPurchasedSpell.BookPageDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           IsVisible="{Binding SelectedPurchasedSpell.BookPageDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                <Button Content="{x:Static res:Strings.ButtonRemove}"
+                                        Classes="action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding RemoveSpellCommand}"
+                                        Margin="0,8,0,0"/>
+                            </StackPanel>
+
+                            <!-- Available spell detail (with configurator + Add) -->
+                            <StackPanel Spacing="10"
+                                        IsVisible="{Binding SelectedAvailableSpell, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding SelectedAvailableSpell.Name}"
+                                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedAvailableSpell.CategoryName}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource AccentManaBrush}"/>
+                                <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                      RowDefinitions="Auto,Auto,Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="TYPE" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedAvailableSpell.TypeDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               ToolTip.Tip="{x:Static res:Strings.SpellsTypeTooltip}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="DRAIN" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedAvailableSpell.Drain}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="RANGE" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedAvailableSpell.RangeDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="DURATION" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedAvailableSpell.DurationDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                </Grid>
+                                <TextBlock Text="{Binding SelectedAvailableSpell.BookPageDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           IsVisible="{Binding SelectedAvailableSpell.BookPageDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,4"/>
+
+                                <!-- Configurator: Force + Exclusive + Fetish + cost preview + Add -->
+                                <TextBlock Text="{x:Static res:Strings.SectionAddSpell}" Classes="section-header"/>
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{x:Static res:Strings.LabelForce}" Classes="micro-label"/>
+                                    <NumericUpDown Value="{Binding NewSpellForce}"
+                                                   Minimum="1" Maximum="6"
+                                                   Classes="prominent"
+                                                   HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                                <CheckBox Content="{x:Static res:Strings.CheckExclusive}"
+                                          IsChecked="{Binding NewSpellExclusive}">
+                                    <ToolTip.Tip>
+                                        <StackPanel MaxWidth="320" Spacing="4">
+                                            <TextBlock Text="{Binding ExclusiveRule.Title}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding ExclusiveRule.Body}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding ExclusiveRule.CostNote}" TextWrapping="Wrap"
+                                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                                        </StackPanel>
+                                    </ToolTip.Tip>
+                                </CheckBox>
+                                <CheckBox Content="{x:Static res:Strings.CheckFetishLimited}"
+                                          IsChecked="{Binding NewSpellFetishLimited}">
+                                    <ToolTip.Tip>
+                                        <StackPanel MaxWidth="320" Spacing="4">
+                                            <TextBlock Text="{Binding FetishRule.Title}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding FetishRule.Body}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding FetishRule.CostNote}" TextWrapping="Wrap"
+                                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                                        </StackPanel>
+                                    </ToolTip.Tip>
+                                </CheckBox>
+                                <Border Classes="panel-inset" Padding="8,6">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{x:Static res:Strings.LabelCost}" Classes="micro-label"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding PendingCostDisplay}"
+                                                   Classes="stat-value"
+                                                   Foreground="{StaticResource AccentManaBrush}"/>
+                                    </Grid>
+                                </Border>
+                                <Button Content="{x:Static res:Strings.SpellsAddButton}"
+                                        Classes="primary action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding AddSpellCommand}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- Available -->
+            <Border Grid.Column="2" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionAvailable}"
+                               Classes="section-header" Margin="12,12,12,8"/>
+                    <ListBox Name="AvailableList"
+                             ItemsSource="{Binding FilteredSpells}"
                              SelectedItem="{Binding SelectedAvailableSpell}"
+                             DoubleTapped="OnAvailableListDoubleTapped"
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vm:SpellItem">
-                                <Grid ColumnDefinitions="*,80,24,60">
+                                <Grid ColumnDefinitions="*,80,24">
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Text="{Binding Name}" Classes="body"
                                                    FontWeight="SemiBold"
@@ -91,8 +253,7 @@
                                                Classes="data" FontSize="11" FontWeight="Bold"
                                                Foreground="{StaticResource InkMutedBrush}"
                                                HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"
-                                               ToolTip.Tip="P = Physical, M = Mana"/>
+                                               VerticalAlignment="Center"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -100,114 +261,33 @@
                 </DockPanel>
             </Border>
 
-            <!-- Controls -->
-            <Border Grid.Column="1" Classes="panel" Margin="12,0,0,0">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="{x:Static res:Strings.SectionAddSpell}" Classes="section-header"/>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="{x:Static res:Strings.LabelForce}" Classes="micro-label"/>
-                        <NumericUpDown Value="{Binding NewSpellForce}"
-                                       Minimum="1" Maximum="6"
-                                       Classes="prominent"
-                                       HorizontalAlignment="Stretch"/>
-                    </StackPanel>
-
-                    <StackPanel Spacing="4">
-                        <CheckBox Content="{x:Static res:Strings.CheckExclusive}"
-                                  IsChecked="{Binding NewSpellExclusive}">
-                            <ToolTip.Tip>
-                                <StackPanel MaxWidth="320" Spacing="4">
-                                    <TextBlock Text="{Binding ExclusiveRule.Title}" FontWeight="SemiBold"/>
-                                    <TextBlock TextWrapping="Wrap"
-                                               Text="{Binding ExclusiveRule.Body}"/>
-                                    <TextBlock TextWrapping="Wrap"
-                                               Foreground="{StaticResource InkSecondaryBrush}"
-                                               Text="{Binding ExclusiveRule.CostNote}"/>
-                                    <TextBlock TextWrapping="Wrap"
-                                               Foreground="{StaticResource InkMutedBrush}"
-                                               FontSize="10"
-                                               Text="{Binding ExclusiveRule.Citation}"
-                                               IsVisible="{Binding ExclusiveRule.Citation, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                                </StackPanel>
-                            </ToolTip.Tip>
-                        </CheckBox>
-
-                        <CheckBox Content="{x:Static res:Strings.CheckFetishLimited}"
-                                  IsChecked="{Binding NewSpellFetishLimited}">
-                            <ToolTip.Tip>
-                                <StackPanel MaxWidth="320" Spacing="4">
-                                    <TextBlock Text="{Binding FetishRule.Title}" FontWeight="SemiBold"/>
-                                    <TextBlock TextWrapping="Wrap"
-                                               Text="{Binding FetishRule.Body}"/>
-                                    <TextBlock TextWrapping="Wrap"
-                                               Foreground="{StaticResource InkSecondaryBrush}"
-                                               Text="{Binding FetishRule.CostNote}"/>
-                                    <TextBlock TextWrapping="Wrap"
-                                               Foreground="{StaticResource InkMutedBrush}"
-                                               FontSize="10"
-                                               Text="{Binding FetishRule.Citation}"
-                                               IsVisible="{Binding FetishRule.Citation, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
-                                </StackPanel>
-                            </ToolTip.Tip>
-                        </CheckBox>
-                    </StackPanel>
-
-                    <!-- Cost preview -->
-                    <Border Classes="panel-inset" Padding="8,6">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{x:Static res:Strings.LabelCost}" Classes="micro-label"/>
-                            <TextBlock Grid.Column="1" Text="{Binding PendingCostDisplay}"
-                                       Classes="stat-value"
-                                       Foreground="{StaticResource AccentManaBrush}"/>
-                        </Grid>
-                    </Border>
-
-                    <Button Content="{x:Static res:Strings.SpellsAddButton}"
-                            Classes="primary action"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding AddSpellCommand}"/>
-
-                    <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,4"/>
-
-                    <Button Content="{x:Static res:Strings.ButtonRemoveSelected}"
-                            Classes="action"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding RemoveSpellCommand}"/>
-                </StackPanel>
-            </Border>
-
-            <!-- Purchased Spells -->
-            <Border Grid.Column="3" Classes="panel" Padding="0">
+            <!-- Purchased -->
+            <Border Grid.Column="4" Classes="panel" Padding="0">
                 <DockPanel LastChildFill="True">
                     <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionPurchased}"
                                Classes="section-header" Margin="12,12,12,8"/>
-                    <ListBox ItemsSource="{Binding PurchasedSpells}"
+                    <ListBox Name="PurchasedList"
+                             ItemsSource="{Binding PurchasedSpells}"
                              SelectedItem="{Binding SelectedPurchasedSpell}"
+                             DoubleTapped="OnPurchasedListDoubleTapped"
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vm:SpellItem">
-                                <Grid ColumnDefinitions="*,24,48,60">
+                                <Grid ColumnDefinitions="*,40,60">
                                     <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Name}" Classes="body"
-                                                   FontWeight="SemiBold"
+                                        <TextBlock Text="{Binding Name}" Classes="body" FontWeight="SemiBold"
                                                    TextTrimming="CharacterEllipsis"/>
                                         <TextBlock Text="{Binding CategoryName}"
                                                    FontSize="10"
                                                    Foreground="{StaticResource AccentManaBrush}"/>
                                     </StackPanel>
-                                    <TextBlock Grid.Column="1" Text="{Binding TypeDisplay}"
-                                               Classes="data" FontSize="11" FontWeight="Bold"
-                                               Foreground="{StaticResource InkMutedBrush}"
-                                               HorizontalAlignment="Center"
-                                               VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding Force, StringFormat='F{0}'}"
+                                    <TextBlock Grid.Column="1" Text="{Binding Force, StringFormat='F{0}'}"
                                                Classes="stat-value"
                                                Foreground="{StaticResource AccentManaBrush}"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding CostDisplay}"
+                                    <TextBlock Grid.Column="2" Text="{Binding CostDisplay}"
                                                FontSize="10"
                                                Foreground="{StaticResource InkMutedBrush}"
                                                HorizontalAlignment="Right"

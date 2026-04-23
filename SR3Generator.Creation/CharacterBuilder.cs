@@ -5,6 +5,8 @@ using SR3Generator.Data.Character.Creation;
 using SR3Generator.Data.Gear;
 using SR3Generator.Data.Magic;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Attribute = SR3Generator.Data.Character.Attribute;
 using AttributeName = SR3Generator.Data.Character.Attribute.AttributeName;
 using SR3Generator.Database;
@@ -48,6 +50,63 @@ namespace SR3Generator.Creation
         public int SpellPointsRemaining => SpellPointsAllowance - SpellPointsSpent;
         public List<Race> RacesAllowed { get; set; }
         public List<MagicAspect> MagicAspectsAllowed { get; set; }
+
+        // ---- Derived spent/allowance helpers ------------------------------------------------
+        // These mirror the math the tab VMs use so validators and other consumers don't need to
+        // duplicate it. They read live Character state and are cheap — no caching needed.
+
+        /// <summary>Sum of Physical+Mental attribute BaseValues — what the priority allowance buys.</summary>
+        public int AttributePointsSpent =>
+            Character.Attributes.Values
+                .Where(a => a.Type == Attribute.AttributeType.Physical || a.Type == Attribute.AttributeType.Mental)
+                .Sum(a => (int)a.BaseValue);
+
+        /// <summary>Active-skill points spent, accounting for SR3 free-specialization adjustment.</summary>
+        public int ActiveSkillPointsSpent =>
+            ComputeSkillPoints(Character.ActiveSkills.Values, physicalCostsDouble: true);
+
+        /// <summary>Knowledge-skill allowance: (Intelligence base + racial mod) × 5.</summary>
+        public int KnowledgeSkillPointsAllowance
+        {
+            get
+            {
+                if (!Character.Attributes.TryGetValue(AttributeName.Intelligence, out var intel)) return 0;
+                var racialMod = Character.Race?.AttributeMods
+                    .FirstOrDefault(m => m.AttributeName == AttributeName.Intelligence)?.ModValue ?? 0;
+                return ((int)intel.BaseValue + racialMod) * 5;
+            }
+        }
+
+        public int KnowledgeSkillPointsSpent =>
+            ComputeSkillPoints(Character.KnowledgeSkills.Values, physicalCostsDouble: false);
+
+        private static int ComputeSkillPoints(IEnumerable<Skill> skills, bool physicalCostsDouble)
+        {
+            var skillList = skills.ToList();
+            int total = 0;
+            foreach (var baseSkill in skillList.Where(s => !s.IsSpecialization))
+            {
+                // SR3: specialization is free — actual cost is based on the "original" rating,
+                // which is spec rating - 1 (the base drops by one when specializing).
+                var spec = skillList.FirstOrDefault(s => s.IsSpecialization && s.BaseSkillName == baseSkill.Name);
+                var originalRating = spec is not null ? spec.BaseValue - 1 : baseSkill.BaseValue;
+                var isPhysical = physicalCostsDouble && baseSkill.Attribute is
+                    AttributeName.Body or AttributeName.Quickness or AttributeName.Strength;
+                total += originalRating * (isPhysical ? 2 : 1);
+            }
+            return total;
+        }
+
+        /// <summary>Adept power-point allowance — the Magic attribute for adepts; 0 otherwise.</summary>
+        public decimal AdeptPowerPointsAllowance =>
+            Character.MagicAspect?.HasPhysicalAdept == true && Character.Attributes.TryGetValue(AttributeName.Magic, out var magic)
+                ? magic.BaseValue
+                : 0m;
+
+        public decimal AdeptPowerPointsSpent =>
+            Character.AdeptPowers.Values.Sum(p => p.TotalCost);
+
+        public decimal AdeptPowerPointsRemaining => AdeptPowerPointsAllowance - AdeptPowerPointsSpent;
 
         public CharacterBuilder(SkillDatabase skillDatabase, ILogger<CharacterBuilder> logger)
         {
@@ -401,8 +460,11 @@ namespace SR3Generator.Creation
             var costm = item.Cost * (useStreetIndex ? item.StreetIndex : 1);
             long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
 
-            item.PaidCost = cost;
-            RemoveNuyen(cost).AddGear(item);
+            // Clone so every purchase has its own PaidCost slot; the incoming `item` is the
+            // shared database catalog entry and would otherwise be mutated across purchases.
+            var purchased = item.CloneForPurchase();
+            purchased.PaidCost = cost;
+            RemoveNuyen(cost).AddGear(purchased);
             return this;
         }
         public CharacterBuilder SellGear(Guid equipmentId, bool useStreetIndex = false)

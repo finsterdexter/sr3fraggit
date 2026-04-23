@@ -22,8 +22,67 @@ namespace SR3Generator.Creation.Validation
                 .ValidateSpells(builder)
                 .ValidateBondedSpirits(builder)
                 .ValidateNuyen(builder)
+                .ValidatePointBudgets(builder)
                 ;
             return IssueCheck();
+        }
+
+        /// <summary>
+        /// Flags unspent and over-spent point budgets: attribute points, active/knowledge skill
+        /// points, spell points, and adept power points. Under-spending is a Warning (the
+        /// character is legal but almost always a mistake); over-spending is an Error.
+        /// </summary>
+        private CharacterPriorityValidator ValidatePointBudgets(CharacterBuilder builder)
+        {
+            // Attribute points — overspend is already flagged as error in ValidateAttributes.
+            if (builder.AttributePointsAllowance > 0)
+            {
+                var attrRemaining = builder.AttributePointsAllowance - builder.AttributePointsSpent;
+                if (attrRemaining > 0)
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Attributes, Level = ValidationIssueLevel.Warning, Message = $"{attrRemaining} unspent attribute point(s) of {builder.AttributePointsAllowance}." });
+            }
+
+            // Active skill points.
+            if (builder.SkillPointsAllowance > 0)
+            {
+                var remaining = builder.SkillPointsAllowance - builder.ActiveSkillPointsSpent;
+                if (remaining > 0)
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Skills, Level = ValidationIssueLevel.Warning, Message = $"{remaining} unspent active-skill point(s) of {builder.SkillPointsAllowance}." });
+                else if (remaining < 0)
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Skills, Level = ValidationIssueLevel.Error, Message = $"Active-skill points spent ({builder.ActiveSkillPointsSpent}) exceeds allowance ({builder.SkillPointsAllowance})." });
+            }
+
+            // Knowledge skill points — only validate once priorities have been chosen (use the
+            // active-skill allowance as the "character is configured" proxy; knowledge allowance
+            // derives from Intelligence and is always non-zero otherwise).
+            if (builder.SkillPointsAllowance > 0 && builder.KnowledgeSkillPointsAllowance > 0)
+            {
+                var remaining = builder.KnowledgeSkillPointsAllowance - builder.KnowledgeSkillPointsSpent;
+                if (remaining > 0)
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Skills, Level = ValidationIssueLevel.Warning, Message = $"{remaining} unspent knowledge-skill point(s) of {builder.KnowledgeSkillPointsAllowance}." });
+                else if (remaining < 0)
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Skills, Level = ValidationIssueLevel.Error, Message = $"Knowledge-skill points spent ({builder.KnowledgeSkillPointsSpent}) exceeds allowance ({builder.KnowledgeSkillPointsAllowance})." });
+            }
+
+            // Spell points — only meaningful for characters with Sorcery.
+            var hasSorcery = builder.Character.MagicAspect?.HasSorcery ?? false;
+            if (hasSorcery && builder.SpellPointsAllowance > 0 && builder.SpellPointsRemaining > 0)
+            {
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Warning, Message = $"{builder.SpellPointsRemaining} unspent spell point(s) of {builder.SpellPointsAllowance}." });
+            }
+
+            // Adept power points — only meaningful for physical adepts.
+            var isAdept = builder.Character.MagicAspect?.HasPhysicalAdept ?? false;
+            if (isAdept && builder.AdeptPowerPointsAllowance > 0)
+            {
+                var remaining = builder.AdeptPowerPointsRemaining;
+                if (remaining > 0)
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Warning, Message = $"{remaining:0.##} unspent adept power point(s) of {builder.AdeptPowerPointsAllowance:0.##}." });
+                else if (remaining < 0)
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = $"Adept power points spent ({builder.AdeptPowerPointsSpent:0.##}) exceeds allowance ({builder.AdeptPowerPointsAllowance:0.##})." });
+            }
+
+            return this;
         }
 
         private CharacterPriorityValidator ValidateNuyen(CharacterBuilder builder)

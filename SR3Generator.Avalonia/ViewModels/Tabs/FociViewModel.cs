@@ -65,6 +65,17 @@ public partial class FociViewModel : ViewModelBase
         RefreshFromBuilder();
     }
 
+    // Mutually-exclusive selection — the Detail panel shows whichever list last picked a row.
+    partial void OnSelectedAvailableFocusChanged(FocusItem? value)
+    {
+        if (value != null) SelectedOwnedFocus = null;
+    }
+
+    partial void OnSelectedOwnedFocusChanged(OwnedFocusItem? value)
+    {
+        if (value != null) SelectedAvailableFocus = null;
+    }
+
     private void LoadAvailableFoci()
     {
         ApplyFilter();
@@ -181,6 +192,11 @@ public class FocusItem
     public int BindingKarmaCost { get; }
     public string BindingCostDisplay { get; }
     public string Availability { get; }
+    public string? Legality { get; }
+    public decimal StreetIndex { get; }
+    public string StreetIndexDisplay { get; }
+    public string? Notes { get; }
+    public string BookPageDisplay { get; }
     public Focus Focus { get; }
 
     public FocusItem(Focus focus)
@@ -196,6 +212,18 @@ public class FocusItem
         BindingKarmaCost = focus.BindingKarmaCost;
         BindingCostDisplay = $"{focus.BindingKarmaCost} karma";
         Availability = FormatAvailability(focus.Availability);
+        Legality = focus.Legality;
+        StreetIndex = focus.StreetIndex;
+        StreetIndexDisplay = focus.StreetIndex == 0m ? string.Empty : $"×{focus.StreetIndex:0.##}";
+        Notes = focus.Notes;
+        BookPageDisplay = FormatBookPage(focus.Book, focus.Page);
+    }
+
+    private static string FormatBookPage(string? book, int page)
+    {
+        if (string.IsNullOrEmpty(book)) return string.Empty;
+        var b = book.ToUpperInvariant();
+        return page > 0 ? $"{b} p.{page}" : b;
     }
 
     private static string FormatFocusType(FocusType type)
@@ -233,10 +261,16 @@ public class OwnedFocusItem
     public FocusType FocusType { get; }
     public string FocusTypeDisplay { get; }
     public int? Rating { get; }
+    public string RatingDisplay { get; }
     public bool IsBound { get; }
     public string BoundStatus { get; }
     public int BindingKarmaCost { get; }
     public string BindingCostDisplay { get; }
+    public string PaidCostDisplay { get; }
+    public string Availability { get; }
+    public string? Legality { get; }
+    public string? Notes { get; }
+    public string BookPageDisplay { get; }
     public Focus Focus { get; }
 
     public OwnedFocusItem(Guid gearId, Focus focus)
@@ -247,10 +281,31 @@ public class OwnedFocusItem
         FocusType = focus.FocusType;
         FocusTypeDisplay = FormatFocusType(focus.FocusType);
         Rating = focus.Rating;
+        RatingDisplay = focus.Rating?.ToString() ?? "-";
         IsBound = focus.IsBound;
         BoundStatus = focus.IsBound ? "Bound" : "Unbound";
         BindingKarmaCost = focus.BindingKarmaCost;
         BindingCostDisplay = focus.IsBound ? "Bound" : $"{focus.BindingKarmaCost} karma to bind";
+        var paid = focus.PaidCost > 0 ? focus.PaidCost : focus.Cost;
+        PaidCostDisplay = $"{paid:N0}¥";
+        Availability = FormatAvailability(focus.Availability);
+        Legality = focus.Legality;
+        Notes = focus.Notes;
+        BookPageDisplay = FormatBookPageStr(focus.Book, focus.Page);
+    }
+
+    private static string FormatBookPageStr(string? book, int page)
+    {
+        if (string.IsNullOrEmpty(book)) return string.Empty;
+        var b = book.ToUpperInvariant();
+        return page > 0 ? $"{b} p.{page}" : b;
+    }
+
+    private static string FormatAvailability(Availability? availability)
+    {
+        if (availability == null) return "Always";
+        if (availability.TargetNumber == 0) return "Always";
+        return $"{availability.TargetNumber}/{availability.Interval}";
     }
 
     private static string FormatFocusType(FocusType type)

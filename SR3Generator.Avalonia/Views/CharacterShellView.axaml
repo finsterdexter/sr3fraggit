@@ -212,20 +212,36 @@
                                            Foreground="{StaticResource SuccessBrush}"/>
                             </Border>
                             <ItemsControl ItemsSource="{Binding SummaryVM.ValidationIssues}"
-                                          IsVisible="{Binding !SummaryVM.IsValid}">
+                                          IsVisible="{Binding SummaryVM.HasIssues}">
+                                <ItemsControl.Styles>
+                                    <Style Selector="Border.issue-error">
+                                        <Setter Property="Background" Value="#15ef4444"/>
+                                        <Setter Property="BorderBrush" Value="#30ef4444"/>
+                                    </Style>
+                                    <Style Selector="Border.issue-warning">
+                                        <Setter Property="Background" Value="#15f59e0b"/>
+                                        <Setter Property="BorderBrush" Value="#30f59e0b"/>
+                                    </Style>
+                                    <Style Selector="Border.issue-error TextBlock.severity">
+                                        <Setter Property="Foreground" Value="{StaticResource DestructiveBrush}"/>
+                                    </Style>
+                                    <Style Selector="Border.issue-warning TextBlock.severity">
+                                        <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                                    </Style>
+                                </ItemsControl.Styles>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="vmt:ValidationIssueItem">
                                         <Border Margin="0,0,0,4"
-                                                Background="#15ef4444"
-                                                BorderBrush="#30ef4444"
+                                                Classes.issue-error="{Binding IsError}"
+                                                Classes.issue-warning="{Binding IsWarning}"
                                                 BorderThickness="1"
                                                 CornerRadius="3"
                                                 Padding="8,6">
                                             <StackPanel Spacing="2">
-                                                <TextBlock Text="{Binding Severity}"
+                                                <TextBlock Classes="severity"
+                                                           Text="{Binding Severity}"
                                                            FontSize="9" FontWeight="SemiBold"
-                                                           LetterSpacing="0.5"
-                                                           Foreground="{StaticResource DestructiveBrush}"/>
+                                                           LetterSpacing="0.5"/>
                                                 <TextBlock Text="{Binding Message}"
                                                            FontSize="10" TextWrapping="Wrap"
                                                            Foreground="{StaticResource InkPrimaryBrush}"/>

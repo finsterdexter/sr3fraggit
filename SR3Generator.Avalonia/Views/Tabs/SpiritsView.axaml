@@ -43,7 +43,7 @@
             </StackPanel>
         </Border>
 
-        <!-- No-Conjuring warning -->
+        <!-- No-conjuring warning -->
         <Border Grid.Row="1" Background="#15ef4444" BorderBrush="#30ef4444"
                 BorderThickness="1" CornerRadius="4"
                 Padding="12,12" Margin="0,0,0,12"
@@ -58,18 +58,117 @@
             </StackPanel>
         </Border>
 
-        <!-- Main: Available types | Controls | Bound -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,200,12,*"
+        <!-- Detail 20% | Available 50% | Bound 30% -->
+        <Grid Grid.Row="2" ColumnDefinitions="2*,12,5*,12,3*"
               IsVisible="{Binding HasConjuring}">
+            <!-- Detail -->
+            <Border Grid.Column="0" Classes="panel">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="DETAIL" Classes="section-header"/>
+                    <ScrollViewer>
+                        <Grid>
+                            <TextBlock Text="Select a spirit type or bound spirit to see details."
+                                       Classes="body" TextWrapping="Wrap"
+                                       Foreground="{StaticResource InkMutedBrush}">
+                                <TextBlock.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                        <Binding Path="SelectedSpiritType" Converter="{x:Static StringConverters.IsNullOrEmpty}"/>
+                                        <Binding Path="SelectedBoundSpirit" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                    </MultiBinding>
+                                </TextBlock.IsVisible>
+                            </TextBlock>
+
+                            <!-- Bound spirit detail (with Remove) -->
+                            <StackPanel Spacing="10"
+                                        IsVisible="{Binding SelectedBoundSpirit, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding SelectedBoundSpirit.Name}"
+                                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedBoundSpirit.TypeDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource AccentManaBrush}"/>
+                                <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                      RowDefinitions="Auto,Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.LabelForce}" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedBoundSpirit.Force, StringFormat='F{0}'}"
+                                               Classes="stat-value"
+                                               Foreground="{StaticResource AccentManaBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.LabelServices}" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedBoundSpirit.Services}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static res:Strings.LabelCost}" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedBoundSpirit.CostDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource AccentNuyenBrush}"/>
+                                </Grid>
+                                <Button Content="{x:Static res:Strings.ButtonRemove}"
+                                        Classes="action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding RemoveSpiritCommand}"
+                                        Margin="0,8,0,0"/>
+                            </StackPanel>
+
+                            <!-- Spirit-type detail (with configurator + Bind) -->
+                            <StackPanel Spacing="10"
+                                        IsVisible="{Binding SelectedSpiritType, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                <TextBlock Text="{Binding SelectedSpiritType}"
+                                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{x:Static res:Strings.LabelForce}" Classes="micro-label"/>
+                                    <NumericUpDown Value="{Binding NewSpiritForce}"
+                                                   Minimum="1" Maximum="6"
+                                                   Classes="prominent"
+                                                   HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{x:Static res:Strings.LabelServices}" Classes="micro-label"/>
+                                    <NumericUpDown Value="{Binding NewSpiritServices}"
+                                                   Minimum="1" Maximum="6"
+                                                   Classes="prominent"
+                                                   HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+                                <TextBox Text="{Binding NewSpiritName}"
+                                         Watermark="{x:Static res:Strings.WatermarkSpiritName}"/>
+
+                                <Border Classes="panel-inset" Padding="8,6">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{x:Static res:Strings.LabelCost}" Classes="micro-label"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding PendingCostDisplay}"
+                                                   Classes="stat-value"
+                                                   Foreground="{StaticResource AccentManaBrush}">
+                                            <ToolTip.Tip>
+                                                <StackPanel MaxWidth="320" Spacing="4">
+                                                    <TextBlock Text="{Binding StartingSpiritsRule.Title}" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding StartingSpiritsRule.Body}" TextWrapping="Wrap"/>
+                                                    <TextBlock Text="{Binding StartingSpiritsRule.CostNote}" TextWrapping="Wrap"
+                                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                                </StackPanel>
+                                            </ToolTip.Tip>
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
+                                <Button Content="{x:Static res:Strings.SpiritsAddButton}"
+                                        Classes="primary action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding AddSpiritCommand}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
             <!-- Available spirit types -->
-            <Border Grid.Column="0" Classes="panel" Padding="0">
+            <Border Grid.Column="2" Classes="panel" Padding="0">
                 <DockPanel LastChildFill="True">
                     <TextBlock DockPanel.Dock="Top"
                                Text="{x:Static res:Strings.LabelSpiritType}"
                                Classes="section-header"
                                Margin="12,12,12,8"/>
-                    <ListBox ItemsSource="{Binding AvailableSpiritTypes}"
+                    <ListBox Name="AvailableList"
+                             ItemsSource="{Binding AvailableSpiritTypes}"
                              SelectedItem="{Binding SelectedSpiritType}"
+                             DoubleTapped="OnAvailableListDoubleTapped"
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
@@ -81,71 +180,15 @@
                 </DockPanel>
             </Border>
 
-            <!-- Controls -->
-            <Border Grid.Column="1" Classes="panel" Margin="12,0,0,0">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="{x:Static res:Strings.SectionAddSpirit}" Classes="section-header"/>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="{x:Static res:Strings.LabelForce}" Classes="micro-label"/>
-                        <NumericUpDown Value="{Binding NewSpiritForce}"
-                                       Minimum="1" Maximum="6"
-                                       Classes="prominent"
-                                       HorizontalAlignment="Stretch"/>
-                    </StackPanel>
-
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="{x:Static res:Strings.LabelServices}" Classes="micro-label"/>
-                        <NumericUpDown Value="{Binding NewSpiritServices}"
-                                       Minimum="1" Maximum="6"
-                                       Classes="prominent"
-                                       HorizontalAlignment="Stretch"/>
-                    </StackPanel>
-
-                    <TextBox Text="{Binding NewSpiritName}"
-                             Watermark="{x:Static res:Strings.WatermarkSpiritName}"/>
-
-                    <!-- Cost preview -->
-                    <Border Classes="panel-inset" Padding="8,6">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Text="{x:Static res:Strings.LabelCost}" Classes="micro-label"/>
-                            <TextBlock Grid.Column="1" Text="{Binding PendingCostDisplay}"
-                                       Classes="stat-value"
-                                       Foreground="{StaticResource AccentManaBrush}">
-                                <ToolTip.Tip>
-                                    <StackPanel MaxWidth="320" Spacing="4">
-                                        <TextBlock Text="{Binding StartingSpiritsRule.Title}" FontWeight="SemiBold"/>
-                                        <TextBlock TextWrapping="Wrap" Text="{Binding StartingSpiritsRule.Body}"/>
-                                        <TextBlock TextWrapping="Wrap"
-                                                   Foreground="{StaticResource InkSecondaryBrush}"
-                                                   Text="{Binding StartingSpiritsRule.CostNote}"/>
-                                    </StackPanel>
-                                </ToolTip.Tip>
-                            </TextBlock>
-                        </Grid>
-                    </Border>
-
-                    <Button Content="{x:Static res:Strings.SpiritsAddButton}"
-                            Classes="primary action"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding AddSpiritCommand}"/>
-
-                    <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,4"/>
-
-                    <Button Content="{x:Static res:Strings.ButtonRemoveSelected}"
-                            Classes="action"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding RemoveSpiritCommand}"/>
-                </StackPanel>
-            </Border>
-
             <!-- Bound spirits -->
-            <Border Grid.Column="3" Classes="panel" Padding="0">
+            <Border Grid.Column="4" Classes="panel" Padding="0">
                 <DockPanel LastChildFill="True">
                     <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionOwned}"
                                Classes="section-header" Margin="12,12,12,8"/>
-                    <ListBox ItemsSource="{Binding BoundSpirits}"
+                    <ListBox Name="BoundList"
+                             ItemsSource="{Binding BoundSpirits}"
                              SelectedItem="{Binding SelectedBoundSpirit}"
+                             DoubleTapped="OnBoundListDoubleTapped"
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>

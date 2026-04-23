@@ -8,7 +8,7 @@
              x:Class="SR3Generator.Avalonia.Views.Tabs.FociView"
              x:DataType="vm:FociViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16">
         <!-- Header -->
         <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
             <TextBlock Text="{x:Static res:Strings.FociTitle}" Classes="page-title"/>
@@ -17,12 +17,11 @@
         </StackPanel>
 
         <!-- Resource bar -->
-        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,8">
             <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                 <CheckBox Grid.Column="0" Content="{x:Static res:Strings.CheckStreetIndex}"
                           IsChecked="{Binding UseStreetIndex}"
                           VerticalAlignment="Center"/>
-
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
                             VerticalAlignment="Center" Margin="20,0">
                     <TextBlock Text="{x:Static res:Strings.LabelNuyen}" Classes="micro-label"/>
@@ -30,7 +29,6 @@
                                Classes="stat-value-lg"
                                Foreground="{StaticResource AccentNuyenBrush}"/>
                 </StackPanel>
-
                 <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10"
                             VerticalAlignment="Center">
                     <TextBlock Text="{x:Static res:Strings.LabelSpellPointsShort}" Classes="micro-label"/>
@@ -40,36 +38,192 @@
             </Grid>
         </Border>
 
-        <!-- Main: Available | Controls | Owned -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,240,12,*">
-            <!-- Available -->
-            <Border Grid.Column="0" Classes="panel" Padding="0">
+        <!-- Filter bar -->
+        <Border Grid.Row="2" Classes="resource-bar" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="12">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <TextBlock Text="TYPE" Classes="micro-label"/>
+                    <ComboBox ItemsSource="{Binding FocusTypes}"
+                              SelectedItem="{Binding SelectedFocusType}"
+                              MinWidth="160">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding, TargetNullValue={x:Static res:Strings.FociTypesAll}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+                <TextBox Grid.Column="2"
+                         Text="{Binding FilterText}"
+                         Watermark="{x:Static res:Strings.WatermarkSearchFoci}"
+                         MinWidth="200"
+                         HorizontalAlignment="Left"/>
+            </Grid>
+        </Border>
+
+        <!-- Detail 20% | Available 50% | Owned 30% -->
+        <Grid Grid.Row="3" ColumnDefinitions="2*,12,5*,12,3*">
+            <!-- Detail -->
+            <Border Grid.Column="0" Classes="panel">
                 <DockPanel LastChildFill="True">
-                    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="12,12,12,8">
-                        <TextBlock Text="{x:Static res:Strings.SectionAvailable}" Classes="section-header"/>
-                        <Grid ColumnDefinitions="*,8,140">
-                            <TextBox Text="{Binding FilterText}" Watermark="{x:Static res:Strings.WatermarkSearchFoci}"/>
-                            <ComboBox Grid.Column="2" ItemsSource="{Binding FocusTypes}"
-                                      SelectedItem="{Binding SelectedFocusType}"
-                                      HorizontalAlignment="Stretch">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding, TargetNullValue={x:Static res:Strings.FociTypesAll}}"/>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+                    <TextBlock DockPanel.Dock="Top" Text="DETAIL" Classes="section-header"/>
+                    <ScrollViewer>
+                        <Grid>
+                            <TextBlock Text="Select a focus to see details."
+                                       Classes="body" TextWrapping="Wrap"
+                                       Foreground="{StaticResource InkMutedBrush}">
+                                <TextBlock.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                        <Binding Path="SelectedAvailableFocus" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                        <Binding Path="SelectedOwnedFocus" Converter="{x:Static ObjectConverters.IsNull}"/>
+                                    </MultiBinding>
+                                </TextBlock.IsVisible>
+                            </TextBlock>
+
+                            <!-- Owned focus detail (Bind / Sell actions) -->
+                            <StackPanel Spacing="10"
+                                        IsVisible="{Binding SelectedOwnedFocus, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding SelectedOwnedFocus.Name}"
+                                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedOwnedFocus.FocusTypeDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource AccentManaBrush}"/>
+                                <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                      RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="RATING" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedOwnedFocus.RatingDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="PAID" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedOwnedFocus.PaidCostDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource AccentNuyenBrush}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="STATUS" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedOwnedFocus.BoundStatus}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource AccentNuyenBrush}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="AVAIL" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedOwnedFocus.Availability}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="LEGALITY" Classes="micro-label"
+                                               IsVisible="{Binding SelectedOwnedFocus.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedOwnedFocus.Legality}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               IsVisible="{Binding SelectedOwnedFocus.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                </Grid>
+                                <StackPanel Spacing="2"
+                                            IsVisible="{Binding SelectedOwnedFocus.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <TextBlock Text="NOTES" Classes="micro-label"/>
+                                    <TextBlock Text="{Binding SelectedOwnedFocus.Notes}"
+                                               Classes="body" TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding SelectedOwnedFocus.BookPageDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           IsVisible="{Binding SelectedOwnedFocus.BookPageDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                                <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,4"/>
+
+                                <!-- Bind + Sell actions -->
+                                <Button Content="{x:Static res:Strings.ButtonBindKarma}"
+                                        Classes="action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding BindFocusCommand}"
+                                        ToolTip.Tip="{x:Static res:Strings.TooltipBindKarma}"
+                                        IsVisible="{Binding !SelectedOwnedFocus.IsBound}"/>
+                                <Button Content="{x:Static res:Strings.ButtonBindSpellPoints}"
+                                        Classes="action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding BindFocusWithSpellPointsCommand}"
+                                        ToolTip.Tip="{x:Static res:Strings.TooltipBindSpellPoints}"
+                                        IsVisible="{Binding !SelectedOwnedFocus.IsBound}"/>
+                                <Button Content="{x:Static res:Strings.ButtonSell}"
+                                        Classes="action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding SellFocusCommand}"/>
+                            </StackPanel>
+
+                            <!-- Available focus detail (Buy action) -->
+                            <StackPanel Spacing="10"
+                                        IsVisible="{Binding SelectedAvailableFocus, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <TextBlock Text="{Binding SelectedAvailableFocus.Name}"
+                                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedAvailableFocus.FocusTypeDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource AccentManaBrush}"/>
+                                <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                      RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="RATING" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedAvailableFocus.RatingDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.LabelNuyen}" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedAvailableFocus.CostDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource AccentNuyenBrush}"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="BIND COST" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedAvailableFocus.BindingCostDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="AVAIL" Classes="micro-label"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedAvailableFocus.Availability}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="LEGALITY" Classes="micro-label"
+                                               IsVisible="{Binding SelectedAvailableFocus.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedAvailableFocus.Legality}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               IsVisible="{Binding SelectedAvailableFocus.Legality, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="STREET IDX" Classes="micro-label"
+                                               IsVisible="{Binding SelectedAvailableFocus.StreetIndexDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SelectedAvailableFocus.StreetIndexDisplay}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               IsVisible="{Binding SelectedAvailableFocus.StreetIndexDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                </Grid>
+                                <StackPanel Spacing="2"
+                                            IsVisible="{Binding SelectedAvailableFocus.Notes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <TextBlock Text="NOTES" Classes="micro-label"/>
+                                    <TextBlock Text="{Binding SelectedAvailableFocus.Notes}"
+                                               Classes="body" TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                </StackPanel>
+                                <TextBlock Text="{Binding SelectedAvailableFocus.BookPageDisplay}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           IsVisible="{Binding SelectedAvailableFocus.BookPageDisplay, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                <Button Content="{x:Static res:Strings.ButtonBuy}"
+                                        Classes="primary action"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding BuyFocusCommand}"
+                                        Margin="0,8,0,0"/>
+                            </StackPanel>
                         </Grid>
-                    </StackPanel>
-                    <ListBox ItemsSource="{Binding AvailableFoci}"
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- Available -->
+            <Border Grid.Column="2" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionAvailable}"
+                               Classes="section-header" Margin="12,12,12,8"/>
+                    <ListBox Name="AvailableList"
+                             ItemsSource="{Binding AvailableFoci}"
                              SelectedItem="{Binding SelectedAvailableFocus}"
+                             DoubleTapped="OnAvailableListDoubleTapped"
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vm:FocusItem">
                                 <Grid ColumnDefinitions="*,40,70,40">
                                     <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Name}"
-                                                   Classes="body" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Name}" Classes="body" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
                                         <TextBlock Text="{Binding FocusTypeDisplay}" FontSize="10"
                                                    Foreground="{StaticResource InkMutedBrush}"/>
                                     </StackPanel>
@@ -82,8 +236,7 @@
                                                Foreground="{StaticResource AccentNuyenBrush}"
                                                HorizontalAlignment="Right"
                                                VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding Availability}"
-                                               FontSize="10"
+                                    <TextBlock Grid.Column="3" Text="{Binding Availability}" FontSize="10"
                                                Foreground="{StaticResource InkMutedBrush}"
                                                HorizontalAlignment="Right"
                                                VerticalAlignment="Center"/>
@@ -94,50 +247,23 @@
                 </DockPanel>
             </Border>
 
-            <!-- Controls -->
-            <Border Grid.Column="1" Classes="panel" Margin="12,0,0,0">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="{x:Static res:Strings.SectionPurchase}" Classes="section-header"/>
-                    <Button Content="{x:Static res:Strings.ButtonBuy}"
-                            Classes="primary action"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding BuyFocusCommand}"/>
-                    <Button Content="{x:Static res:Strings.ButtonSell}"
-                            Classes="action"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding SellFocusCommand}"/>
-
-                    <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,4"/>
-
-                    <TextBlock Text="{x:Static res:Strings.SectionBind}" Classes="section-header"/>
-                    <Button Content="{x:Static res:Strings.ButtonBindKarma}"
-                            Classes="action"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding BindFocusCommand}"
-                            ToolTip.Tip="{x:Static res:Strings.TooltipBindKarma}"/>
-                    <Button Content="{x:Static res:Strings.ButtonBindSpellPoints}"
-                            Classes="action"
-                            HorizontalAlignment="Stretch"
-                            Command="{Binding BindFocusWithSpellPointsCommand}"
-                            ToolTip.Tip="{x:Static res:Strings.TooltipBindSpellPoints}"/>
-                </StackPanel>
-            </Border>
-
             <!-- Owned -->
-            <Border Grid.Column="3" Classes="panel" Padding="0">
+            <Border Grid.Column="4" Classes="panel" Padding="0">
                 <DockPanel LastChildFill="True">
                     <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionOwned}"
                                Classes="section-header" Margin="12,12,12,8"/>
-                    <ListBox ItemsSource="{Binding OwnedFoci}"
+                    <ListBox Name="OwnedList"
+                             ItemsSource="{Binding OwnedFoci}"
                              SelectedItem="{Binding SelectedOwnedFocus}"
+                             DoubleTapped="OnOwnedListDoubleTapped"
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vm:OwnedFocusItem">
                                 <Grid ColumnDefinitions="*,Auto">
                                     <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Name}"
-                                                   Classes="body" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Name}" Classes="body" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
                                         <StackPanel Orientation="Horizontal" Spacing="8">
                                             <TextBlock Text="{Binding FocusTypeDisplay}" FontSize="10"
                                                        Foreground="{StaticResource InkMutedBrush}"/>
@@ -145,7 +271,7 @@
                                                        Foreground="{StaticResource AccentNuyenBrush}"/>
                                         </StackPanel>
                                     </StackPanel>
-                                    <TextBlock Grid.Column="1" Text="{Binding BindingCostDisplay}"
+                                    <TextBlock Grid.Column="1" Text="{Binding PaidCostDisplay}"
                                                FontSize="10"
                                                Foreground="{StaticResource InkMutedBrush}"
                                                VerticalAlignment="Center"/>

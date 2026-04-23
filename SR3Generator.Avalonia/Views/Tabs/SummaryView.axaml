@@ -44,16 +44,33 @@
                 </Grid>
             </Border>
 
-            <!-- Validation Issues -->
-            <ItemsControl ItemsSource="{Binding ValidationIssues}" IsVisible="{Binding !IsValid}">
+            <!-- Validation Issues (errors red, warnings amber) -->
+            <ItemsControl ItemsSource="{Binding ValidationIssues}" IsVisible="{Binding HasIssues}">
+                <ItemsControl.Styles>
+                    <Style Selector="Border.issue-error">
+                        <Setter Property="Background" Value="#15ef4444"/>
+                        <Setter Property="BorderBrush" Value="#30ef4444"/>
+                    </Style>
+                    <Style Selector="Border.issue-warning">
+                        <Setter Property="Background" Value="#15f59e0b"/>
+                        <Setter Property="BorderBrush" Value="#30f59e0b"/>
+                    </Style>
+                    <Style Selector="Border.issue-error TextBlock.severity">
+                        <Setter Property="Foreground" Value="{StaticResource DestructiveBrush}"/>
+                    </Style>
+                    <Style Selector="Border.issue-warning TextBlock.severity">
+                        <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                    </Style>
+                </ItemsControl.Styles>
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Background="#15ef4444" BorderBrush="#30ef4444"
+                    <DataTemplate DataType="vm:ValidationIssueItem">
+                        <Border Classes.issue-error="{Binding IsError}"
+                                Classes.issue-warning="{Binding IsWarning}"
                                 BorderThickness="1" CornerRadius="4"
                                 Padding="10,6" Margin="0,0,0,4">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <TextBlock Text="{Binding Severity}" FontWeight="Bold" FontSize="10"
-                                           Foreground="{StaticResource DestructiveBrush}"
+                                <TextBlock Classes="severity" Text="{Binding Severity}"
+                                           FontWeight="Bold" FontSize="10"
                                            VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding Message}" Classes="body" TextWrapping="Wrap"/>
                             </StackPanel>

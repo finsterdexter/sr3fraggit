@@ -241,8 +241,7 @@ public partial class AttributesViewModel : ViewModelBase
 
     private void RecalculatePoints()
     {
-        PointsSpent = BodyValue + QuicknessValue + StrengthValue +
-                      CharismaValue + IntelligenceValue + WillpowerValue;
+        PointsSpent = _characterService.Builder.AttributePointsSpent;
         PointsRemaining = PointsAllowance - PointsSpent;
     }
 

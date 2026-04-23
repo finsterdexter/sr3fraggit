@@ -80,8 +80,16 @@ public partial class SpiritsViewModel : ViewModelBase
         AddSpiritCommand.NotifyCanExecuteChanged();
     }
 
-    partial void OnSelectedSpiritTypeChanged(string? value) =>
+    partial void OnSelectedSpiritTypeChanged(string? value)
+    {
+        if (!string.IsNullOrEmpty(value)) SelectedBoundSpirit = null;
         AddSpiritCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnSelectedBoundSpiritChanged(BondedSpiritItem? value)
+    {
+        if (value != null) SelectedSpiritType = null;
+    }
 
     private void RefreshFromBuilder()
     {

@@ -61,9 +61,6 @@ public partial class SpellsViewModel : ViewModelBase
     private int _spellPointsRemaining;
 
     [ObservableProperty]
-    private int _bonusSpellPointsPurchased;
-
-    [ObservableProperty]
     private bool _hasMagic;
 
     [ObservableProperty]
@@ -139,8 +136,16 @@ public partial class SpellsViewModel : ViewModelBase
         OnPropertyChanged(nameof(PendingCostDisplay));
     }
 
-    partial void OnSelectedAvailableSpellChanged(SpellItem? value) =>
+    partial void OnSelectedAvailableSpellChanged(SpellItem? value)
+    {
+        if (value != null) SelectedPurchasedSpell = null;
         AddSpellCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnSelectedPurchasedSpellChanged(SpellItem? value)
+    {
+        if (value != null) SelectedAvailableSpell = null;
+    }
 
     private void LoadSpells()
     {
@@ -179,17 +184,14 @@ public partial class SpellsViewModel : ViewModelBase
 
         HasMagic = builder.MagicAspectsAllowed.Any(a => a.Name != AspectName.Mundane);
         HasSorcery = character.MagicAspect?.HasSorcery ?? false;
-        SpellPointsAllowance = character.MagicAspect?.StartingSpellPoints ?? 0;
+        SpellPointsAllowance = builder.SpellPointsAllowance;
 
         var previouslySelected = SelectedPurchasedSpell?.Name;
         PurchasedSpells.Clear();
-        SpellPointsSpent = 0;
 
         foreach (var spell in character.Spells.Values)
         {
-            var item = new SpellItem(spell);
-            PurchasedSpells.Add(item);
-            SpellPointsSpent += CalculateSpellCost(spell);
+            PurchasedSpells.Add(new SpellItem(spell));
         }
 
         if (previouslySelected is not null)
@@ -197,15 +199,8 @@ public partial class SpellsViewModel : ViewModelBase
             SelectedPurchasedSpell = PurchasedSpells.FirstOrDefault(s => s.Name == previouslySelected);
         }
 
-        SpellPointsRemaining = SpellPointsAllowance + BonusSpellPointsPurchased - SpellPointsSpent;
-    }
-
-    private static int CalculateSpellCost(Spell spell)
-    {
-        var cost = spell.Force;
-        if (spell.IsExclusive) cost -= 2;
-        if (spell.IsFetishLimited) cost -= 1;
-        return Math.Max(1, cost);
+        SpellPointsSpent = builder.SpellPointsSpent;
+        SpellPointsRemaining = builder.SpellPointsRemaining;
     }
 
     private bool CanAddSpell() => SelectedAvailableSpell is not null;
@@ -253,8 +248,6 @@ public partial class SpellsViewModel : ViewModelBase
     private void BuySpellPoints()
     {
         _characterService.BuySpellPoints(1);
-        BonusSpellPointsPurchased++;
-        RefreshFromBuilder();
     }
 }
 
@@ -275,6 +268,18 @@ public partial class SpellItem : ObservableObject
     public int Force { get; }
     public bool IsExclusive { get; }
     public bool IsFetishLimited { get; }
+
+    public string RangeDisplay => Range.ToString();
+    public string DurationDisplay => Duration.ToString();
+    public string BookPageDisplay
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(Book)) return string.Empty;
+            var b = Book.ToUpperInvariant();
+            return Page > 0 ? $"{b} p.{Page}" : b;
+        }
+    }
 
     public string CostDisplay
     {
