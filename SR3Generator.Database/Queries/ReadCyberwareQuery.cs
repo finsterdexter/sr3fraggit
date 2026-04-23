@@ -28,6 +28,7 @@ namespace SR3Generator.Database.Queries
             var results = new List<Cyberware>();
             foreach (var dto in dtos)
             {
+                var (book, page) = BookPageParser.Split(dto.BookPage);
                 var cyberware = new Cyberware
                 {
                     Id = dto.id,
@@ -40,8 +41,8 @@ namespace SR3Generator.Database.Queries
                     Legality = dto.LegalCode,
                     Capacity = ParseInt(dto.Capacity),
                     StreetIndex = ParseDecimal(dto.StreetIndex, 1.0m),
-                    Book = ParseBook(dto.BookPage),
-                    Page = ParsePage(dto.BookPage)
+                    Book = book,
+                    Page = page
                 };
 
                 // Parse attribute mods from the Mods string
@@ -161,22 +162,6 @@ namespace SR3Generator.Database.Queries
             return new Availability { TargetNumber = 0, Interval = availability };
         }
 
-        // DB format is "bookcode.page", e.g. "sr3.300", "cb3.98", "mm.25". Book codes can
-        // include digits (cb3, sr3), so we split on the last '.' instead of walking letters.
-        private static string ParseBook(string? bookPage)
-        {
-            if (string.IsNullOrWhiteSpace(bookPage)) return string.Empty;
-            var dot = bookPage.LastIndexOf('.');
-            return dot < 0 ? bookPage : bookPage[..dot];
-        }
-
-        private static int ParsePage(string? bookPage)
-        {
-            if (string.IsNullOrWhiteSpace(bookPage)) return 0;
-            var dot = bookPage.LastIndexOf('.');
-            if (dot < 0 || dot == bookPage.Length - 1) return 0;
-            return int.TryParse(bookPage[(dot + 1)..], out var page) ? page : 0;
-        }
     }
 
     internal class CyberwareDto

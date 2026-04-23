@@ -87,13 +87,13 @@ namespace SR3Generator.Database.Queries
             _ => Duration.Instant,
         };
 
+        // Spells historically default to the core book when BookPage is missing and display
+        // the code uppercased in the UI — those two details are unique to this table.
         private static (string book, int page) SplitBookPage(string? bookPage)
         {
             if (string.IsNullOrEmpty(bookPage)) return ("SR3", 0);
-            var dot = bookPage.LastIndexOf('.');
-            if (dot < 0) return (bookPage, 0);
-            var book = bookPage[..dot].ToUpperInvariant();
-            return int.TryParse(bookPage[(dot + 1)..], out var page) ? (book, page) : (book, 0);
+            var (book, page) = BookPageParser.Split(bookPage);
+            return (book.ToUpperInvariant(), page);
         }
     }
 

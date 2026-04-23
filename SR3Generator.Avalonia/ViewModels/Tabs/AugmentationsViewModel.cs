@@ -16,6 +16,7 @@ public partial class AugmentationsViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
     private readonly AugmentationDatabase _augmentationDatabase;
+    private readonly IUserSettingsService _settings;
 
     // Cyberware lists
     private List<CyberwareItem> _allCyberware = new();
@@ -112,11 +113,16 @@ public partial class AugmentationsViewModel : ViewModelBase
     public ObservableCollection<BreadcrumbStep> CyberwareBreadcrumbSteps { get; } = new();
     public ObservableCollection<BreadcrumbStep> BiowareBreadcrumbSteps { get; } = new();
 
-    public AugmentationsViewModel(ICharacterBuilderService characterService, AugmentationDatabase augmentationDatabase)
+    public AugmentationsViewModel(
+        ICharacterBuilderService characterService,
+        AugmentationDatabase augmentationDatabase,
+        IUserSettingsService settings)
     {
         _characterService = characterService;
         _augmentationDatabase = augmentationDatabase;
+        _settings = settings;
         _characterService.CharacterChanged += OnCharacterChanged;
+        _settings.SettingsChanged += OnSettingsChanged;
 
         LoadAllAugmentations();
         BuildCyberwareFacets();
@@ -126,6 +132,15 @@ public partial class AugmentationsViewModel : ViewModelBase
         ApplyCyberwareFilters();
         ApplyBiowareFilters();
         RefreshFromBuilder();
+    }
+
+    private void OnSettingsChanged(object? sender, EventArgs e)
+    {
+        LoadAllAugmentations();
+        BuildCyberwareFacets();
+        BuildBiowareFacets();
+        ApplyCyberwareFilters();
+        ApplyBiowareFilters();
     }
 
     // --- Breadcrumb steps --------------------------------------------------------------
@@ -242,8 +257,14 @@ public partial class AugmentationsViewModel : ViewModelBase
 
     private void LoadAllAugmentations()
     {
-        _allCyberware = _augmentationDatabase.AllCyberware.Select(c => new CyberwareItem(c)).ToList();
-        _allBioware = _augmentationDatabase.AllBioware.Select(b => new BiowareItem(b)).ToList();
+        _allCyberware = _augmentationDatabase.AllCyberware
+            .Where(c => _settings.IsBookEnabled(c.Book))
+            .Select(c => new CyberwareItem(c))
+            .ToList();
+        _allBioware = _augmentationDatabase.AllBioware
+            .Where(b => _settings.IsBookEnabled(b.Book))
+            .Select(b => new BiowareItem(b))
+            .ToList();
     }
 
     // Cyberware filtering

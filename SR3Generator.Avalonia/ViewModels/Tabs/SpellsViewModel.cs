@@ -19,6 +19,7 @@ public partial class SpellsViewModel : ViewModelBase
     private readonly ICharacterBuilderService _characterService;
     private readonly SpellDatabase _spellDatabase;
     private readonly RulesGlossary _rulesGlossary;
+    private readonly IUserSettingsService _settings;
     private readonly List<SpellItem> _allSpells = new();
 
     public SR3Generator.Database.Queries.RulesEntry? ExclusiveRule { get; }
@@ -98,12 +99,15 @@ public partial class SpellsViewModel : ViewModelBase
     public SpellsViewModel(
         ICharacterBuilderService characterService,
         SpellDatabase spellDatabase,
-        RulesGlossary rulesGlossary)
+        RulesGlossary rulesGlossary,
+        IUserSettingsService settings)
     {
         _characterService = characterService;
         _spellDatabase = spellDatabase;
         _rulesGlossary = rulesGlossary;
+        _settings = settings;
         _characterService.CharacterChanged += OnCharacterChanged;
+        _settings.SettingsChanged += OnSettingsChanged;
 
         ExclusiveRule = _rulesGlossary.Get("spell.exclusive");
         FetishRule = _rulesGlossary.Get("spell.fetish");
@@ -111,6 +115,12 @@ public partial class SpellsViewModel : ViewModelBase
         LoadSpells();
         ApplyFilter();
         RefreshFromBuilder();
+    }
+
+    private void OnSettingsChanged(object? sender, EventArgs e)
+    {
+        LoadSpells();
+        ApplyFilter();
     }
 
     private void OnCharacterChanged(object? sender, EventArgs e) => RefreshFromBuilder();
@@ -152,6 +162,7 @@ public partial class SpellsViewModel : ViewModelBase
         _allSpells.Clear();
         foreach (var spell in _spellDatabase.Spells)
         {
+            if (!_settings.IsBookEnabled(spell.Book)) continue;
             _allSpells.Add(SpellItem.FromTemplate(spell));
         }
     }

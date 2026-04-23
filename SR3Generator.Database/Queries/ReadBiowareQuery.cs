@@ -28,6 +28,7 @@ namespace SR3Generator.Database.Queries
             var results = new List<Bioware>();
             foreach (var dto in dtos)
             {
+                var (book, page) = BookPageParser.Split(dto.BookPage);
                 var bioware = new Bioware
                 {
                     Id = dto.id,
@@ -38,8 +39,8 @@ namespace SR3Generator.Database.Queries
                     BioIndexCost = ParseDecimal(dto.BioIndex),
                     Cost = ParseCost(dto.Cost),
                     StreetIndex = ParseDecimal(dto.StreetIndex, 1.0m),
-                    Book = ParseBook(dto.BookPage),
-                    Page = ParsePage(dto.BookPage)
+                    Book = book,
+                    Page = page
                 };
 
                 // Mark cultured bioware based on Type column
@@ -158,22 +159,6 @@ namespace SR3Generator.Database.Queries
             return new Availability { TargetNumber = 0, Interval = availability };
         }
 
-        // DB format is "bookcode.page", e.g. "sr3.300", "cb3.98", "mm.25". Book codes can
-        // include digits (cb3, sr3), so we split on the last '.' instead of walking letters.
-        private static string ParseBook(string? bookPage)
-        {
-            if (string.IsNullOrWhiteSpace(bookPage)) return string.Empty;
-            var dot = bookPage.LastIndexOf('.');
-            return dot < 0 ? bookPage : bookPage[..dot];
-        }
-
-        private static int ParsePage(string? bookPage)
-        {
-            if (string.IsNullOrWhiteSpace(bookPage)) return 0;
-            var dot = bookPage.LastIndexOf('.');
-            if (dot < 0 || dot == bookPage.Length - 1) return 0;
-            return int.TryParse(bookPage[(dot + 1)..], out var page) ? page : 0;
-        }
     }
 
     internal class BiowareDto

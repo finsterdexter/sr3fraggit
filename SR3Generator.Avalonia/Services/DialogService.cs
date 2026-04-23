@@ -1,12 +1,20 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Microsoft.Extensions.DependencyInjection;
+using SR3Generator.Avalonia.ViewModels;
 using SR3Generator.Avalonia.Views;
 
 namespace SR3Generator.Avalonia.Services;
 
 public class DialogService : IDialogService
 {
+    private readonly IServiceProvider _serviceProvider;
     private Window? _owner;
+
+    public DialogService(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
 
     public void SetOwner(Window owner) => _owner = owner;
 
@@ -46,6 +54,14 @@ public class DialogService : IDialogService
     {
         if (_owner is null) return;
         var dialog = new ConfirmDialog(title, message, isError: true);
+        await dialog.ShowDialog<bool>(_owner);
+    }
+
+    public async Task OpenOptionsAsync()
+    {
+        if (_owner is null) return;
+        var vm = _serviceProvider.GetRequiredService<OptionsDialogViewModel>();
+        var dialog = new OptionsDialog(vm);
         await dialog.ShowDialog<bool>(_owner);
     }
 

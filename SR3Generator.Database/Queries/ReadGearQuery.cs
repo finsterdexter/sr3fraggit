@@ -41,6 +41,7 @@ namespace SR3Generator.Database.Queries
             var results = new List<Equipment>();
             foreach (var dto in gearDtos)
             {
+                var (book, page) = BookPageParser.Split(dto.book_page);
                 var equipment = new Equipment
                 {
                     Id = dto.id,
@@ -50,8 +51,8 @@ namespace SR3Generator.Database.Queries
                     Cost = ParseCost(dto.cost),
                     StreetIndex = ParseStreetIndex(dto.street_index),
                     Availability = ParseAvailability(dto.availability),
-                    Book = ParseBook(dto.book_page),
-                    Page = ParsePage(dto.book_page),
+                    Book = book,
+                    Page = page,
                     Weight = ParseWeight(dto.weight)
                 };
 
@@ -137,39 +138,6 @@ namespace SR3Generator.Database.Queries
             }
 
             return new Availability { TargetNumber = 0, Interval = availability };
-        }
-
-        private static string ParseBook(string? bookPage)
-        {
-            if (string.IsNullOrWhiteSpace(bookPage))
-                return string.Empty;
-
-            // Format is like "cb1.2", "cc.8", "sr2.???"
-            // Extract book abbreviation (letters before numbers)
-            var i = 0;
-            while (i < bookPage.Length && char.IsLetter(bookPage[i]))
-                i++;
-            return bookPage.Substring(0, i);
-        }
-
-        private static int ParsePage(string? bookPage)
-        {
-            if (string.IsNullOrWhiteSpace(bookPage))
-                return 0;
-
-            // Format is like "cb1.2", extract page number after book abbreviation
-            var i = 0;
-            while (i < bookPage.Length && char.IsLetter(bookPage[i]))
-                i++;
-
-            var pageStr = bookPage.Substring(i);
-            // Handle formats like "1.2" - take part before decimal
-            if (pageStr.Contains('.'))
-                pageStr = pageStr.Split('.')[0];
-
-            if (int.TryParse(pageStr, out var page))
-                return page;
-            return 0;
         }
 
         private static decimal ParseWeight(string? weight)

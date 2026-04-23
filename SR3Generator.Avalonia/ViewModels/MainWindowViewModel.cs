@@ -67,6 +67,9 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private Task OpenOptions() => _dialogService.OpenOptionsAsync();
+
+    [RelayCommand]
     private async Task LoadCharacter()
     {
         if (!await ConfirmDiscardIfDirtyAsync()) return;

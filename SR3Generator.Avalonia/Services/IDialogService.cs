@@ -21,4 +21,9 @@ public interface IDialogService
     /// Show an error message with an OK button.
     /// </summary>
     Task ShowErrorAsync(string title, string message);
+
+    /// <summary>
+    /// Show the Options dialog.
+    /// </summary>
+    Task OpenOptionsAsync();
 }

@@ -36,6 +36,9 @@
                     <Separator/>
                     <MenuItem Header="E_xit" />
                 </MenuItem>
+                <MenuItem Header="_Tools">
+                    <MenuItem Header="_Options..." Command="{Binding OpenOptionsCommand}" />
+                </MenuItem>
                 <MenuItem Header="_Help">
                     <MenuItem Header="_About" />
                 </MenuItem>

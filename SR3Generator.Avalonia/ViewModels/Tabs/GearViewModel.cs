@@ -14,6 +14,7 @@ public partial class GearViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
     private readonly GearDatabase _gearDatabase;
+    private readonly IUserSettingsService _settings;
     private List<GearItem> _allGearItems = new();
     private readonly List<string> _selectedCategoryPath = new();
 
@@ -49,11 +50,16 @@ public partial class GearViewModel : ViewModelBase
 
     public ObservableCollection<BreadcrumbStep> BreadcrumbSteps { get; } = new();
 
-    public GearViewModel(ICharacterBuilderService characterService, GearDatabase gearDatabase)
+    public GearViewModel(
+        ICharacterBuilderService characterService,
+        GearDatabase gearDatabase,
+        IUserSettingsService settings)
     {
         _characterService = characterService;
         _gearDatabase = gearDatabase;
+        _settings = settings;
         _characterService.CharacterChanged += OnCharacterChanged;
+        _settings.SettingsChanged += OnSettingsChanged;
         LoadAllGear();
         RebuildBreadcrumb();
         ApplyFilters();
@@ -61,6 +67,13 @@ public partial class GearViewModel : ViewModelBase
     }
 
     private void OnCharacterChanged(object? sender, EventArgs e) => RefreshFromBuilder();
+
+    private void OnSettingsChanged(object? sender, EventArgs e)
+    {
+        LoadAllGear();
+        RebuildBreadcrumb();
+        ApplyFilters();
+    }
 
     partial void OnSelectedGearItemChanged(GearItem? value)
     {
@@ -74,7 +87,10 @@ public partial class GearViewModel : ViewModelBase
 
     private void LoadAllGear()
     {
-        _allGearItems = _gearDatabase.AllGear.Select(e => new GearItem(e)).ToList();
+        _allGearItems = _gearDatabase.AllGear
+            .Where(e => _settings.IsBookEnabled(e.Book))
+            .Select(e => new GearItem(e))
+            .ToList();
     }
 
     private void RebuildBreadcrumb()

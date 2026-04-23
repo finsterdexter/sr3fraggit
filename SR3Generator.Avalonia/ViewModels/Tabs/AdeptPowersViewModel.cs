@@ -15,6 +15,7 @@ public partial class AdeptPowersViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
     private readonly AdeptPowerDatabase _adeptPowerDatabase;
+    private readonly IUserSettingsService _settings;
 
     [ObservableProperty]
     private ObservableCollection<AdeptPowerItem> _availablePowers = new();
@@ -48,17 +49,23 @@ public partial class AdeptPowersViewModel : ViewModelBase
 
     public int[] AvailableLevels { get; } = Enumerable.Range(1, 6).ToArray();
 
-    public AdeptPowersViewModel(ICharacterBuilderService characterService, AdeptPowerDatabase adeptPowerDatabase)
+    public AdeptPowersViewModel(
+        ICharacterBuilderService characterService,
+        AdeptPowerDatabase adeptPowerDatabase,
+        IUserSettingsService settings)
     {
         _characterService = characterService;
         _adeptPowerDatabase = adeptPowerDatabase;
+        _settings = settings;
         _characterService.CharacterChanged += OnCharacterChanged;
+        _settings.SettingsChanged += OnSettingsChanged;
 
         ApplyFilter();
         RefreshFromBuilder();
     }
 
     private void OnCharacterChanged(object? sender, EventArgs e) => RefreshFromBuilder();
+    private void OnSettingsChanged(object? sender, EventArgs e) => ApplyFilter();
 
     // Mutually-exclusive selection: the Detail panel shows whichever list last picked a row.
     partial void OnSelectedAvailablePowerChanged(AdeptPowerItem? value)
@@ -79,6 +86,7 @@ public partial class AdeptPowersViewModel : ViewModelBase
         var previouslySelectedName = SelectedAvailablePower?.Name;
 
         var filtered = _adeptPowerDatabase.AllPowers
+            .Where(p => _settings.IsBookEnabled(p.Book))
             .Where(p => string.IsNullOrWhiteSpace(FilterText) ||
                         p.Name.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ||
                         (p.Notes?.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ?? false))

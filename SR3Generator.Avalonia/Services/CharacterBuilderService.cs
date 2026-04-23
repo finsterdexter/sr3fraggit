@@ -8,6 +8,7 @@ using SR3Generator.Data.Magic;
 using SR3Generator.Database;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Attribute = SR3Generator.Data.Character.Attribute;
 
 namespace SR3Generator.Avalonia.Services;
@@ -16,6 +17,7 @@ public class CharacterBuilderService : ICharacterBuilderService
 {
     private readonly SkillDatabase _skillDatabase;
     private readonly ILogger<CharacterBuilder> _builderLogger;
+    private readonly IUserSettingsService _settings;
     private CharacterBuilder _builder;
     private bool _suppressDirty;
 
@@ -27,11 +29,17 @@ public class CharacterBuilderService : ICharacterBuilderService
 
     public void ClearDirty() => IsDirty = false;
 
-    public CharacterBuilderService(SkillDatabase skillDatabase, ILogger<CharacterBuilder> builderLogger)
+    public CharacterBuilderService(
+        SkillDatabase skillDatabase,
+        ILogger<CharacterBuilder> builderLogger,
+        IUserSettingsService settings)
     {
         _skillDatabase = skillDatabase;
         _builderLogger = builderLogger;
+        _settings = settings;
         _builder = new CharacterBuilder(skillDatabase, builderLogger);
+        // When enabled-books change, validation may gain/lose warnings; notify without dirtying.
+        _settings.SettingsChanged += (_, _) => CharacterChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void OnCharacterChanged()
@@ -265,8 +273,46 @@ public class CharacterBuilderService : ICharacterBuilderService
     public List<ValidationIssue> GetValidationIssues()
     {
         _builder.Validate();
-        return _builder.ValidationIssues;
+        var issues = new List<ValidationIssue>(_builder.ValidationIssues);
+        issues.AddRange(CollectDisabledBookWarnings());
+        return issues;
     }
+
+    /// <summary>
+    /// Warnings for items already on the character whose book has been disabled in Options.
+    /// Items are left in place (no auto-removal); the user sees a note so they can decide.
+    /// </summary>
+    private IEnumerable<ValidationIssue> CollectDisabledBookWarnings()
+    {
+        var character = _builder.Character;
+
+        foreach (var spell in character.Spells.Values)
+            if (!_settings.IsBookEnabled(spell.Book))
+                yield return BookWarning(ValidationIssueCategory.Magic, $"Spell '{spell.Name}' is from a disabled source ({spell.Book}).");
+
+        foreach (var power in character.AdeptPowers.Values)
+            if (!_settings.IsBookEnabled(power.Book))
+                yield return BookWarning(ValidationIssueCategory.Magic, $"Adept power '{power.Name}' is from a disabled source ({power.Book}).");
+
+        foreach (var weapon in character.Weapons.Values)
+            if (!_settings.IsBookEnabled(weapon.Book))
+                yield return BookWarning(ValidationIssueCategory.Equipment, $"Weapon '{weapon.Name}' is from a disabled source ({weapon.Book}).");
+
+        foreach (var armor in character.ArmorClothing.Values)
+            if (!_settings.IsBookEnabled(armor.Book))
+                yield return BookWarning(ValidationIssueCategory.Equipment, $"Armor '{armor.Name}' is from a disabled source ({armor.Book}).");
+
+        foreach (var item in character.Gear.Values)
+            if (!_settings.IsBookEnabled(item.Book))
+                yield return BookWarning(ValidationIssueCategory.Equipment, $"Gear '{item.Name}' is from a disabled source ({item.Book}).");
+
+        foreach (var aug in character.NaturalAugmentations.Values)
+            if (!_settings.IsBookEnabled(aug.Book))
+                yield return BookWarning(ValidationIssueCategory.Equipment, $"Augmentation '{aug.Name}' is from a disabled source ({aug.Book}).");
+    }
+
+    private static ValidationIssue BookWarning(ValidationIssueCategory category, string message) =>
+        new() { Level = ValidationIssueLevel.Warning, Category = category, Message = message };
 
     public void NewCharacter()
     {

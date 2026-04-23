@@ -30,7 +30,7 @@ namespace SR3Generator.Database.Queries
 
                 var name = dto.name ?? string.Empty;
                 var availability = ParseAvailability(dto.Availability);
-                var book = ParseBook(dto.BookPage);
+                var (book, page) = BookPageParser.Split(dto.BookPage);
 
                 Focus focus;
                 if (focusType == FocusType.Weapon)
@@ -54,7 +54,7 @@ namespace SR3Generator.Database.Queries
                 focus.CategoryTree = ParseCategoryTree(dto.category_tree);
                 focus.Cost = ParseCost(dto.Cost);
                 focus.StreetIndex = ParseDecimal(dto.StreetIndex, 2.0m);
-                focus.Page = ParsePage(dto.BookPage);
+                focus.Page = page;
                 focus.IsBound = false;
 
                 results.Add(focus);
@@ -153,34 +153,6 @@ namespace SR3Generator.Database.Queries
             return new Availability { TargetNumber = 0, Interval = availability };
         }
 
-        private static string ParseBook(string? bookPage)
-        {
-            if (string.IsNullOrWhiteSpace(bookPage))
-                return string.Empty;
-
-            var i = 0;
-            while (i < bookPage.Length && char.IsLetter(bookPage[i]))
-                i++;
-            return bookPage.Substring(0, i);
-        }
-
-        private static int ParsePage(string? bookPage)
-        {
-            if (string.IsNullOrWhiteSpace(bookPage))
-                return 0;
-
-            var i = 0;
-            while (i < bookPage.Length && char.IsLetter(bookPage[i]))
-                i++;
-
-            var pageStr = bookPage.Substring(i);
-            if (pageStr.Contains('.'))
-                pageStr = pageStr.Split('.')[0];
-
-            if (int.TryParse(pageStr, out var page))
-                return page;
-            return 0;
-        }
     }
 
     internal class FocusDto

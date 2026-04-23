@@ -72,14 +72,19 @@ public partial class App : Application
         services.AddSingleton<SpellDatabase>();
         services.AddSingleton<RulesGlossary>();
         services.AddSingleton<TotemDatabase>();
+        services.AddSingleton<BookDatabase>();
 
-        // Character builder service
+        // User settings + character builder service
+        services.AddSingleton<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<ICharacterBuilderService, CharacterBuilderService>();
 
         // File + dialog services
         services.AddSingleton<DialogService>();
         services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
         services.AddSingleton<ICharacterFileService, CharacterFileService>();
+
+        // Dialog viewmodels
+        services.AddTransient<OptionsDialogViewModel>();
 
         // Tab ViewModels
         services.AddTransient<PrioritiesViewModel>();

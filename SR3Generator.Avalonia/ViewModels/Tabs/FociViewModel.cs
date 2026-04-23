@@ -15,6 +15,7 @@ public partial class FociViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
     private readonly FocusDatabase _focusDatabase;
+    private readonly IUserSettingsService _settings;
 
     [ObservableProperty]
     private ObservableCollection<FocusItem> _availableFoci = new();
@@ -50,11 +51,16 @@ public partial class FociViewModel : ViewModelBase
         .Concat(Enum.GetValues<FocusType>().Cast<FocusType?>())
         .ToArray();
 
-    public FociViewModel(ICharacterBuilderService characterService, FocusDatabase focusDatabase)
+    public FociViewModel(
+        ICharacterBuilderService characterService,
+        FocusDatabase focusDatabase,
+        IUserSettingsService settings)
     {
         _characterService = characterService;
         _focusDatabase = focusDatabase;
+        _settings = settings;
         _characterService.CharacterChanged += OnCharacterChanged;
+        _settings.SettingsChanged += OnSettingsChanged;
 
         LoadAvailableFoci();
         RefreshFromBuilder();
@@ -64,6 +70,8 @@ public partial class FociViewModel : ViewModelBase
     {
         RefreshFromBuilder();
     }
+
+    private void OnSettingsChanged(object? sender, EventArgs e) => ApplyFilter();
 
     // Mutually-exclusive selection — the Detail panel shows whichever list last picked a row.
     partial void OnSelectedAvailableFocusChanged(FocusItem? value)
@@ -87,6 +95,7 @@ public partial class FociViewModel : ViewModelBase
     private void ApplyFilter()
     {
         var filtered = _focusDatabase.AllFoci
+            .Where(f => _settings.IsBookEnabled(f.Book))
             .Where(f => string.IsNullOrWhiteSpace(FilterText) ||
                         f.Name.Contains(FilterText, StringComparison.OrdinalIgnoreCase))
             .Where(f => SelectedFocusType == null || f.FocusType == SelectedFocusType)
