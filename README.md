@@ -71,3 +71,7 @@ dotnet watch run --project SR3Generator.Avalonia
 dotnet build    # Build the solution
 dotnet test     # Run all tests
 ```
+
+## License
+
+This project is a fan work for Shadowrun 3rd Edition. Shadowrun is a registered trademark of The Topps Company, Inc. This project is not affiliated with or endorsed by Catalyst Game Labs or The Topps Company.
