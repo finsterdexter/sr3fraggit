@@ -14,3 +14,6 @@ obj/
 *.nupkg
 *.snupkg
 *.sln.docstates
+
+# Documents
+*.pdf
