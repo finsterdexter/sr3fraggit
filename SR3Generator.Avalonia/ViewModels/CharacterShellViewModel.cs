@@ -22,6 +22,7 @@ public partial class CharacterShellViewModel : ViewModelBase
     public AttributesViewModel AttributesVM { get; }
     public SkillsViewModel SkillsVM { get; }
     public GearViewModel GearVM { get; }
+    public MatrixViewModel MatrixVM { get; }
     public AugmentationsViewModel AugmentationsVM { get; }
     public ContactsViewModel ContactsVM { get; }
     public SummaryViewModel SummaryVM { get; }
@@ -88,6 +89,7 @@ public partial class CharacterShellViewModel : ViewModelBase
         AttributesViewModel attributesVM,
         SkillsViewModel skillsVM,
         GearViewModel gearVM,
+        MatrixViewModel matrixVM,
         AugmentationsViewModel augmentationsVM,
         ContactsViewModel contactsVM,
         SummaryViewModel summaryVM)
@@ -101,6 +103,7 @@ public partial class CharacterShellViewModel : ViewModelBase
         AttributesVM = attributesVM;
         SkillsVM = skillsVM;
         GearVM = gearVM;
+        MatrixVM = matrixVM;
         AugmentationsVM = augmentationsVM;
         ContactsVM = contactsVM;
         SummaryVM = summaryVM;
@@ -144,9 +147,10 @@ public partial class CharacterShellViewModel : ViewModelBase
         // MagicAspectsAllowed is empty for Magic priority C/D/E.
         CanChooseMagic = builder.MagicAspectsAllowed.Any();
 
-        // Nuyen
+        // Nuyen: character.Nuyen starts at 0 and is decremented as items are bought (and can be
+        // topped up by AddNuyen). Available = priority allowance + that running delta.
         NuyenAllowance = builder.ResourcesAllowance;
-        NuyenRemaining = character.Nuyen;
+        NuyenRemaining = builder.ResourcesAllowance + character.Nuyen;
 
         // Race and Magic
         SelectedRace = character.Race?.Name.ToString() ?? "None";

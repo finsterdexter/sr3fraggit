@@ -7,6 +7,7 @@ using SR3Generator.Data.Magic;
 using System;
 using System.Collections.Generic;
 using Attribute = SR3Generator.Data.Character.Attribute;
+using GearProgram = SR3Generator.Data.Gear.Program;
 
 namespace SR3Generator.Avalonia.Services;
 
@@ -55,6 +56,18 @@ public interface ICharacterBuilderService
     // Gear methods
     void BuyGear(Equipment item, bool useStreetIndex = false);
     void SellGear(Guid gearId, bool useStreetIndex = false);
+
+    // Matrix (cyberdeck + program) methods
+    void BuyCyberdeck(Cyberdeck deck, bool useStreetIndex = false);
+    void SellCyberdeck(Guid deckId, bool useStreetIndex = false);
+    void BuyProgram(GearProgram program, bool useStreetIndex = false);
+    void SellProgram(Guid programId, bool useStreetIndex = false);
+    void StoreProgramOnDeck(Guid deckId, Guid programId);
+    void RemoveProgramFromDeck(Guid deckId, Guid programId);
+    void ActivateProgram(Guid deckId, Guid programId);
+    void DeactivateProgram(Guid deckId, Guid programId);
+    void EquipCyberdeck(Guid? deckId);
+    void SetDeckPersona(Guid deckId, int bod, int evasion, int masking, int sensor);
 
     // Cyberware/Bioware methods
     void InstallCyberware(Cyberware cyberware, bool useStreetIndex = false);

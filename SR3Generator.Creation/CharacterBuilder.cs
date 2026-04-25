@@ -68,7 +68,12 @@ namespace SR3Generator.Creation
         public int ActiveSkillPointsSpent =>
             ComputeSkillPoints(Character.ActiveSkills.Values);
 
-        /// <summary>Knowledge-skill allowance: (Intelligence base + racial mod) × 5.</summary>
+        /// <summary>
+        /// Knowledge-skill allowance: (Intelligence base + racial mod + scoped gear mods) × 5.
+        /// Scoped gear mods are <see cref="KnowledgeSkillIntMod"/> — e.g. Encephalon's
+        /// "+N Int for learning new skills" which only raises the skill budget, not regular
+        /// Int-based dice pools.
+        /// </summary>
         public int KnowledgeSkillPointsAllowance
         {
             get
@@ -76,7 +81,10 @@ namespace SR3Generator.Creation
                 if (!Character.Attributes.TryGetValue(AttributeName.Intelligence, out var intel)) return 0;
                 var racialMod = Character.Race?.AttributeMods
                     .FirstOrDefault(m => m.AttributeName == AttributeName.Intelligence)?.ModValue ?? 0;
-                return ((int)intel.BaseValue + racialMod) * 5;
+                var gearMod = Character.Gear.Values.OfType<Augmentation>()
+                    .SelectMany(a => a.Mods.OfType<KnowledgeSkillIntMod>())
+                    .Sum(m => m.ModValue);
+                return ((int)intel.BaseValue + racialMod + gearMod) * 5;
             }
         }
 
@@ -523,6 +531,189 @@ namespace SR3Generator.Creation
 
             AddNuyen(cost).RemoveGear(equipmentId);
             return this;
+        }
+
+        // Matrix (cyberdeck + program) methods
+        public CharacterBuilder BuyCyberdeck(Cyberdeck deck, bool useStreetIndex = false)
+        {
+            // CloneForPurchase on Cyberdeck resets StoredPrograms/ActivePrograms, so the catalog
+            // entry doesn't share list state with the purchased copy.
+            BuyGear(deck, useStreetIndex);
+            return this;
+        }
+
+        public CharacterBuilder SellCyberdeck(Guid deckId, bool useStreetIndex = false)
+        {
+            if (!Character.Gear.TryGetValue(deckId, out var item) || item is not Cyberdeck deck)
+            {
+                _logger.LogWarning("SellCyberdeck: Cyberdeck {DeckId} not found", deckId);
+                return this;
+            }
+            // Programs stay in inventory — they're independent equipment. Just detach.
+            deck.StoredPrograms.Clear();
+            deck.ActivePrograms.Clear();
+            SellGear(deckId, useStreetIndex);
+            return this;
+        }
+
+        public CharacterBuilder BuyProgram(Program program, bool useStreetIndex = false)
+        {
+            BuyGear(program, useStreetIndex);
+            return this;
+        }
+
+        public CharacterBuilder SellProgram(Guid programId, bool useStreetIndex = false)
+        {
+            if (!Character.Gear.TryGetValue(programId, out var item) || item is not Program)
+            {
+                _logger.LogWarning("SellProgram: Program {ProgramId} not found", programId);
+                return this;
+            }
+            // Detach from any decks that reference this program before refunding+removing.
+            foreach (var deck in Character.Gear.Values.OfType<Cyberdeck>())
+            {
+                deck.StoredPrograms.Remove(programId);
+                deck.ActivePrograms.Remove(programId);
+            }
+            SellGear(programId, useStreetIndex);
+            return this;
+        }
+
+        public CharacterBuilder StoreProgramOnDeck(Guid deckId, Guid programId)
+        {
+            if (!TryGetDeckAndProgram(deckId, programId, "StoreProgramOnDeck", out var deck, out var program))
+                return this;
+
+            if (deck.StoredPrograms.Contains(programId))
+            {
+                _logger.LogWarning("StoreProgramOnDeck: program {ProgramId} already stored on deck {DeckId}", programId, deckId);
+                return this;
+            }
+
+            var currentStored = deck.StoredPrograms
+                .Where(id => Character.Gear.TryGetValue(id, out var p) && p is Program)
+                .Sum(id => ((Program)Character.Gear[id]).Size);
+
+            if (currentStored + program.Size > deck.StorageMemory)
+            {
+                _logger.LogWarning("StoreProgramOnDeck: not enough storage memory ({Used}+{Add} > {Total})",
+                    currentStored, program.Size, deck.StorageMemory);
+                return this;
+            }
+
+            deck.StoredPrograms.Add(programId);
+            return this;
+        }
+
+        public CharacterBuilder RemoveProgramFromDeck(Guid deckId, Guid programId)
+        {
+            if (!Character.Gear.TryGetValue(deckId, out var item) || item is not Cyberdeck deck)
+            {
+                _logger.LogWarning("RemoveProgramFromDeck: Cyberdeck {DeckId} not found", deckId);
+                return this;
+            }
+            deck.StoredPrograms.Remove(programId);
+            deck.ActivePrograms.Remove(programId);
+            return this;
+        }
+
+        public CharacterBuilder ActivateProgram(Guid deckId, Guid programId)
+        {
+            if (!TryGetDeckAndProgram(deckId, programId, "ActivateProgram", out var deck, out var program))
+                return this;
+
+            if (!deck.StoredPrograms.Contains(programId))
+            {
+                _logger.LogWarning("ActivateProgram: program {ProgramId} not stored on deck {DeckId}", programId, deckId);
+                return this;
+            }
+
+            if (deck.ActivePrograms.Contains(programId))
+                return this;
+
+            var currentActive = deck.ActivePrograms
+                .Where(id => Character.Gear.TryGetValue(id, out var p) && p is Program)
+                .Sum(id => ((Program)Character.Gear[id]).Size);
+
+            if (currentActive + program.Size > deck.ActiveMemory)
+            {
+                _logger.LogWarning("ActivateProgram: not enough active memory ({Used}+{Add} > {Total})",
+                    currentActive, program.Size, deck.ActiveMemory);
+                return this;
+            }
+
+            deck.ActivePrograms.Add(programId);
+            return this;
+        }
+
+        public CharacterBuilder DeactivateProgram(Guid deckId, Guid programId)
+        {
+            if (!Character.Gear.TryGetValue(deckId, out var item) || item is not Cyberdeck deck)
+            {
+                _logger.LogWarning("DeactivateProgram: Cyberdeck {DeckId} not found", deckId);
+                return this;
+            }
+            deck.ActivePrograms.Remove(programId);
+            return this;
+        }
+
+        /// <summary>
+        /// Tune the four persona attributes (Bod/Evasion/Masking/Sensor) on an owned deck. Values
+        /// are clamped to [0, MPCP] and BEMS sum is clamped to 3×MPCP by the validator rather than
+        /// here — the builder writes what the caller asked for and lets <see cref="CyberdeckValidator"/>
+        /// surface any rule violations so the UI can show meaningful errors.
+        /// </summary>
+        public CharacterBuilder SetDeckPersona(Guid deckId, int bod, int evasion, int masking, int sensor)
+        {
+            if (!Character.Gear.TryGetValue(deckId, out var item) || item is not Cyberdeck deck)
+            {
+                _logger.LogWarning("SetDeckPersona: Cyberdeck {DeckId} not found", deckId);
+                return this;
+            }
+            deck.Bod = Math.Max(0, bod);
+            deck.Evasion = Math.Max(0, evasion);
+            deck.Masking = Math.Max(0, masking);
+            deck.Sensor = Math.Max(0, sensor);
+            return this;
+        }
+
+        /// <summary>
+        /// Mark one cyberdeck as the equipped deck (the one that drives the Hacking dice pool at
+        /// line ~1206). Passing <c>null</c> unequips all decks. Enforces single-equipped:
+        /// any other decks owned by the character are unequipped.
+        /// </summary>
+        public CharacterBuilder EquipCyberdeck(Guid? deckId)
+        {
+            foreach (var deck in Character.Gear.Values.OfType<Cyberdeck>())
+                deck.IsEquipped = false;
+
+            if (deckId is Guid id
+                && Character.Gear.TryGetValue(id, out var item)
+                && item is Cyberdeck target)
+            {
+                target.IsEquipped = true;
+            }
+            return this;
+        }
+
+        private bool TryGetDeckAndProgram(Guid deckId, Guid programId, string op,
+            out Cyberdeck deck, out Program program)
+        {
+            deck = null!;
+            program = null!;
+            if (!Character.Gear.TryGetValue(deckId, out var deckItem) || deckItem is not Cyberdeck d)
+            {
+                _logger.LogWarning("{Op}: Cyberdeck {DeckId} not found", op, deckId);
+                return false;
+            }
+            if (!Character.Gear.TryGetValue(programId, out var programItem) || programItem is not Program p)
+            {
+                _logger.LogWarning("{Op}: Program {ProgramId} not found", op, programId);
+                return false;
+            }
+            deck = d;
+            program = p;
+            return true;
         }
 
         // Cyberware methods
@@ -1212,6 +1403,18 @@ namespace SR3Generator.Creation
             Character.DicePools[DicePoolType.Control].Value = vcr?.Rating is null
                 ? 0
                 : Character.Attributes[AttributeName.Reaction].BaseValue + (vcr.Rating.Value * 2);
+
+            // Apply DicePoolMods from installed cyberware + bioware. Always-on by SR3 convention
+            // (cyberware/bioware doesn't "equip"). Runs after base pool calcs so bonuses stack on
+            // top of the freshly-recomputed base, not on a stale augmented value.
+            foreach (var aug in Character.Gear.Values.OfType<Augmentation>())
+            {
+                foreach (var mod in aug.Mods.OfType<DicePoolMod>())
+                {
+                    if (Character.DicePools.TryGetValue(mod.DicePoolType, out var pool))
+                        pool.Value += mod.ModValue;
+                }
+            }
 
             // Single validation pass so ValidationIssues reflects current state too.
             Validate();

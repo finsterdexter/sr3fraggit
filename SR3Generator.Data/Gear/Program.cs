@@ -16,8 +16,7 @@ namespace SR3Generator.Data.Gear
             {
                 if (Rating == null)
                     return 0;
-                else
-                    return Rating.Value ^ 2 * Multiplier;
+                return Rating.Value * Rating.Value * Multiplier;
             }
         }
 

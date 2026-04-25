@@ -148,6 +148,7 @@
   <data name="TabFoci" xml:space="preserve"><value>Foci</value></data>
   <data name="TabGear" xml:space="preserve"><value>Gear</value></data>
   <data name="TabAugments" xml:space="preserve"><value>Augments</value></data>
+  <data name="TabMatrix" xml:space="preserve"><value>Matrix</value></data>
   <data name="TabContacts" xml:space="preserve"><value>Contacts</value></data>
   <data name="TabSummary" xml:space="preserve"><value>Summary</value></data>
 

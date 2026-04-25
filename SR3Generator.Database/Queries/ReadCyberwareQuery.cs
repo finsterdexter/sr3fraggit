@@ -51,6 +51,16 @@ namespace SR3Generator.Database.Queries
                     cyberware.Mods = ParseMods(dto.Mods);
                 }
 
+                // Encephalon's "+N Int for learning new skills" is a scoped bonus that isn't
+                // expressible in the generic mod abbrev column; encode it as a KnowledgeSkillIntMod.
+                // Rating lives in the name as "Encephalon [N]".
+                if (cyberware.Name.StartsWith("Encephalon", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    var rating = ParseRatingFromName(cyberware.Name);
+                    if (rating > 0)
+                        cyberware.Mods.Add(new KnowledgeSkillIntMod(rating));
+                }
+
                 results.Add(cyberware);
             }
 
@@ -61,26 +71,37 @@ namespace SR3Generator.Database.Queries
         {
             var mods = new List<Mod>();
 
-            // Format is like "+1BOD,+2STR,-1RCT," or "+1INI,"
+            // Format is like "+1BOD,+2STR,-1RCT,", "+1INI,", or "+1HAC,+1TAS,"
             var modPattern = new Regex(@"([+-]?\d+)([A-Z]+)", RegexOptions.IgnoreCase);
             var matches = modPattern.Matches(modsString);
 
             foreach (Match match in matches)
             {
-                if (match.Groups.Count >= 3)
-                {
-                    var value = int.Parse(match.Groups[1].Value);
-                    var abbr = match.Groups[2].Value.ToUpper();
+                if (match.Groups.Count < 3) continue;
 
-                    var attrName = MapAbbrToAttributeName(abbr);
-                    if (attrName.HasValue)
-                    {
-                        mods.Add(new AttributeMod(attrName.Value, value));
-                    }
+                var value = int.Parse(match.Groups[1].Value);
+                var abbr = match.Groups[2].Value.ToUpper();
+
+                // Pool abbrev wins over attribute abbrev — no collisions in SR3 shorthand.
+                var poolType = MapAbbrToDicePoolType(abbr);
+                if (poolType.HasValue)
+                {
+                    mods.Add(new DicePoolMod(poolType.Value, value));
+                    continue;
                 }
+
+                var attrName = MapAbbrToAttributeName(abbr);
+                if (attrName.HasValue)
+                    mods.Add(new AttributeMod(attrName.Value, value));
             }
 
             return mods;
+        }
+
+        private static int ParseRatingFromName(string name)
+        {
+            var m = Regex.Match(name, @"\[(\d+)\]");
+            return m.Success && int.TryParse(m.Groups[1].Value, out var r) ? r : 0;
         }
 
         private static AttributeName? MapAbbrToAttributeName(string abbr)
@@ -99,6 +120,21 @@ namespace SR3Generator.Database.Queries
                 "MAG" => AttributeName.Magic,
                 // Armor stats - stored in Stats dictionary instead
                 "BAL" or "IMP" => null,
+                _ => null
+            };
+        }
+
+        private static DicePoolType? MapAbbrToDicePoolType(string abbr)
+        {
+            return abbr switch
+            {
+                "HAC" => DicePoolType.Hacking,
+                "TAS" => DicePoolType.Task,
+                "SPL" => DicePoolType.Spell,
+                "CMB" => DicePoolType.Combat,
+                "CTR" => DicePoolType.Control,
+                "AST" => DicePoolType.AstralCombat,
+                "KRM" => DicePoolType.Karma,
                 _ => null
             };
         }

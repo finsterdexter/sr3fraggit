@@ -66,26 +66,46 @@ namespace SR3Generator.Database.Queries
         {
             var mods = new List<Mod>();
 
-            // Format is like "+1BOD,+2STR," or "+1RTR,+1RCK," (RTR=Strength, RCK=Quickness for bioware)
+            // Format is like "+1BOD,+2STR,", "+1RTR,+1RCK," (RTR=Strength, RCK=Quickness for
+            // bioware), or pool shorthand like "+1TAS,".
             var modPattern = new Regex(@"([+-]?\d+)([A-Z]+)", RegexOptions.IgnoreCase);
             var matches = modPattern.Matches(modsString);
 
             foreach (Match match in matches)
             {
-                if (match.Groups.Count >= 3)
-                {
-                    var value = int.Parse(match.Groups[1].Value);
-                    var abbr = match.Groups[2].Value.ToUpper();
+                if (match.Groups.Count < 3) continue;
 
-                    var attrName = MapAbbrToAttributeName(abbr);
-                    if (attrName.HasValue)
-                    {
-                        mods.Add(new AttributeMod(attrName.Value, value));
-                    }
+                var value = int.Parse(match.Groups[1].Value);
+                var abbr = match.Groups[2].Value.ToUpper();
+
+                var poolType = MapAbbrToDicePoolType(abbr);
+                if (poolType.HasValue)
+                {
+                    mods.Add(new DicePoolMod(poolType.Value, value));
+                    continue;
                 }
+
+                var attrName = MapAbbrToAttributeName(abbr);
+                if (attrName.HasValue)
+                    mods.Add(new AttributeMod(attrName.Value, value));
             }
 
             return mods;
+        }
+
+        private static DicePoolType? MapAbbrToDicePoolType(string abbr)
+        {
+            return abbr switch
+            {
+                "HAC" => DicePoolType.Hacking,
+                "TAS" => DicePoolType.Task,
+                "SPL" => DicePoolType.Spell,
+                "CMB" => DicePoolType.Combat,
+                "CTR" => DicePoolType.Control,
+                "AST" => DicePoolType.AstralCombat,
+                "KRM" => DicePoolType.Karma,
+                _ => null
+            };
         }
 
         private static AttributeName? MapAbbrToAttributeName(string abbr)

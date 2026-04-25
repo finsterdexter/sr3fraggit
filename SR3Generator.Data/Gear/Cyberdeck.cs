@@ -22,6 +22,12 @@ namespace SR3Generator.Data.Gear
         public List<Guid> StoredPrograms { get; set; } = new List<Guid>();
         public List<Guid> ActivePrograms { get; set; } = new List<Guid>();
 
-
+        public override Equipment CloneForPurchase()
+        {
+            var clone = (Cyberdeck)base.CloneForPurchase();
+            clone.StoredPrograms = new List<Guid>();
+            clone.ActivePrograms = new List<Guid>();
+            return clone;
+        }
     }
 }

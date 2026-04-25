@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Attribute = SR3Generator.Data.Character.Attribute;
+using GearProgram = SR3Generator.Data.Gear.Program;
 
 namespace SR3Generator.Avalonia.Services;
 
@@ -175,6 +176,66 @@ public class CharacterBuilderService : ICharacterBuilderService
     public void SellGear(Guid gearId, bool useStreetIndex = false)
     {
         _builder.SellGear(gearId, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void BuyCyberdeck(Cyberdeck deck, bool useStreetIndex = false)
+    {
+        _builder.BuyCyberdeck(deck, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void SellCyberdeck(Guid deckId, bool useStreetIndex = false)
+    {
+        _builder.SellCyberdeck(deckId, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void BuyProgram(GearProgram program, bool useStreetIndex = false)
+    {
+        _builder.BuyProgram(program, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void SellProgram(Guid programId, bool useStreetIndex = false)
+    {
+        _builder.SellProgram(programId, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void StoreProgramOnDeck(Guid deckId, Guid programId)
+    {
+        _builder.StoreProgramOnDeck(deckId, programId);
+        OnCharacterChanged();
+    }
+
+    public void RemoveProgramFromDeck(Guid deckId, Guid programId)
+    {
+        _builder.RemoveProgramFromDeck(deckId, programId);
+        OnCharacterChanged();
+    }
+
+    public void ActivateProgram(Guid deckId, Guid programId)
+    {
+        _builder.ActivateProgram(deckId, programId);
+        OnCharacterChanged();
+    }
+
+    public void DeactivateProgram(Guid deckId, Guid programId)
+    {
+        _builder.DeactivateProgram(deckId, programId);
+        OnCharacterChanged();
+    }
+
+    public void EquipCyberdeck(Guid? deckId)
+    {
+        _builder.EquipCyberdeck(deckId);
+        OnCharacterChanged();
+    }
+
+    public void SetDeckPersona(Guid deckId, int bod, int evasion, int masking, int sensor)
+    {
+        _builder.SetDeckPersona(deckId, bod, evasion, masking, sensor);
         OnCharacterChanged();
     }
 

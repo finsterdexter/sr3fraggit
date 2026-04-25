@@ -150,6 +150,7 @@ public static class Strings
     public static string TabFoci => Get(nameof(TabFoci));
     public static string TabGear => Get(nameof(TabGear));
     public static string TabAugments => Get(nameof(TabAugments));
+    public static string TabMatrix => Get(nameof(TabMatrix));
     public static string TabContacts => Get(nameof(TabContacts));
     public static string TabSummary => Get(nameof(TabSummary));
 

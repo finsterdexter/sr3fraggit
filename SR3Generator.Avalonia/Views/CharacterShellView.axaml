@@ -122,6 +122,9 @@
                 <TabItem Header="{x:Static res:Strings.TabAugments}">
                     <tabs:AugmentationsView DataContext="{Binding AugmentationsVM}"/>
                 </TabItem>
+                <TabItem Header="{x:Static res:Strings.TabMatrix}">
+                    <tabs:MatrixView DataContext="{Binding MatrixVM}"/>
+                </TabItem>
                 <TabItem Header="{x:Static res:Strings.TabContacts}">
                     <tabs:ContactsView DataContext="{Binding ContactsVM}"/>
                 </TabItem>

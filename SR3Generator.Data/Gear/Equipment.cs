@@ -3,10 +3,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace SR3Generator.Data.Gear
 {
+    // Character.Gear is typed as Dictionary<Guid, Equipment>, so without polymorphism the
+    // derived-type fields (MPCP on Cyberdeck, Multiplier on Program, essence on Cyberware, …)
+    // are silently dropped on save AND every value reloads as a plain Equipment, losing type.
+    // Discriminator covers every concrete subclass that lives in Character.Gear; subclasses with
+    // their own derived types (Weapon, Augmentation, Focus) carry their own JsonPolymorphic.
+    [JsonPolymorphic(TypeDiscriminatorPropertyName = "$equipType")]
+    [JsonDerivedType(typeof(Equipment), "equipment")]
+    [JsonDerivedType(typeof(Weapon), "weapon")]
+    [JsonDerivedType(typeof(Firearm), "firearm")]
+    [JsonDerivedType(typeof(MeleeWeapon), "melee")]
+    [JsonDerivedType(typeof(ProjectileWeapon), "projectile")]
+    [JsonDerivedType(typeof(RocketMissile), "rocket")]
+    [JsonDerivedType(typeof(Armor), "armor")]
+    [JsonDerivedType(typeof(Augmentation), "augmentation")]
+    [JsonDerivedType(typeof(Cyberware), "cyberware")]
+    [JsonDerivedType(typeof(Bioware), "bioware")]
+    [JsonDerivedType(typeof(Focus), "focus")]
+    [JsonDerivedType(typeof(WeaponFocus), "weaponFocus")]
+    [JsonDerivedType(typeof(Cyberdeck), "cyberdeck")]
+    [JsonDerivedType(typeof(Program), "program")]
+    [JsonDerivedType(typeof(VehicleControlRig), "vcr")]
+    [JsonDerivedType(typeof(Vehicle), "vehicle")]
+    [JsonDerivedType(typeof(FirearmAccessory), "firearmAccessory")]
     public class Equipment
     {
         public int Id { get; set; }
@@ -43,7 +67,7 @@ namespace SR3Generator.Data.Gear
         /// different street-index settings overwrites the earlier purchase's recorded price.
         /// Preserves the runtime type (Weapon / Cyberware / Focus / …) via MemberwiseClone.
         /// </summary>
-        public Equipment CloneForPurchase()
+        public virtual Equipment CloneForPurchase()
         {
             var clone = (Equipment)MemberwiseClone();
             clone.CategoryTree = new List<string>(CategoryTree);

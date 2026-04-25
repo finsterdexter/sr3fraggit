@@ -70,6 +70,8 @@ public partial class App : Application
         services.AddSingleton<AdeptPowerDatabase>();
         services.AddSingleton<FocusDatabase>();
         services.AddSingleton<SpellDatabase>();
+        services.AddSingleton<CyberdeckDatabase>();
+        services.AddSingleton<ProgramDatabase>();
         services.AddSingleton<RulesGlossary>();
         services.AddSingleton<TotemDatabase>();
         services.AddSingleton<BookDatabase>();
@@ -98,6 +100,7 @@ public partial class App : Application
         services.AddTransient<AdeptPowersViewModel>();
         services.AddTransient<FociViewModel>();
         services.AddTransient<GearViewModel>();
+        services.AddTransient<MatrixViewModel>();
         services.AddTransient<AugmentationsViewModel>();
         services.AddTransient<ContactsViewModel>();
         services.AddTransient<SummaryViewModel>();
