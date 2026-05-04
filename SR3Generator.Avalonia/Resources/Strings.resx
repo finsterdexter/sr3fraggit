@@ -150,6 +150,7 @@
   <data name="TabAugments" xml:space="preserve"><value>Augments</value></data>
   <data name="TabMatrix" xml:space="preserve"><value>Matrix</value></data>
   <data name="TabContacts" xml:space="preserve"><value>Contacts</value></data>
+  <data name="TabEdgesFlaws" xml:space="preserve"><value>Edges &amp; Flaws</value></data>
   <data name="TabSummary" xml:space="preserve"><value>Summary</value></data>
 
   <!-- Page titles + subtitles -->
@@ -189,6 +190,17 @@
 
   <data name="AugmentationsTitle" xml:space="preserve"><value>Augmentations</value></data>
   <data name="AugmentationsSubtitle" xml:space="preserve"><value>Cyberware costs Essence. Bioware costs Bio Index. Both cost nuyen.</value></data>
+
+  <data name="EdgesFlawsTitle" xml:space="preserve"><value>Edges &amp; Flaws</value></data>
+  <data name="EdgesFlawsSubtitle" xml:space="preserve"><value>Select Edges (positive) and Flaws (negative). Max 6 points each, max 5 of each, and net must be zero.</value></data>
+  <data name="LabelEdges" xml:space="preserve"><value>EDGES</value></data>
+  <data name="LabelFlaws" xml:space="preserve"><value>FLAWS</value></data>
+  <data name="LabelNetPoints" xml:space="preserve"><value>NET</value></data>
+  <data name="LabelAll" xml:space="preserve"><value>All</value></data>
+  <data name="LabelTypeFilter" xml:space="preserve"><value>TYPE</value></data>
+  <data name="SectionSelectedEdgesFlaws" xml:space="preserve"><value>SELECTED</value></data>
+  <data name="SectionAvailableEdgesFlaws" xml:space="preserve"><value>AVAILABLE</value></data>
+  <data name="WatermarkSearchEdgesFlaws" xml:space="preserve"><value>Search edges and flaws...</value></data>
 
   <data name="ContactsTitle" xml:space="preserve"><value>Contacts</value></data>
   <data name="ContactsSubtitle" xml:space="preserve"><value>Every character starts with 2 free Level 1 contacts. Extra contacts cost nuyen.</value></data>

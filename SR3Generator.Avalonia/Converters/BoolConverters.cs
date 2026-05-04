@@ -54,3 +54,22 @@ public class IntEqualsConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+public class EdgeFlawTypeToBrushConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is SR3Generator.Data.Character.EdgeFlawType type)
+        {
+            return type == SR3Generator.Data.Character.EdgeFlawType.Edge
+                ? new global::Avalonia.Media.SolidColorBrush(global::Avalonia.Media.Color.Parse("#22c55e"))  // karma green
+                : new global::Avalonia.Media.SolidColorBrush(global::Avalonia.Media.Color.Parse("#ef4444")); // destructive red
+        }
+        return new global::Avalonia.Media.SolidColorBrush(global::Avalonia.Media.Color.Parse("#9ca3af"));
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

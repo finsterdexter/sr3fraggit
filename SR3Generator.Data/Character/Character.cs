@@ -53,6 +53,9 @@ namespace SR3Generator.Data.Character
         // Contacts
         public Dictionary<Guid, Contact> Contacts { get; set; } = new Dictionary<Guid, Contact>();
 
+        // Edges & Flaws
+        public List<CharacterEdgeFlaw> EdgesFlaws { get; set; } = new List<CharacterEdgeFlaw>();
+
         public Character()
         {
             Attributes = new Dictionary<AttributeName, Attribute>

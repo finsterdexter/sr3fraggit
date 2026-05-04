@@ -30,5 +30,6 @@ namespace SR3Generator.Creation.Validation
         Equipment,
         Race,
         Cyberdeck,
+        EdgesFlaws,
     }
 }

@@ -317,6 +317,18 @@ public class CharacterBuilderService : ICharacterBuilderService
         OnCharacterChanged();
     }
 
+    public void AddEdgeFlaw(EdgeFlaw edgeFlaw, string? notes = null)
+    {
+        _builder.AddEdgeFlaw(edgeFlaw, notes);
+        OnCharacterChanged();
+    }
+
+    public void RemoveEdgeFlaw(Guid id)
+    {
+        _builder.RemoveEdgeFlaw(id);
+        OnCharacterChanged();
+    }
+
     public void AddNuyen(long nuyen)
     {
         _builder.AddNuyen(nuyen);
@@ -374,6 +386,10 @@ public class CharacterBuilderService : ICharacterBuilderService
         foreach (var aug in character.NaturalAugmentations.Values)
             if (!_settings.IsBookEnabled(aug.Book))
                 yield return BookWarning(ValidationIssueCategory.Equipment, $"Augmentation '{aug.Name}' is from a disabled source ({aug.Book}).");
+
+        foreach (var ef in character.EdgesFlaws)
+            if (!_settings.IsBookEnabled(ef.EdgeFlaw.Book))
+                yield return BookWarning(ValidationIssueCategory.EdgesFlaws, $"Edge/Flaw '{ef.EdgeFlaw.Name}' is from a disabled source ({ef.EdgeFlaw.Book}).");
     }
 
     private static ValidationIssue BookWarning(ValidationIssueCategory category, string message) =>

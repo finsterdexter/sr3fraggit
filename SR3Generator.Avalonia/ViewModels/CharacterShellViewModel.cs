@@ -25,6 +25,7 @@ public partial class CharacterShellViewModel : ViewModelBase
     public MatrixViewModel MatrixVM { get; }
     public AugmentationsViewModel AugmentationsVM { get; }
     public ContactsViewModel ContactsVM { get; }
+    public EdgesFlawsViewModel EdgesFlawsVM { get; }
     public SummaryViewModel SummaryVM { get; }
 
     // Summary stats for sidebar
@@ -81,6 +82,16 @@ public partial class CharacterShellViewModel : ViewModelBase
     [ObservableProperty]
     private bool _canChooseMagic;
 
+    // Edge/Flaw stats
+    [ObservableProperty]
+    private int _edgePoints;
+
+    [ObservableProperty]
+    private int _flawPoints;
+
+    [ObservableProperty]
+    private int _netEdgeFlawPoints;
+
     public CharacterShellViewModel(
         ICharacterBuilderService characterService,
         PrioritiesViewModel prioritiesVM,
@@ -92,6 +103,7 @@ public partial class CharacterShellViewModel : ViewModelBase
         MatrixViewModel matrixVM,
         AugmentationsViewModel augmentationsVM,
         ContactsViewModel contactsVM,
+        EdgesFlawsViewModel edgesFlawsVM,
         SummaryViewModel summaryVM)
     {
         _characterService = characterService;
@@ -106,6 +118,7 @@ public partial class CharacterShellViewModel : ViewModelBase
         MatrixVM = matrixVM;
         AugmentationsVM = augmentationsVM;
         ContactsVM = contactsVM;
+        EdgesFlawsVM = edgesFlawsVM;
         SummaryVM = summaryVM;
 
         _characterService.CharacterChanged += OnCharacterChanged;
@@ -155,6 +168,11 @@ public partial class CharacterShellViewModel : ViewModelBase
         // Race and Magic
         SelectedRace = character.Race?.Name.ToString() ?? "None";
         SelectedMagicAspect = character.MagicAspect?.Name.ToString() ?? "None";
+
+        // Edge/Flaw stats
+        EdgePoints = builder.EdgePoints;
+        FlawPoints = builder.FlawPoints;
+        NetEdgeFlawPoints = builder.NetEdgeFlawPoints;
     }
 
     private int CalculateAttributePointsSpent(Character character)

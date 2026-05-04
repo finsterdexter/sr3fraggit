@@ -103,6 +103,7 @@ public partial class App : Application
         services.AddTransient<MatrixViewModel>();
         services.AddTransient<AugmentationsViewModel>();
         services.AddTransient<ContactsViewModel>();
+        services.AddTransient<EdgesFlawsViewModel>();
         services.AddTransient<SummaryViewModel>();
 
         // Shell and Main ViewModels

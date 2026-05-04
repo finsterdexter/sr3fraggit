@@ -152,6 +152,7 @@ public static class Strings
     public static string TabAugments => Get(nameof(TabAugments));
     public static string TabMatrix => Get(nameof(TabMatrix));
     public static string TabContacts => Get(nameof(TabContacts));
+    public static string TabEdgesFlaws => Get(nameof(TabEdgesFlaws));
     public static string TabSummary => Get(nameof(TabSummary));
 
     // Page titles + subtitles
@@ -191,6 +192,17 @@ public static class Strings
 
     public static string AugmentationsTitle => Get(nameof(AugmentationsTitle));
     public static string AugmentationsSubtitle => Get(nameof(AugmentationsSubtitle));
+
+    public static string EdgesFlawsTitle => Get(nameof(EdgesFlawsTitle));
+    public static string EdgesFlawsSubtitle => Get(nameof(EdgesFlawsSubtitle));
+    public static string LabelEdges => Get(nameof(LabelEdges));
+    public static string LabelFlaws => Get(nameof(LabelFlaws));
+    public static string LabelNetPoints => Get(nameof(LabelNetPoints));
+    public static string LabelAll => Get(nameof(LabelAll));
+    public static string LabelTypeFilter => Get(nameof(LabelTypeFilter));
+    public static string SectionSelectedEdgesFlaws => Get(nameof(SectionSelectedEdgesFlaws));
+    public static string SectionAvailableEdgesFlaws => Get(nameof(SectionAvailableEdgesFlaws));
+    public static string WatermarkSearchEdgesFlaws => Get(nameof(WatermarkSearchEdgesFlaws));
 
     public static string ContactsTitle => Get(nameof(ContactsTitle));
     public static string ContactsSubtitle => Get(nameof(ContactsSubtitle));

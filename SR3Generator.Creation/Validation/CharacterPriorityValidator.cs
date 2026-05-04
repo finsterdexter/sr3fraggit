@@ -23,6 +23,7 @@ namespace SR3Generator.Creation.Validation
                 .ValidateBondedSpirits(builder)
                 .ValidateNuyen(builder)
                 .ValidatePointBudgets(builder)
+                .ValidateEdgesFlaws(builder)
                 ;
             return IssueCheck();
         }
@@ -259,6 +260,77 @@ namespace SR3Generator.Creation.Validation
             {
                 Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = $"Spell points spent ({builder.SpellPointsSpent}) exceeds allowance ({builder.SpellPointsAllowance})." });
             }
+
+            return this;
+        }
+
+        private CharacterPriorityValidator ValidateEdgesFlaws(CharacterBuilder builder)
+        {
+            var character = builder.Character;
+            var edgesFlaws = character.EdgesFlaws;
+
+            if (edgesFlaws.Count == 0) return this;
+
+            var edgePoints = edgesFlaws.Where(ef => ef.EdgeFlaw.Type == EdgeFlawType.Edge).Sum(ef => ef.EdgeFlaw.PointValue);
+            var flawPoints = edgesFlaws.Where(ef => ef.EdgeFlaw.Type == EdgeFlawType.Flaw).Sum(ef => Math.Abs(ef.EdgeFlaw.PointValue));
+            var edgeCount = edgesFlaws.Count(ef => ef.EdgeFlaw.Type == EdgeFlawType.Edge);
+            var flawCount = edgesFlaws.Count(ef => ef.EdgeFlaw.Type == EdgeFlawType.Flaw);
+            var netPoints = edgePoints - flawPoints;
+
+            // Max 6 points of Edges
+            if (edgePoints > 6)
+            {
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = $"Edges exceed maximum of 6 points (currently {edgePoints})." });
+            }
+
+            // Max 6 points of Flaws
+            if (flawPoints > 6)
+            {
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = $"Flaws exceed maximum of 6 points (currently {flawPoints})." });
+            }
+
+            // Max 5 Edges or 5 Flaws (total 10)
+            if (edgeCount > 5)
+            {
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = $"Cannot take more than 5 Edges (currently {edgeCount})." });
+            }
+            if (flawCount > 5)
+            {
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = $"Cannot take more than 5 Flaws (currently {flawCount})." });
+            }
+
+            // In priority system, combined point values must equal zero
+            if (netPoints != 0)
+            {
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = $"Edges and Flaws must balance to 0 net points (currently {netPoints:+0;-0;0})." });
+            }
+
+            // Mutually exclusive checks
+            var names = edgesFlaws.Select(ef => ef.EdgeFlaw.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            if (names.Contains("Pacifist") && names.Contains("Total Pacifist"))
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = "Cannot take both Pacifist and Total Pacifist." });
+
+            if (names.Any(n => n.StartsWith("Blind", StringComparison.OrdinalIgnoreCase)) && names.Any(n => n.StartsWith("Color Blind", StringComparison.OrdinalIgnoreCase)))
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = "Cannot take both Blind and Color Blind." });
+
+            if (names.Any(n => n.StartsWith("Blind", StringComparison.OrdinalIgnoreCase)) && names.Any(n => n.StartsWith("Night Blindness", StringComparison.OrdinalIgnoreCase)))
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = "Cannot take both Blind and Night Blindness." });
+
+            if (names.Contains("Bio-Rejection") && names.Contains("Sensitive System"))
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = "Cannot take both Bio-Rejection and Sensitive System." });
+
+            if (names.Contains("College Education") && names.Contains("Uneducated"))
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = "Cannot take both College Education and Uneducated." });
+
+            if (names.Contains("Technical School Education") && names.Contains("Uneducated"))
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = "Cannot take both Technical School Education and Uneducated." });
+
+            if (names.Contains("Illiterate") && names.Contains("College Education"))
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = "Cannot take both Illiterate and College Education." });
+
+            if (names.Contains("Illiterate") && names.Contains("Technical School Education"))
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.EdgesFlaws, Level = ValidationIssueLevel.Error, Message = "Cannot take both Illiterate and Technical School Education." });
 
             return this;
         }

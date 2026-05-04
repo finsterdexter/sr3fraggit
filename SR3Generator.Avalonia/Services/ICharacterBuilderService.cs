@@ -90,6 +90,10 @@ public interface ICharacterBuilderService
     void RemoveContact(Guid contactId);
     void BuyContact(Contact contact);
 
+    // Edge/Flaw methods
+    void AddEdgeFlaw(EdgeFlaw edgeFlaw, string? notes = null);
+    void RemoveEdgeFlaw(Guid id);
+
     // Nuyen methods
     void AddNuyen(long nuyen);
     void RemoveNuyen(long nuyen);

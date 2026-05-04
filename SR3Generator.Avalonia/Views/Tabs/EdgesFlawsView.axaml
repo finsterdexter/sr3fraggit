@@ -1,0 +1,180 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
+             xmlns:conv="using:SR3Generator.Avalonia.Converters"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.EdgesFlawsView"
+             x:DataType="vm:EdgesFlawsViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="{x:Static res:Strings.EdgesFlawsTitle}" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="{x:Static res:Strings.EdgesFlawsSubtitle}"/>
+        </StackPanel>
+
+        <!-- Resource bar -->
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="Auto,*,Auto,*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelEdges}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value">
+                        <Run Text="{Binding EdgePoints}"
+                             Foreground="{StaticResource AccentKarmaBrush}"/>
+                        <Run Text=" / 6" Foreground="{StaticResource InkMutedBrush}"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelFlaws}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value">
+                        <Run Text="{Binding FlawPoints}"
+                             Foreground="{StaticResource DestructiveBrush}"/>
+                        <Run Text=" / 6" Foreground="{StaticResource InkMutedBrush}"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="{x:Static res:Strings.LabelNetPoints}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding NetPoints, StringFormat='{}{0:+0;-0;0}'}"
+                               Classes="stat-value"
+                               Foreground="{StaticResource AccentCyberBrush}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,12,*">
+            <!-- Left: Available Edges/Flaws -->
+            <Border Grid.Column="0" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="12,12,12,8">
+                        <TextBlock Text="{x:Static res:Strings.SectionAvailableEdgesFlaws}" Classes="section-header"/>
+                        <Grid ColumnDefinitions="*,8,Auto,8,Auto">
+                            <TextBox Text="{Binding FilterText}"
+                                     Watermark="{x:Static res:Strings.WatermarkSearchEdgesFlaws}"/>
+                            <ComboBox Grid.Column="2" ItemsSource="{Binding Categories}"
+                                      SelectedItem="{Binding SelectedCategory}"
+                                      PlaceholderText="All Categories"
+                                      Width="160"
+                                      HorizontalAlignment="Stretch"/>
+                            <ComboBox Grid.Column="4" ItemsSource="{Binding TypeFilterOptions}"
+                                      SelectedItem="{Binding SelectedTypeFilterOption}"
+                                      PlaceholderText="{x:Static res:Strings.LabelAll}"
+                                      Width="120"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate DataType="vm:TypeFilterOption">
+                                        <TextBlock Text="{Binding DisplayName}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                        <Button Content="Clear"
+                                Classes="compact"
+                                Command="{Binding ClearFiltersCommand}"/>
+                    </StackPanel>
+
+                    <ListBox ItemsSource="{Binding FilteredItems}"
+                             SelectedItem="{Binding SelectedAvailableItem}"
+                             DoubleTapped="OnAvailableListDoubleTapped"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,60,80" RowDefinitions="Auto,Auto">
+                                    <TextBlock Text="{Binding Name}" Classes="body"
+                                               VerticalAlignment="Center"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding PointDisplay}"
+                                               Classes="data" FontSize="11"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center">
+                                        <TextBlock.Foreground>
+                                            <Binding Path="Type">
+                                                <Binding.Converter>
+                                                    <conv:EdgeFlawTypeToBrushConverter/>
+                                                </Binding.Converter>
+                                            </Binding>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="2" Text="{Binding TypeDisplay}"
+                                               FontSize="9"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                                               Text="{Binding Description}"
+                                               FontSize="10"
+                                               TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               Margin="0,2,0,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <Button DockPanel.Dock="Bottom"
+                            Content="{x:Static res:Strings.ButtonAdd}"
+                            Classes="primary action"
+                            Command="{Binding AddEdgeFlawCommand}"
+                            Margin="12,8,12,12"/>
+                </DockPanel>
+            </Border>
+
+            <!-- Right: Selected Edges/Flaws -->
+            <Border Grid.Column="2" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="12,12,12,8">
+                        <TextBlock Text="{x:Static res:Strings.SectionSelectedEdgesFlaws}" Classes="section-header"/>
+                        <Button Grid.Column="1" Content="{x:Static res:Strings.ButtonRemove}"
+                                Classes="compact"
+                                Command="{Binding RemoveEdgeFlawCommand}"/>
+                    </Grid>
+
+                    <ListBox ItemsSource="{Binding SelectedItems}"
+                             SelectedItem="{Binding SelectedCharacterItem}"
+                             DoubleTapped="OnSelectedListDoubleTapped"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,60,80" RowDefinitions="Auto,Auto">
+                                    <TextBlock Text="{Binding Name}" Classes="body"
+                                               VerticalAlignment="Center"
+                                               FontWeight="SemiBold"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding PointDisplay}"
+                                               Classes="data" FontSize="11"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center">
+                                        <TextBlock.Foreground>
+                                            <Binding Path="Type">
+                                                <Binding.Converter>
+                                                    <conv:EdgeFlawTypeToBrushConverter/>
+                                                </Binding.Converter>
+                                            </Binding>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="2" Text="{Binding TypeDisplay}"
+                                               FontSize="9"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"
+                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                                               Text="{Binding Description}"
+                                               FontSize="10"
+                                               TextWrapping="Wrap"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               Margin="0,2,0,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -32,7 +32,7 @@
                 BorderBrush="{StaticResource BorderSubtleBrush}"
                 BorderThickness="0,0,0,1"
                 Padding="16,10">
-            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto,Auto,Auto">
                 <!-- Identity -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
                     <StackPanel Spacing="2">
@@ -92,6 +92,24 @@
                                Classes="stat-value"
                                Foreground="{StaticResource AccentNuyenBrush}"/>
                 </StackPanel>
+
+                <Border Grid.Column="6" Width="1" Background="{StaticResource BorderSubtleBrush}" Margin="20,2"/>
+
+                <StackPanel Grid.Column="7" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{x:Static res:Strings.LabelEdges}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding EdgePoints}"
+                               Classes="stat-value"
+                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                    <TextBlock Text="/" Classes="stat-value" Foreground="{StaticResource InkMutedBrush}"/>
+                    <TextBlock Text="{x:Static res:Strings.LabelFlaws}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding FlawPoints}"
+                               Classes="stat-value"
+                               Foreground="{StaticResource DestructiveBrush}"/>
+                    <TextBlock Text="=" Classes="stat-value" Foreground="{StaticResource InkMutedBrush}"/>
+                    <TextBlock Text="{Binding NetEdgeFlawPoints, StringFormat='{}{0:+0;-0;0}'}"
+                               Classes="stat-value"
+                               Foreground="{StaticResource AccentCyberBrush}"/>
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -127,6 +145,9 @@
                 </TabItem>
                 <TabItem Header="{x:Static res:Strings.TabContacts}">
                     <tabs:ContactsView DataContext="{Binding ContactsVM}"/>
+                </TabItem>
+                <TabItem Header="{x:Static res:Strings.TabEdgesFlaws}">
+                    <tabs:EdgesFlawsView DataContext="{Binding EdgesFlawsVM}"/>
                 </TabItem>
                 <TabItem Header="{x:Static res:Strings.TabSummary}">
                     <tabs:SummaryView DataContext="{Binding SummaryVM}"/>

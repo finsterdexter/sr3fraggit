@@ -126,6 +126,13 @@ namespace SR3Generator.Creation
 
         public decimal AdeptPowerPointsRemaining => AdeptPowerPointsAllowance - AdeptPowerPointsSpent;
 
+        // ---- Edge/Flaw helpers --------------------------------------------------------------------
+        public int EdgePoints => Character.EdgesFlaws.Where(ef => ef.EdgeFlaw.Type == EdgeFlawType.Edge).Sum(ef => ef.EdgeFlaw.PointValue);
+        public int FlawPoints => Character.EdgesFlaws.Where(ef => ef.EdgeFlaw.Type == EdgeFlawType.Flaw).Sum(ef => Math.Abs(ef.EdgeFlaw.PointValue));
+        public int NetEdgeFlawPoints => EdgePoints - FlawPoints;
+        public int EdgeCount => Character.EdgesFlaws.Count(ef => ef.EdgeFlaw.Type == EdgeFlawType.Edge);
+        public int FlawCount => Character.EdgesFlaws.Count(ef => ef.EdgeFlaw.Type == EdgeFlawType.Flaw);
+
         public CharacterBuilder(SkillDatabase skillDatabase, ILogger<CharacterBuilder> logger)
         {
             _skillDatabase = skillDatabase;
@@ -446,6 +453,24 @@ namespace SR3Generator.Creation
         public CharacterBuilder RemoveContact(Guid contactId)
         {
             Character.Contacts.Remove(contactId);
+            return this;
+        }
+
+        // Edge/Flaw methods
+        public CharacterBuilder AddEdgeFlaw(EdgeFlaw edgeFlaw, string? notes = null)
+        {
+            var characterEdgeFlaw = new CharacterEdgeFlaw
+            {
+                EdgeFlaw = edgeFlaw,
+                Notes = notes
+            };
+            Character.EdgesFlaws.Add(characterEdgeFlaw);
+            return this;
+        }
+
+        public CharacterBuilder RemoveEdgeFlaw(Guid id)
+        {
+            Character.EdgesFlaws.RemoveAll(ef => ef.Id == id);
             return this;
         }
         public CharacterBuilder BuyContact(Contact contact)
