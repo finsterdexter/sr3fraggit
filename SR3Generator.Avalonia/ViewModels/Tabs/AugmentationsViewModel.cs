@@ -584,8 +584,8 @@ public class CyberwareItem
     public string CategoryDisplay { get; }
     public string Notes { get; }
     public string? Legality { get; }
-    public int Capacity { get; }
-    public string CapacityDisplay => Capacity == 0 ? string.Empty : Capacity.ToString();
+    public decimal Capacity { get; }
+    public string CapacityDisplay => Capacity == 0m ? string.Empty : Capacity.ToString();
     public decimal StreetIndex { get; }
     public string StreetIndexDisplay => StreetIndex == 0m ? string.Empty : $"×{StreetIndex:0.##}";
     public string? Book { get; }
@@ -692,8 +692,8 @@ public class InstalledAugmentation
     public string IndexLabel { get; }           // "Essence" or "Bio Index"
     public string IndexValueDisplay { get; }     // "0.40", "0.80", etc.
     public string? Legality { get; }
-    public int Capacity { get; }
-    public string CapacityDisplay => Capacity == 0 ? string.Empty : Capacity.ToString();
+    public decimal Capacity { get; }
+    public string CapacityDisplay => Capacity == 0m ? string.Empty : Capacity.ToString();
     public string GradeDisplay { get; }
     public string? Notes { get; }
     public string BookPageDisplay { get; }
@@ -734,7 +734,7 @@ public class InstalledAugmentation
         IndexLabel = "Bio Index";
         IndexValueDisplay = bioware.ActualBioIndexCost.ToString("F2");
         Legality = bioware.Legality;
-        Capacity = 0;
+        Capacity = 0m;
         GradeDisplay = bioware.Grade.ToString();
         Notes = bioware.Notes;
         BookPageDisplay = FormatBookPage(bioware.Book, bioware.Page);

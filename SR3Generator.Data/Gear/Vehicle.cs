@@ -1,12 +1,10 @@
-﻿using System;
+using SR3Generator.Data.Gear.Attachments;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SR3Generator.Data.Gear
 {
-    public class Vehicle : Equipment
+    public class Vehicle : Equipment, IAttachmentHost
     {
         public int Handling { get; set; }
         public int? OffRoadHandling { get; set; }
@@ -31,6 +29,45 @@ namespace SR3Generator.Data.Gear
         public string? ChassisType { get; set; }
         public int? Hull { get; set; }
         public int? Bulwark { get; set; }
+
+        public List<AttachmentSlot> Attachments { get; set; } = new List<AttachmentSlot>();
+
+        /// <summary>
+        /// Computed capacity totals. All three buckets derive from existing
+        /// vehicle stats; Load additionally responds to installed Load-track
+        /// engine customization (Rigger 3 Revised p. 125).
+        /// </summary>
+        public IReadOnlyDictionary<CapacityKind, decimal> CapacityTotals
+        {
+            get
+            {
+                // Engine customization is measured in levels, and each level
+                // boosts exactly ONE of Speed (+30), Acceleration (+2), or
+                // Load (+Body × 50 kg) — never two at once. Only Load-track
+                // levels contribute to the Load cap. The boost compounds
+                // across installed engine mods, so the Load total dynamically
+                // reflects what's already attached: removing an engine mod
+                // immediately re-tightens the Load cap.
+                var loadBoost = SumEngineLoadLevels() * Body * 50m;
+
+                return new Dictionary<CapacityKind, decimal>
+                {
+                    { CapacityKind.VehicleCargoCF,    Cargo },
+                    { CapacityKind.VehicleLoadKg,     Load + loadBoost },
+                    { CapacityKind.VehicleMountPoints, Body },
+                };
+            }
+        }
+
+        /// <summary>
+        /// Sum of installed engine customization levels whose track is
+        /// <see cref="EngineCustomizationTrack.Load"/>. Each Engine-category
+        /// slot represents one level; multi-level mods take multiple slots.
+        /// </summary>
+        private int SumEngineLoadLevels()
+            => Attachments.Count(s =>
+                s.VehicleCategory == VehicleModCategory.Engine
+                && s.EngineTrack == EngineCustomizationTrack.Load);
     }
 
     public enum FuelCode

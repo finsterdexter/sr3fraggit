@@ -1,4 +1,5 @@
 using SR3Generator.Data.Gear;
+using SR3Generator.Data.Gear.Attachments;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,10 +47,19 @@ namespace SR3Generator.Creation.Validation
                 if (deck.Sensor > deck.MPCP)
                     AddError(deck, "Sensor cannot exceed MPCP.");
 
+                var storedIds = deck.Attachments
+                    .Where(s => s.Kind == CapacityKind.ProgramStorageMemory && s.GearReferenceId.HasValue)
+                    .Select(s => s.GearReferenceId!.Value)
+                    .ToList();
+                var activeIds = deck.Attachments
+                    .Where(s => s.Kind == CapacityKind.ProgramActiveMemory && s.GearReferenceId.HasValue)
+                    .Select(s => s.GearReferenceId!.Value)
+                    .ToList();
+
                 // Every active program must also be stored.
-                foreach (var activeId in deck.ActivePrograms)
+                foreach (var activeId in activeIds)
                 {
-                    if (!deck.StoredPrograms.Contains(activeId))
+                    if (!storedIds.Contains(activeId))
                     {
                         var name = allPrograms.TryGetValue(activeId, out var p) ? p.Name : activeId.ToString();
                         Issues.Add(new ValidationIssue
@@ -62,7 +72,7 @@ namespace SR3Generator.Creation.Validation
                 }
 
                 int storedSize = 0;
-                foreach (var programId in deck.StoredPrograms)
+                foreach (var programId in storedIds)
                 {
                     if (!allPrograms.TryGetValue(programId, out var program))
                         continue;
@@ -100,7 +110,7 @@ namespace SR3Generator.Creation.Validation
                     });
                 }
 
-                int activeSize = deck.ActivePrograms
+                int activeSize = activeIds
                     .Where(id => allPrograms.ContainsKey(id))
                     .Sum(id => allPrograms[id].Size);
 

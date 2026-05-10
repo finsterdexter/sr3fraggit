@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SR3Generator.Avalonia.Services;
 using SR3Generator.Data.Gear;
+using SR3Generator.Data.Gear.Attachments;
 using SR3Generator.Database;
 using System;
 using System.Collections.Generic;
@@ -273,8 +274,12 @@ public partial class MatrixViewModel : ViewModelBase
     {
         foreach (var (_, deck) in decks)
         {
-            if (deck.ActivePrograms.Contains(programId)) return (deck.Name, true);
-            if (deck.StoredPrograms.Contains(programId)) return (deck.Name, false);
+            foreach (var slot in deck.Attachments)
+            {
+                if (slot.GearReferenceId != programId) continue;
+                if (slot.Kind == CapacityKind.ProgramActiveMemory) return (deck.Name, true);
+                if (slot.Kind == CapacityKind.ProgramStorageMemory) return (deck.Name, false);
+            }
         }
         return (null, false);
     }
@@ -294,18 +299,26 @@ public partial class MatrixViewModel : ViewModelBase
         var character = _characterService.Builder.Character;
         var deck = MemoryMapDeck.Deck;
 
+        var activeIds = new HashSet<Guid>(deck.Attachments
+            .Where(s => s.Kind == CapacityKind.ProgramActiveMemory && s.GearReferenceId.HasValue)
+            .Select(s => s.GearReferenceId!.Value));
+
         int storedSize = 0;
-        foreach (var id in deck.StoredPrograms)
+        foreach (var slot in deck.Attachments.Where(s => s.Kind == CapacityKind.ProgramStorageMemory))
         {
+            if (!slot.GearReferenceId.HasValue) continue;
+            var id = slot.GearReferenceId.Value;
             if (!character.Gear.TryGetValue(id, out var eq) || eq is not GearProgram p) continue;
-            var active = deck.ActivePrograms.Contains(id);
+            var active = activeIds.Contains(id);
             SelectedDeckStoredPrograms.Add(new DeckSlotItem(id, p, active));
             storedSize += p.Size;
         }
 
         int activeSize = 0;
-        foreach (var id in deck.ActivePrograms)
+        foreach (var slot in deck.Attachments.Where(s => s.Kind == CapacityKind.ProgramActiveMemory))
         {
+            if (!slot.GearReferenceId.HasValue) continue;
+            var id = slot.GearReferenceId.Value;
             if (!character.Gear.TryGetValue(id, out var eq) || eq is not GearProgram p) continue;
             SelectedDeckActivePrograms.Add(new DeckSlotItem(id, p, true));
             activeSize += p.Size;

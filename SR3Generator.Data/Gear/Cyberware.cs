@@ -1,4 +1,5 @@
-﻿using SR3Generator.Data.Character;
+using SR3Generator.Data.Character;
+using SR3Generator.Data.Gear.Attachments;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +8,28 @@ using System.Threading.Tasks;
 
 namespace SR3Generator.Data.Gear
 {
-    public class Cyberware : Augmentation
+    public class Cyberware : Augmentation, IAttachmentHost
     {
         public decimal EssenceCost { get; set; }
-        public int Capacity { get; set; }
+
+        /// <summary>
+        /// Capacity points this cyberware exposes when it is itself a host
+        /// (cybereye, cyberear, cyberlimb, capacity-bearing headware), or
+        /// the points it consumes from a parent host when it is a child
+        /// enhancement. Decimal because the source data carries fractional
+        /// values (0.5, 0.3, etc.).
+        /// </summary>
+        public decimal Capacity { get; set; }
+
         public CyberwareGrade Grade { get; set; } = CyberwareGrade.Standard;
+
+        public List<AttachmentSlot> Attachments { get; set; } = new List<AttachmentSlot>();
+
+        public IReadOnlyDictionary<CapacityKind, decimal> CapacityTotals
+            => new Dictionary<CapacityKind, decimal>
+            {
+                { CapacityKind.CyberwareCapacity, Capacity },
+            };
 
         /// <summary>
         /// Gets the actual Essence cost after applying grade modifier.

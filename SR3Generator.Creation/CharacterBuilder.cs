@@ -3,6 +3,7 @@ using SR3Generator.Creation.Validation;
 using SR3Generator.Data.Character;
 using SR3Generator.Data.Character.Creation;
 using SR3Generator.Data.Gear;
+using SR3Generator.Data.Gear.Attachments;
 using SR3Generator.Data.Magic;
 using System;
 using System.Collections.Generic;
@@ -575,8 +576,9 @@ namespace SR3Generator.Creation
                 return this;
             }
             // Programs stay in inventory — they're independent equipment. Just detach.
-            deck.StoredPrograms.Clear();
-            deck.ActivePrograms.Clear();
+            deck.Attachments.RemoveAll(s =>
+                s.Kind == CapacityKind.ProgramActiveMemory ||
+                s.Kind == CapacityKind.ProgramStorageMemory);
             SellGear(deckId, useStreetIndex);
             return this;
         }
@@ -597,8 +599,10 @@ namespace SR3Generator.Creation
             // Detach from any decks that reference this program before refunding+removing.
             foreach (var deck in Character.Gear.Values.OfType<Cyberdeck>())
             {
-                deck.StoredPrograms.Remove(programId);
-                deck.ActivePrograms.Remove(programId);
+                deck.Attachments.RemoveAll(s =>
+                    (s.Kind == CapacityKind.ProgramActiveMemory ||
+                     s.Kind == CapacityKind.ProgramStorageMemory) &&
+                    s.GearReferenceId == programId);
             }
             SellGear(programId, useStreetIndex);
             return this;
@@ -609,15 +613,13 @@ namespace SR3Generator.Creation
             if (!TryGetDeckAndProgram(deckId, programId, "StoreProgramOnDeck", out var deck, out var program))
                 return this;
 
-            if (deck.StoredPrograms.Contains(programId))
+            if (deck.Attachments.Any(s => s.Kind == CapacityKind.ProgramStorageMemory && s.GearReferenceId == programId))
             {
                 _logger.LogWarning("StoreProgramOnDeck: program {ProgramId} already stored on deck {DeckId}", programId, deckId);
                 return this;
             }
 
-            var currentStored = deck.StoredPrograms
-                .Where(id => Character.Gear.TryGetValue(id, out var p) && p is Program)
-                .Sum(id => ((Program)Character.Gear[id]).Size);
+            var currentStored = deck.CapacityUsed(CapacityKind.ProgramStorageMemory);
 
             if (currentStored + program.Size > deck.StorageMemory)
             {
@@ -626,7 +628,12 @@ namespace SR3Generator.Creation
                 return this;
             }
 
-            deck.StoredPrograms.Add(programId);
+            deck.Attachments.Add(new AttachmentSlot
+            {
+                Kind = CapacityKind.ProgramStorageMemory,
+                GearReferenceId = programId,
+                CapacityCost = program.Size,
+            });
             return this;
         }
 
@@ -637,8 +644,10 @@ namespace SR3Generator.Creation
                 _logger.LogWarning("RemoveProgramFromDeck: Cyberdeck {DeckId} not found", deckId);
                 return this;
             }
-            deck.StoredPrograms.Remove(programId);
-            deck.ActivePrograms.Remove(programId);
+            deck.Attachments.RemoveAll(s =>
+                (s.Kind == CapacityKind.ProgramActiveMemory ||
+                 s.Kind == CapacityKind.ProgramStorageMemory) &&
+                s.GearReferenceId == programId);
             return this;
         }
 
@@ -647,18 +656,16 @@ namespace SR3Generator.Creation
             if (!TryGetDeckAndProgram(deckId, programId, "ActivateProgram", out var deck, out var program))
                 return this;
 
-            if (!deck.StoredPrograms.Contains(programId))
+            if (!deck.Attachments.Any(s => s.Kind == CapacityKind.ProgramStorageMemory && s.GearReferenceId == programId))
             {
                 _logger.LogWarning("ActivateProgram: program {ProgramId} not stored on deck {DeckId}", programId, deckId);
                 return this;
             }
 
-            if (deck.ActivePrograms.Contains(programId))
+            if (deck.Attachments.Any(s => s.Kind == CapacityKind.ProgramActiveMemory && s.GearReferenceId == programId))
                 return this;
 
-            var currentActive = deck.ActivePrograms
-                .Where(id => Character.Gear.TryGetValue(id, out var p) && p is Program)
-                .Sum(id => ((Program)Character.Gear[id]).Size);
+            var currentActive = deck.CapacityUsed(CapacityKind.ProgramActiveMemory);
 
             if (currentActive + program.Size > deck.ActiveMemory)
             {
@@ -667,7 +674,12 @@ namespace SR3Generator.Creation
                 return this;
             }
 
-            deck.ActivePrograms.Add(programId);
+            deck.Attachments.Add(new AttachmentSlot
+            {
+                Kind = CapacityKind.ProgramActiveMemory,
+                GearReferenceId = programId,
+                CapacityCost = program.Size,
+            });
             return this;
         }
 
@@ -678,7 +690,8 @@ namespace SR3Generator.Creation
                 _logger.LogWarning("DeactivateProgram: Cyberdeck {DeckId} not found", deckId);
                 return this;
             }
-            deck.ActivePrograms.Remove(programId);
+            deck.Attachments.RemoveAll(s =>
+                s.Kind == CapacityKind.ProgramActiveMemory && s.GearReferenceId == programId);
             return this;
         }
 

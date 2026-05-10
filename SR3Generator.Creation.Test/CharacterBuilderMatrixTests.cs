@@ -4,6 +4,7 @@ using SR3Generator.Creation.Validation;
 using SR3Generator.Data.Character;
 using SR3Generator.Data.Character.Creation;
 using SR3Generator.Data.Gear;
+using SR3Generator.Data.Gear.Attachments;
 using SR3Generator.Database;
 using SR3Generator.Database.Connection;
 using SR3Generator.Data.Serialization;
@@ -90,14 +91,19 @@ public class CharacterBuilderMatrixTests
     {
         var builder = NewBuilder();
         var catalog = MakeDeck();
-        catalog.StoredPrograms.Add(Guid.NewGuid()); // simulate junk in catalog entry
+        // Simulate junk in catalog entry: a stale storage attachment.
+        catalog.Attachments.Add(new AttachmentSlot
+        {
+            Kind = CapacityKind.ProgramStorageMemory,
+            GearReferenceId = Guid.NewGuid(),
+            CapacityCost = 0,
+        });
 
         builder.BuyCyberdeck(catalog);
         var owned = builder.Character.Gear.Values.OfType<Cyberdeck>().Single();
 
-        Assert.NotSame(catalog.StoredPrograms, owned.StoredPrograms);
-        Assert.NotSame(catalog.ActivePrograms, owned.ActivePrograms);
-        Assert.Empty(owned.StoredPrograms);
+        Assert.NotSame(catalog.Attachments, owned.Attachments);
+        Assert.Empty(owned.Attachments);
     }
 
     [Fact]
@@ -136,8 +142,8 @@ public class CharacterBuilderMatrixTests
         builder.SellProgram(programId);
 
         var deck = (Cyberdeck)builder.Character.Gear[deckId];
-        Assert.DoesNotContain(programId, deck.StoredPrograms);
-        Assert.DoesNotContain(programId, deck.ActivePrograms);
+        Assert.DoesNotContain(deck.Attachments, s => s.Kind == CapacityKind.ProgramStorageMemory && s.GearReferenceId == programId);
+        Assert.DoesNotContain(deck.Attachments, s => s.Kind == CapacityKind.ProgramActiveMemory && s.GearReferenceId == programId);
         Assert.DoesNotContain(programId, builder.Character.Gear.Keys);
     }
 
@@ -154,7 +160,7 @@ public class CharacterBuilderMatrixTests
         builder.StoreProgramOnDeck(deckId, programId);
 
         var deck = (Cyberdeck)builder.Character.Gear[deckId];
-        Assert.DoesNotContain(programId, deck.StoredPrograms);
+        Assert.DoesNotContain(deck.Attachments, s => s.Kind == CapacityKind.ProgramStorageMemory && s.GearReferenceId == programId);
     }
 
     [Fact]
@@ -169,7 +175,7 @@ public class CharacterBuilderMatrixTests
         builder.ActivateProgram(deckId, programId);
 
         var deck = (Cyberdeck)builder.Character.Gear[deckId];
-        Assert.DoesNotContain(programId, deck.ActivePrograms);
+        Assert.DoesNotContain(deck.Attachments, s => s.Kind == CapacityKind.ProgramActiveMemory && s.GearReferenceId == programId);
     }
 
     [Fact]
@@ -186,8 +192,8 @@ public class CharacterBuilderMatrixTests
         builder.ActivateProgram(deckId, programId);
 
         var deck = (Cyberdeck)builder.Character.Gear[deckId];
-        Assert.DoesNotContain(programId, deck.ActivePrograms); // rejected
-        Assert.Contains(programId, deck.StoredPrograms); // still stored
+        Assert.DoesNotContain(deck.Attachments, s => s.Kind == CapacityKind.ProgramActiveMemory && s.GearReferenceId == programId); // rejected
+        Assert.Contains(deck.Attachments, s => s.Kind == CapacityKind.ProgramStorageMemory && s.GearReferenceId == programId); // still stored
     }
 
     [Fact]
@@ -204,8 +210,8 @@ public class CharacterBuilderMatrixTests
         builder.DeactivateProgram(deckId, programId);
 
         var deck = (Cyberdeck)builder.Character.Gear[deckId];
-        Assert.DoesNotContain(programId, deck.ActivePrograms);
-        Assert.Contains(programId, deck.StoredPrograms);
+        Assert.DoesNotContain(deck.Attachments, s => s.Kind == CapacityKind.ProgramActiveMemory && s.GearReferenceId == programId);
+        Assert.Contains(deck.Attachments, s => s.Kind == CapacityKind.ProgramStorageMemory && s.GearReferenceId == programId);
     }
 
     [Fact]
@@ -302,8 +308,8 @@ public class CharacterBuilderMatrixTests
 
         Assert.Equal(5, restoredDeck.MPCP);            // derived field survived
         Assert.True(restoredDeck.IsEquipped);          // equip state survived
-        Assert.Contains(programId, restoredDeck.StoredPrograms);
-        Assert.Contains(programId, restoredDeck.ActivePrograms);
+        Assert.Contains(restoredDeck.Attachments, s => s.Kind == CapacityKind.ProgramStorageMemory && s.GearReferenceId == programId);
+        Assert.Contains(restoredDeck.Attachments, s => s.Kind == CapacityKind.ProgramActiveMemory && s.GearReferenceId == programId);
         Assert.Equal(4, restoredProgram.Rating);
         Assert.Equal(4, restoredProgram.Multiplier);   // derived field survived
         Assert.Equal(ProgramType.OperationalUtility, restoredProgram.ProgramType);

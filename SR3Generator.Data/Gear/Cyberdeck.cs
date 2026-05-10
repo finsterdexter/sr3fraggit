@@ -1,12 +1,9 @@
-﻿using System;
+using SR3Generator.Data.Gear.Attachments;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SR3Generator.Data.Gear
 {
-    public class Cyberdeck : Equipment
+    public class Cyberdeck : Equipment, IAttachmentHost
     {
         public int MPCP { get; set; }
         public int Bod { get; set; }
@@ -19,14 +16,19 @@ namespace SR3Generator.Data.Gear
         public int IOSpeed { get; set; }
         public int ResponseIncrease { get; set; }
 
-        public List<Guid> StoredPrograms { get; set; } = new List<Guid>();
-        public List<Guid> ActivePrograms { get; set; } = new List<Guid>();
+        public List<AttachmentSlot> Attachments { get; set; } = new List<AttachmentSlot>();
+
+        public IReadOnlyDictionary<CapacityKind, decimal> CapacityTotals
+            => new Dictionary<CapacityKind, decimal>
+            {
+                { CapacityKind.ProgramActiveMemory,  ActiveMemory },
+                { CapacityKind.ProgramStorageMemory, StorageMemory },
+            };
 
         public override Equipment CloneForPurchase()
         {
             var clone = (Cyberdeck)base.CloneForPurchase();
-            clone.StoredPrograms = new List<Guid>();
-            clone.ActivePrograms = new List<Guid>();
+            clone.Attachments = new List<AttachmentSlot>();
             return clone;
         }
     }

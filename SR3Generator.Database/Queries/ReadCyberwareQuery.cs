@@ -39,7 +39,7 @@ namespace SR3Generator.Database.Queries
                     EssenceCost = ParseDecimal(dto.EssCost),
                     Cost = ParseCost(dto.Cost),
                     Legality = dto.LegalCode,
-                    Capacity = ParseInt(dto.Capacity),
+                    Capacity = ParseDecimal(dto.Capacity),
                     StreetIndex = ParseDecimal(dto.StreetIndex, 1.0m),
                     Book = book,
                     Page = page
