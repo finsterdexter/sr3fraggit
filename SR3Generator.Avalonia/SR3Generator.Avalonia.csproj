@@ -3,11 +3,14 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>sr3fraggit</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <AllowedReferenceRelatedFileExtensions>.xml</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,5 +32,43 @@
     <ProjectReference Include="..\SR3Generator.Database\SR3Generator.Database.csproj" />
     <ProjectReference Include="..\SR3Generator.Data\SR3Generator.Data.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\SR3Generator.Database\data\**\*" CopyToPublishDirectory="PreserveNewest" Link="data\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- AppImage packaging (only when publish dir contains 'appimage') -->
+  <Target Name="CreateAppImage" AfterTargets="CopyFilesToPublishDirectory"
+          Condition="$([System.String]::new('$(PublishDir)').Contains('appimage'))">
+    <PropertyGroup>
+      <AppDir>$(PublishDir)../AppDir</AppDir>
+      <AppBinDir>$(AppDir)/usr/bin</AppBinDir>
+      <AppImageName>sr3fraggit-x86_64.AppImage</AppImageName>
+    </PropertyGroup>
+
+    <!-- Create AppDir structure -->
+    <MakeDir Directories="$(AppBinDir)" />
+
+    <!-- Copy published binary -->
+    <Copy SourceFiles="$(PublishDir)$(AssemblyName)" DestinationFolder="$(AppBinDir)" />
+
+    <!-- Copy AppRun, .desktop, and icon -->
+    <Copy SourceFiles="AppRun.sh" DestinationFiles="$(AppDir)/AppRun" />
+    <Copy SourceFiles="SR3Generator.desktop" DestinationFiles="$(AppDir)/SR3Generator.desktop" />
+    <Copy SourceFiles="Assets/SR3Generator.png" DestinationFiles="$(AppDir)/SR3Generator.png" />
+    <Exec Command="chmod +x &quot;$(AppDir)/AppRun&quot;" />
+
+    <!-- Run appimagetool -->
+    <Exec Command="ARCH=x86_64 appimagetool --no-appstream &quot;$(AppDir)&quot; &quot;$(PublishDir)../$(AppImageName)&quot;"
+          IgnoreExitCode="true"
+          ContinueOnError="true" />
+
+    <Message Text="[AppImage] Created $(PublishDir)../$(AppImageName)"
+             Importance="high"
+             Condition="Exists('$(PublishDir)../$(AppImageName)')" />
+    <Message Text="[AppImage] AppDir ready at $(AppDir). Install appimagetool to wrap it."
+             Importance="high"
+             Condition="!Exists('$(PublishDir)../$(AppImageName)')" />
+  </Target>
 
 </Project>

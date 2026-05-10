@@ -4,6 +4,6 @@
              RequestedThemeVariant="Dark">
     <Application.Styles>
         <FluentTheme />
-        <StyleInclude Source="avares://SR3Generator.Avalonia/Styles/Theme.axaml"/>
+        <StyleInclude Source="avares://sr3fraggit/Styles/Theme.axaml"/>
     </Application.Styles>
 </Application>

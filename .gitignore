@@ -1,6 +1,7 @@
 # .NET Core
 bin/
 obj/
+artifacts/
 *.dll
 *.exe
 *.pdb

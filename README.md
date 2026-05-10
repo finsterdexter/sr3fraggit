@@ -72,6 +72,34 @@ dotnet build    # Build the solution
 dotnet test     # Run all tests
 ```
 
+## Publish (Single-File Executables)
+
+Self-contained, single-file builds for distribution — no .NET runtime required:
+
+```bash
+dotnet publish SR3Generator.Avalonia -p:PublishProfile=win-x64
+dotnet publish SR3Generator.Avalonia -p:PublishProfile=linux-x64
+dotnet publish SR3Generator.Avalonia -p:PublishProfile=osx-x64
+```
+
+Output lands in `artifacts/<rid>/`.
+
+### Linux AppImage
+
+```bash
+dotnet publish SR3Generator.Avalonia -p:PublishProfile=linux-x64-appimage
+```
+
+Requires [appimagetool](https://github.com/AppImage/AppImageKit) on `PATH`. The target builds an AppDir at `artifacts/appimage/AppDir/` and wraps it into `artifacts/appimage/SR3Generator-x86_64.AppImage`. If appimagetool isn't installed, the AppDir is left ready for manual wrapping.
+
+### Linux ARM
+
+Duplicate `linux-x64.pubxml` → `linux-arm64.pubxml` and swap the `RuntimeIdentifier`:
+
+```xml
+<RuntimeIdentifier>linux-arm64</RuntimeIdentifier>
+```
+
 ## License
 
 This project is a fan work for Shadowrun 3rd Edition. Shadowrun is a registered trademark of The Topps Company, Inc. This project is not affiliated with or endorsed by Catalyst Game Labs or The Topps Company.

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=SR3Generator
+Comment=Shadowrun 3rd Edition Character Generator
+Exec=AppRun
+Icon=SR3Generator
+Categories=Game;RolePlaying;
