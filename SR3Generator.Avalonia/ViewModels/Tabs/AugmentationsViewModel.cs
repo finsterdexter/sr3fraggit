@@ -585,7 +585,7 @@ public class CyberwareItem
     public string Notes { get; }
     public string? Legality { get; }
     public decimal Capacity { get; }
-    public string CapacityDisplay => Capacity == 0m ? string.Empty : Capacity.ToString();
+    public string CapacityDisplay => Capacity == 0m ? string.Empty : Capacity.ToString("0.##");
     public decimal StreetIndex { get; }
     public string StreetIndexDisplay => StreetIndex == 0m ? string.Empty : $"×{StreetIndex:0.##}";
     public string? Book { get; }
@@ -693,7 +693,7 @@ public class InstalledAugmentation
     public string IndexValueDisplay { get; }     // "0.40", "0.80", etc.
     public string? Legality { get; }
     public decimal Capacity { get; }
-    public string CapacityDisplay => Capacity == 0m ? string.Empty : Capacity.ToString();
+    public string CapacityDisplay => Capacity == 0m ? string.Empty : Capacity.ToString("0.##");
     public string GradeDisplay { get; }
     public string? Notes { get; }
     public string BookPageDisplay { get; }

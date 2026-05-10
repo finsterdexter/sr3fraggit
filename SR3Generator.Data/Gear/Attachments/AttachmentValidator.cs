@@ -43,25 +43,29 @@ namespace SR3Generator.Data.Gear.Attachments
             IAttachmentHost host)
         {
             var failures = new List<AttachmentValidationFailure>();
-            CollectFailures(host, failures);
+            var checkedHosts = new HashSet<IAttachmentHost>(ReferenceEqualityComparer.Instance);
 
-            // Walk nested hosts via the shared walker (which already handles
-            // reference-tracking for the dual-bucket pattern).
-            var visited = new HashSet<Equipment>(System.Collections.Generic.ReferenceEqualityComparer.Instance);
-            foreach (var slot in host.Attachments)
+            CollectFailures(host, failures);
+            checkedHosts.Add(host);
+
+            // WalkAttachments handles reference-tracking for the dual-bucket
+            // pattern (two slots sharing one Embedded host); we additionally
+            // dedup by host since the walker yields one tuple per slot.
+            foreach (var (descendant, _) in host.WalkAttachments())
             {
-                if (slot.Embedded is IAttachmentHost child && visited.Add(slot.Embedded))
-                    failures.AddRange(Validate(child));
+                if (checkedHosts.Add(descendant))
+                    CollectFailures(descendant, failures);
             }
             return failures;
         }
 
         /// <summary>
-        /// "Would adding this slot still validate?" — for previews. Does
-        /// not mutate the host. The caller passes a fully-populated candidate
-        /// slot (Kind, CapacityCost, MountLocation, etc.); this method
-        /// reports the failures the host would acquire if the slot were
-        /// inserted.
+        /// "Would adding this slot still validate?" — for previews. Atomically
+        /// adds the candidate, validates, and removes it before returning, so
+        /// the host's net state is unchanged. The caller passes a
+        /// fully-populated candidate slot (Kind, CapacityCost, MountLocation,
+        /// etc.); this method reports the failures the host would acquire if
+        /// the slot were inserted.
         /// </summary>
         public static IReadOnlyList<AttachmentValidationFailure> ValidateAddition(
             IAttachmentHost host, AttachmentSlot candidate)

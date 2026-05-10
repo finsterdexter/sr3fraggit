@@ -20,5 +20,12 @@ namespace SR3Generator.Data.Gear
         /// </summary>
         public virtual IReadOnlyDictionary<CapacityKind, decimal> CapacityTotals
             => new Dictionary<CapacityKind, decimal>();
+
+        public override Equipment CloneForPurchase()
+        {
+            var clone = (Weapon)base.CloneForPurchase();
+            clone.Attachments = new List<AttachmentSlot>();
+            return clone;
+        }
     }
 }

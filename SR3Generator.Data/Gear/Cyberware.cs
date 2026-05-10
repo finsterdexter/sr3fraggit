@@ -31,6 +31,13 @@ namespace SR3Generator.Data.Gear
                 { CapacityKind.CyberwareCapacity, Capacity },
             };
 
+        public override Equipment CloneForPurchase()
+        {
+            var clone = (Cyberware)base.CloneForPurchase();
+            clone.Attachments = new List<AttachmentSlot>();
+            return clone;
+        }
+
         /// <summary>
         /// Gets the actual Essence cost after applying grade modifier.
         /// </summary>

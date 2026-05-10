@@ -402,4 +402,102 @@ public class AttachmentSystemTests
         Assert.Equal(200, restored.ActiveMemory);
         Assert.Equal(400, restored.StorageMemory);
     }
+
+    // ---------- ValidateAddition (preview API) ----------
+
+    [Fact]
+    public void ValidateAddition_HappyPath_ReturnsNoFailures_AndLeavesHostUnchanged()
+    {
+        var limb = MakeLimb(5m);
+        limb.Attachments.Add(new AttachmentSlot { Kind = CapacityKind.CyberwareCapacity, CapacityCost = 2m });
+        var existingId = limb.Attachments[0].Id;
+
+        var candidate = new AttachmentSlot { Kind = CapacityKind.CyberwareCapacity, CapacityCost = 3m };
+        var failures = AttachmentValidator.ValidateAddition(limb, candidate);
+
+        Assert.Empty(failures);
+        // Host state unchanged: same single slot, candidate not retained.
+        var slot = Assert.Single(limb.Attachments);
+        Assert.Equal(existingId, slot.Id);
+        Assert.DoesNotContain(candidate, limb.Attachments);
+    }
+
+    [Fact]
+    public void ValidateAddition_FailurePath_ReturnsFailure_AndLeavesHostUnchanged()
+    {
+        var limb = MakeLimb(5m);
+        limb.Attachments.Add(new AttachmentSlot { Kind = CapacityKind.CyberwareCapacity, CapacityCost = 4m });
+
+        var candidate = new AttachmentSlot { Kind = CapacityKind.CyberwareCapacity, CapacityCost = 2m }; // 4+2 > 5
+        var failures = AttachmentValidator.ValidateAddition(limb, candidate);
+
+        var f = Assert.Single(failures);
+        Assert.Equal(CapacityKind.CyberwareCapacity, f.Kind);
+        Assert.Equal(5m, f.Total);
+        Assert.Equal(6m, f.Used);
+        // Candidate rolled back; original slot remains alone.
+        Assert.Single(limb.Attachments);
+        Assert.DoesNotContain(candidate, limb.Attachments);
+    }
+
+    // ---------- Absent-kind semantics ----------
+
+    [Fact]
+    public void Validator_SlotWithKindNotInHostCapacityTotals_FailsWithDoesNotAllowMessage()
+    {
+        // Cyberware exposes only CyberwareCapacity. A VehicleLoadKg slot on it
+        // should fail as "host does not allow that kind."
+        var limb = MakeLimb(5m);
+        limb.Attachments.Add(new AttachmentSlot { Kind = CapacityKind.VehicleLoadKg, CapacityCost = 1m });
+
+        var failures = AttachmentValidator.Validate(limb);
+        var f = Assert.Single(failures);
+        Assert.Equal(CapacityKind.VehicleLoadKg, f.Kind);
+        Assert.Equal(0m, f.Total);
+        Assert.Equal(1m, f.Used);
+        Assert.Contains("does not allow", f.Message);
+    }
+
+    // ---------- CloneForPurchase resets Attachments ----------
+
+    [Fact]
+    public void Cyberware_CloneForPurchase_ResetsAttachments_AndIsolatesFromCatalog()
+    {
+        var catalog = MakeLimb(5m);
+        catalog.Attachments.Add(new AttachmentSlot { Kind = CapacityKind.CyberwareCapacity, CapacityCost = 1m });
+
+        var clone = (Cyberware)catalog.CloneForPurchase();
+
+        Assert.Empty(clone.Attachments);
+        Assert.NotSame(catalog.Attachments, clone.Attachments);
+        // Catalog itself is not mutated.
+        Assert.Single(catalog.Attachments);
+    }
+
+    [Fact]
+    public void Vehicle_CloneForPurchase_ResetsAttachments_AndIsolatesFromCatalog()
+    {
+        var catalog = MakeVehicle();
+        catalog.Attachments.Add(new AttachmentSlot { Kind = CapacityKind.VehicleCargoCF, CapacityCost = 2m });
+
+        var clone = (Vehicle)catalog.CloneForPurchase();
+
+        Assert.Empty(clone.Attachments);
+        Assert.NotSame(catalog.Attachments, clone.Attachments);
+        Assert.Single(catalog.Attachments);
+    }
+
+    [Fact]
+    public void Firearm_CloneForPurchase_ResetsAttachments_ViaInheritedWeaponOverride()
+    {
+        var catalog = MakeFirearm();
+        catalog.Attachments.Add(new AttachmentSlot { Kind = CapacityKind.FirearmMount, MountLocation = "Top", CapacityCost = 1m });
+
+        var clone = (Firearm)catalog.CloneForPurchase();
+
+        Assert.Empty(clone.Attachments);
+        Assert.NotSame(catalog.Attachments, clone.Attachments);
+        // Per-mount inventory still copies normally (it's intrinsic to the weapon).
+        Assert.Equal(catalog.TopMountSlots, clone.TopMountSlots);
+    }
 }

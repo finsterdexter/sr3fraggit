@@ -68,6 +68,13 @@ namespace SR3Generator.Data.Gear
             => Attachments.Count(s =>
                 s.VehicleCategory == VehicleModCategory.Engine
                 && s.EngineTrack == EngineCustomizationTrack.Load);
+
+        public override Equipment CloneForPurchase()
+        {
+            var clone = (Vehicle)base.CloneForPurchase();
+            clone.Attachments = new List<AttachmentSlot>();
+            return clone;
+        }
     }
 
     public enum FuelCode
