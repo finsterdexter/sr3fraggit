@@ -1,0 +1,3 @@
+[submodule "external/sr3data"]
+	path = external/sr3data
+	url = https://github.com/finsterdexter/sr3data.git

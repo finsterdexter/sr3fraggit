@@ -114,7 +114,37 @@ SR3Generator.Avalonia/
 
 ## Database
 
-SQLite database at `SR3Generator.Database/data/data_6d7b26801.db`, copied to output during build. Propagates transitively to all dependent projects (Creation, Avalonia).
+SQLite database at `SR3Generator.Database/data/data_<sha9>.db`, where `<sha9>` is the first 9 chars of the upstream `sr3data` commit it was generated from. Copied to output during build. Propagates transitively to all dependent projects (Creation, Avalonia).
+
+Three places hardcode the filename and must move together when the .db is regenerated:
+- `SR3Generator.Database/SR3Generator.Database.csproj` — `<None Update="data\..." CopyToOutputDirectory="Always" />`
+- `SR3Generator.Database/Connection/DatabaseOptions.cs` — `DatabasePath` default
+- `SR3Generator.Avalonia/App.axaml.cs` — runtime `DatabasePath` setting
+
+### Data regeneration
+
+The data pipeline lives in `external/sr3data` (git submodule, `https://github.com/finsterdexter/sr3data.git`). It parses NSRCG `.dat` files into JSON and SQLite. To pull a newer data version:
+
+```bash
+# 1. Update the submodule pin
+git submodule update --remote external/sr3data
+
+# 2. Regenerate (export_sqlite.py uses CREATE TABLE IF NOT EXISTS, so the existing
+#    output/data.db must be deleted first or rows will duplicate).
+rm -f external/sr3data/output/data.db
+cd external/sr3data && uv run python export_sqlite.py && cd -
+
+# 3. Copy with new hash filename, remove old, update the three refs above
+NEW_SHA=$(git -C external/sr3data rev-parse HEAD | cut -c1-9)
+cp external/sr3data/output/data.db SR3Generator.Database/data/data_${NEW_SHA}.db
+rm SR3Generator.Database/data/data_<old_sha9>.db
+# then edit csproj, DatabaseOptions.cs, App.axaml.cs to point at the new filename
+
+# 4. Verify
+dotnet build && dotnet test
+```
+
+Cloning fresh requires `git clone --recurse-submodules` (or `git submodule update --init` after a plain clone).
 
 ## Commands
 
