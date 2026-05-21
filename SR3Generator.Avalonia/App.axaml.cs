@@ -60,7 +60,7 @@ public partial class App : Application
         {
             options.DatabasePath = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
-                "data", "data_a96565668.db");
+                "data", "data_f718f0119.db");
         });
 
         // Database services - uses the public constructor
