@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:tabs="using:SR3Generator.Avalonia.Views.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.AugmentationsContainerView"
+             x:DataType="vm:AugmentationsContainerViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="{x:Static res:Strings.AugmentationsTitle}" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="{x:Static res:Strings.AugmentationsSubtitle}"/>
+        </StackPanel>
+
+        <!-- Shared resource bar — visible on all three sub-tabs. Driven by CatalogVM
+             (AugmentationsViewModel) since it owns the cyberware + bioware tallies;
+             the Mods sub-tab reads the same values, just doesn't write them. -->
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12"
+                DataContext="{Binding CatalogVM}">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto">
+                <CheckBox Grid.Column="0" Content="{x:Static res:Strings.CheckStreetIndex}"
+                          IsChecked="{Binding UseStreetIndex}"
+                          VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="{x:Static res:Strings.LabelEssence}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding EssenceDisplay}" Classes="stat-value"
+                               Foreground="{StaticResource AccentCyberBrush}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="{x:Static res:Strings.LabelBioIndex}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding BioIndexDisplay}" Classes="stat-value"
+                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="{x:Static res:Strings.LabelMagic}" Classes="micro-label"/>
+                    <TextBlock Text="{Binding MagicDisplay}" Classes="stat-value"
+                               Foreground="{StaticResource AccentManaBrush}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="{x:Static res:Strings.LabelNuyen}" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value-lg">
+                        <Run Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}'}"
+                             Foreground="{StaticResource AccentNuyenBrush}"/>
+                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                        <Run Text="{Binding NuyenAllowance, StringFormat='{}{0:N0}'}"
+                             Foreground="{StaticResource InkSecondaryBrush}"/>
+                        <Run Text="¥" Foreground="{StaticResource InkMutedBrush}"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Cyberware | Mods | Bioware — flat sub-tab nav. -->
+        <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedSubtabIndex}" Padding="0">
+            <TabItem Header="Cyberware">
+                <tabs:CyberwareView DataContext="{Binding CatalogVM}"/>
+            </TabItem>
+            <TabItem Header="{x:Static res:Strings.SubtabMods}">
+                <tabs:AugmentModsView DataContext="{Binding ModsVM}"/>
+            </TabItem>
+            <TabItem Header="Bioware">
+                <tabs:BiowareView DataContext="{Binding CatalogVM}"/>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

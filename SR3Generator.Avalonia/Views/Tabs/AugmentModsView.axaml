@@ -1,0 +1,269 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.AugmentModsView"
+             x:DataType="vm:AugmentModsViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="AUGMENT MODS" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="Install enhancements on owned capacity-bearing cyberware (cybereyes, cyberlimbs, …). Buy hosts themselves on the paired Augmentations tab."/>
+        </StackPanel>
+
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBox Grid.Column="0"
+                         Text="{Binding FilterText}"
+                         Watermark="Search enhancements"
+                         MinWidth="240"/>
+                <Button Grid.Column="1" Content="Clear" Classes="compact"
+                        Command="{Binding ClearFilterCommand}"/>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="220,12,*,12,*">
+
+            <!-- ===== LEFT: OWNED HOSTS ===== -->
+            <Border Grid.Column="0" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="OWNED HOSTS"
+                               Classes="section-header" Margin="12,12,12,8"/>
+                    <ListBox ItemsSource="{Binding OwnedHosts}"
+                             SelectedItem="{Binding SelectedHost}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:OwnedCyberwareHostItem">
+                                <StackPanel Spacing="2" Margin="0,2">
+                                    <TextBlock Text="{Binding Name}" Classes="body" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding HostCategoryLabel}" FontSize="9"
+                                               Foreground="{StaticResource AccentCyberBrush}"
+                                               LetterSpacing="0.5"/>
+                                    <TextBlock Text="{Binding CapacitySummary}" Classes="data" FontSize="10"
+                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock DockPanel.Dock="Bottom"
+                               Text="(no capacity hosts owned — buy a cybereye / cyberlimb / etc. on the Augmentations tab)"
+                               Classes="body-sm" FontStyle="Italic"
+                               Foreground="{StaticResource InkMutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="12,0,12,12"
+                               IsVisible="{Binding !OwnedHosts.Count}"/>
+                </DockPanel>
+            </Border>
+
+            <!-- ===== CENTER: TARGET + CAPACITY BAR + ENHANCEMENT LIST ===== -->
+            <Border Grid.Column="2" Classes="panel">
+                <DockPanel LastChildFill="True">
+
+                    <Grid IsVisible="{Binding !HasSelection}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" MaxWidth="380">
+                            <TextBlock Text="Select a host" Classes="page-title" HorizontalAlignment="Center"/>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Classes="body"
+                                       Foreground="{StaticResource InkSecondaryBrush}"
+                                       Text="Pick an owned capacity-bearing cyberware item to manage its enhancements."/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border DockPanel.Dock="Top" Classes="panel-inset" Padding="10,8" Margin="0,0,0,10"
+                            IsVisible="{Binding HasSelection}">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="TARGET" Classes="section-header" Margin="0"/>
+                            <TextBlock Text="{Binding HostName}" FontSize="14" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding HostSubtitle}" FontSize="10"
+                                       Foreground="{StaticResource AccentCyberBrush}"
+                                       LetterSpacing="0.5"/>
+
+                            <!-- ECU bar (cyberlimbs / skull / torso) -->
+                            <StackPanel Spacing="4" IsVisible="{Binding IsEcuHost}">
+                                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
+                                    <TextBlock Grid.Column="0" Text="ECU" Classes="micro-label"/>
+                                    <TextBlock Grid.Column="2" Classes="data" FontSize="11">
+                                        <Run Text="{Binding CapacityUsed}"/>
+                                        <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                                        <Run Text="{Binding CapacityTotal}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    </TextBlock>
+                                </Grid>
+                                <ProgressBar Maximum="100" Value="{Binding CapacityPercent}"
+                                             Classes.over="{Binding IsOverCapacity}" MinHeight="4"/>
+                            </StackPanel>
+
+                            <!-- Essence-pool bar (cybereyes / cyberears) -->
+                            <StackPanel Spacing="4" IsVisible="{Binding IsEssencePoolHost}">
+                                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
+                                    <TextBlock Grid.Column="0" Text="ESSENCE POOL" Classes="micro-label"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding EssencePoolSummary}"
+                                               Classes="data" FontSize="11"
+                                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                                </Grid>
+                                <!-- When a hard cap exists (cybereye pair only), the bar scales to it
+                                     and the free-pool portion is highlighted at the start. Otherwise
+                                     just surface the running total in the summary text above. -->
+                                <Grid IsVisible="{Binding EssencePoolHasMax}" Height="6">
+                                    <ProgressBar Maximum="100" Value="{Binding EssencePoolFreePercent}"
+                                                 Foreground="{StaticResource SuccessBrush}"
+                                                 MinHeight="6" Opacity="0.4"/>
+                                    <ProgressBar Maximum="100" Value="{Binding EssencePoolUsedPercent}"
+                                                 Classes.over="{Binding IsOverEssencePool}"
+                                                 MinHeight="6"/>
+                                </Grid>
+                                <TextBlock Text="No rulebook cap stated — GM discretion."
+                                           IsVisible="{Binding !EssencePoolHasMax}"
+                                           Classes="body-sm" FontStyle="Italic"
+                                           Foreground="{StaticResource InkMutedBrush}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border DockPanel.Dock="Top" Margin="0,0,0,10"
+                            Background="#1aef4444"
+                            BorderBrush="{StaticResource DestructiveBrush}"
+                            BorderThickness="1" CornerRadius="2" Padding="10,6"
+                            IsVisible="{Binding ValidationMessages.Count}">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="VALIDATION FAILURES" Classes="micro-label"
+                                       Foreground="{StaticResource DestructiveBrush}"/>
+                            <ItemsControl ItemsSource="{Binding ValidationMessages}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" Classes="body"
+                                                   Foreground="{StaticResource DestructiveBrush}"
+                                                   TextWrapping="Wrap"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <ScrollViewer IsVisible="{Binding HasSelection}">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="ENHANCEMENTS" Classes="section-header"/>
+                            <Border Classes="panel-inset" Padding="6"
+                                    IsVisible="{Binding Enhancements.Count}">
+                                <ItemsControl ItemsSource="{Binding Enhancements}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:CyberwareEnhancementRow">
+                                            <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                                                <StackPanel Grid.Column="0" Spacing="1">
+                                                    <TextBlock Text="{Binding Name}" Classes="body" FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Summary}" Classes="data" FontSize="10"
+                                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Content="✕"
+                                                        Classes="icon danger"
+                                                        Width="20" Height="20"
+                                                        VerticalAlignment="Top"
+                                                        CommandParameter="{Binding SlotId}"
+                                                        Command="{Binding $parent[UserControl].((vm:AugmentModsViewModel)DataContext).RemoveCommand}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+                            <TextBlock Text="(no enhancements installed)" Classes="body-sm"
+                                       FontStyle="Italic"
+                                       Foreground="{StaticResource InkMutedBrush}"
+                                       IsVisible="{Binding !Enhancements.Count}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- ===== RIGHT: ENHANCEMENT CATALOG ===== -->
+            <Border Grid.Column="4" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+
+                    <StackPanel DockPanel.Dock="Top" Margin="12,12,12,8" Spacing="6">
+                        <TextBlock Text="CATALOG" Classes="section-header" Margin="0"/>
+                        <CheckBox Content="Use Street Index" IsChecked="{Binding UseStreetIndex}"/>
+                    </StackPanel>
+
+                    <Border DockPanel.Dock="Bottom" Background="{StaticResource Surface200Brush}"
+                            BorderBrush="{StaticResource BorderDefaultBrush}"
+                            BorderThickness="0,1,0,0" Padding="12,10">
+                        <Button Classes="primary"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                Content="Install enhancement"
+                                IsEnabled="{Binding CanInstall}"
+                                Command="{Binding InstallCommand}"/>
+                    </Border>
+
+                    <Border DockPanel.Dock="Bottom" Margin="12,0,12,8"
+                            IsVisible="{Binding HasDetail}"
+                            Background="{StaticResource Surface200Brush}"
+                            BorderBrush="{StaticResource BorderDefaultBrush}"
+                            BorderThickness="1" CornerRadius="2" Padding="10,8">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="DETAIL" Classes="section-header" Margin="0,0,0,2"/>
+                            <StackPanel Spacing="1">
+                                <TextBlock Text="{Binding DetailName}" FontSize="13" FontWeight="SemiBold"
+                                           TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding DetailSubtitle}" FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           LetterSpacing="0.3"/>
+                            </StackPanel>
+                            <ItemsControl ItemsSource="{Binding DetailStats}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:FirearmAccessoryStatRow">
+                                        <Grid ColumnDefinitions="120,*" Margin="0,1">
+                                            <TextBlock Text="{Binding Label}" Classes="micro-label"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Value}"
+                                                       Classes="data" FontSize="11"
+                                                       TextWrapping="Wrap"
+                                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="{Binding DetailBookRef}" FontSize="10"
+                                       Foreground="{StaticResource InkMutedBrush}"
+                                       IsVisible="{Binding DetailBookRef, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <ListBox ItemsSource="{Binding CatalogItems}"
+                             SelectedItem="{Binding SelectedCatalogItem}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:CyberwareEnhancementCatalogItem">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Name}"
+                                               Classes="body" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CostDisplay}"
+                                               Classes="data" FontSize="10"
+                                               Foreground="{StaticResource AccentNuyenBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                          ColumnDefinitions="*,Auto,Auto">
+                                        <TextBlock Text="{Binding CategoryLabel}"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource InkMutedBrush}"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding CapacityDisplay}"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource AccentCyberBrush}"
+                                                   Margin="6,0"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding BookRef}"
+                                                   FontSize="9"
+                                                   Foreground="{StaticResource InkFaintBrush}"
+                                                   FontStyle="Italic"/>
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

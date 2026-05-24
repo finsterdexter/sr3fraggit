@@ -4,21 +4,11 @@ using SR3Generator.Avalonia.ViewModels.Tabs;
 
 namespace SR3Generator.Avalonia.Views.Tabs;
 
-public partial class AugmentationsView : UserControl
+public partial class BiowareView : UserControl
 {
-    public AugmentationsView()
+    public BiowareView()
     {
         InitializeComponent();
-    }
-
-    private void OnCyberwareListDoubleTapped(object? sender, TappedEventArgs e)
-    {
-        if (DataContext is AugmentationsViewModel vm &&
-            vm.SelectedCyberwareItem is not null &&
-            vm.InstallCyberwareCommand.CanExecute(null))
-        {
-            vm.InstallCyberwareCommand.Execute(null);
-        }
     }
 
     private void OnBiowareListDoubleTapped(object? sender, TappedEventArgs e)

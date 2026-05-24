@@ -26,10 +26,6 @@ public partial class AugmentationsViewModel : ViewModelBase
     private List<BiowareItem> _allBioware = new();
     private List<string> _selectedBiowareCategoryPath = new();
 
-    // Tab selection
-    [ObservableProperty]
-    private int _selectedTabIndex;
-
     // Cyberware properties
     [ObservableProperty]
     private ObservableCollection<CyberwareItem> _filteredCyberware = new();
@@ -547,6 +543,11 @@ public partial class BreadcrumbStep : ObservableObject
 
     public int Depth { get; }
     public ObservableCollection<string> Options { get; }
+
+    /// <summary>True if this step is the first one actually rendered in the
+    /// breadcrumb. Drives the leading-separator visibility — collapsing leading
+    /// no-choice depths means depth 0 isn't always the first visible step.</summary>
+    public bool IsFirstVisible { get; set; }
 
     [ObservableProperty]
     private string? _selectedValue;

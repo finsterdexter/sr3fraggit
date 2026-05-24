@@ -1,8 +1,10 @@
 using Dapper;
 using SR3Generator.Data.Gear;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SR3Generator.Database.Queries
@@ -42,19 +44,25 @@ namespace SR3Generator.Database.Queries
             foreach (var dto in gearDtos)
             {
                 var (book, page) = BookPageParser.Split(dto.book_page);
-                var equipment = new Equipment
-                {
-                    Id = dto.id,
-                    Name = dto.name ?? string.Empty,
-                    CategoryTree = ParseCategoryTree(dto.category_tree),
-                    Concealability = dto.concealability,
-                    Cost = ParseCost(dto.cost),
-                    StreetIndex = ParseStreetIndex(dto.street_index),
-                    Availability = ParseAvailability(dto.availability),
-                    Book = book,
-                    Page = page,
-                    Weight = ParseWeight(dto.weight)
-                };
+                var categoryTree = ParseCategoryTree(dto.category_tree);
+                var isFirearm = IsFirearmCategory(categoryTree) && rangedData.ContainsKey(dto.id);
+
+                Equipment equipment = isFirearm
+                    ? BuildFirearm(dto, book, page, categoryTree, rangedData[dto.id])
+                    : new Equipment
+                    {
+                        Name = dto.name ?? string.Empty,
+                        CategoryTree = categoryTree,
+                        Concealability = dto.concealability,
+                        Availability = ParseAvailability(dto.availability),
+                        Book = book,
+                    };
+
+                equipment.Id = dto.id;
+                equipment.Cost = ParseCost(dto.cost);
+                equipment.StreetIndex = ParseStreetIndex(dto.street_index);
+                equipment.Page = page;
+                equipment.Weight = ParseWeight(dto.weight);
 
                 // Add stats from child tables
                 AddStatsFromChild(equipment.Stats, armorData, dto.id, "ballistic", "impact");
@@ -70,6 +78,130 @@ namespace SR3Generator.Database.Queries
             }
 
             return results;
+        }
+
+        private static bool IsFirearmCategory(List<string> categoryTree)
+            => categoryTree.Count >= 2
+               && string.Equals(categoryTree[0], "Weapons", StringComparison.OrdinalIgnoreCase)
+               && string.Equals(categoryTree[1], "Firearms", StringComparison.OrdinalIgnoreCase);
+
+        private static Firearm BuildFirearm(GearDto dto, string book, int page, List<string> categoryTree, dynamic rangedRow)
+        {
+            var ammoText = ReadStringField(rangedRow, "ammunition");
+            var modeText = ReadStringField(rangedRow, "mode");
+            var damage = ReadStringField(rangedRow, "damage") ?? string.Empty;
+            var firearmClass = InferFirearmClass(categoryTree);
+            return new Firearm
+            {
+                Name = dto.name ?? string.Empty,
+                CategoryTree = categoryTree,
+                Concealability = dto.concealability,
+                Availability = ParseAvailability(dto.availability),
+                Book = book,
+                Skill = InferSkill(firearmClass),
+                Damage = damage,
+                Ammo = ParseAmmo(ammoText),
+                FireModes = ParseFireModes(modeText),
+                Class = firearmClass,
+                TopMountSlots = 1,
+                BarrelMountSlots = 1,
+                UnderMountSlots = 1,
+                InternalMountSlots = 1,
+            };
+        }
+
+        private static string InferSkill(FirearmClass cls) => cls switch
+        {
+            FirearmClass.HoldOut or FirearmClass.LightPistol or FirearmClass.HeavyPistol or FirearmClass.TaserPistol => "Pistols",
+            FirearmClass.SMG => "SMG",
+            FirearmClass.Shotgun => "Shotguns",
+            FirearmClass.SportingRifle or FirearmClass.AssaultRifle => "Rifles",
+            FirearmClass.SniperRifle => "Sniper Rifles",
+            FirearmClass.LMG or FirearmClass.MMG or FirearmClass.HMG or FirearmClass.AssaultCannon => "Heavy Weapons",
+            FirearmClass.GrenadeLauncher => "Launch Weapons",
+            _ => "Firearms",
+        };
+
+        private static string? ReadStringField(dynamic row, string name)
+        {
+            var dict = (IDictionary<string, object>)row;
+            return dict.TryGetValue(name, out var v) ? v?.ToString() : null;
+        }
+
+        private static readonly Regex AmmoRegex = new(@"(?<rounds>\d+)\s*(?:\((?<type>[a-zA-Z]+)\))?", RegexOptions.Compiled);
+
+        private static AmmunitionLoad ParseAmmo(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return new AmmunitionLoad { Rounds = 0, Type = ReloadType.None };
+            var m = AmmoRegex.Match(text);
+            if (!m.Success) return new AmmunitionLoad { Rounds = 0, Type = ReloadType.None };
+            int rounds = int.TryParse(m.Groups["rounds"].Value, out var r) ? r : 0;
+            var typeCode = m.Groups["type"].Value;
+            return new AmmunitionLoad { Rounds = rounds, Type = MapReloadCode(typeCode) };
+        }
+
+        private static ReloadType MapReloadCode(string code) => code.ToLowerInvariant() switch
+        {
+            "c"  => ReloadType.Clip,
+            "cy" => ReloadType.Cylinder,
+            "m"  => ReloadType.Magazine,
+            "b"  => ReloadType.Belt,
+            "d"  => ReloadType.Drum,
+            "i"  => ReloadType.Internal,
+            "br" => ReloadType.BreakAction,
+            "ml" => ReloadType.MuzzleLoad,
+            "ss" => ReloadType.SingleShot,
+            "r"  => ReloadType.Revolver,
+            _    => ReloadType.None,
+        };
+
+        private static List<FireMode> ParseFireModes(string? text)
+        {
+            var modes = new List<FireMode>();
+            if (string.IsNullOrWhiteSpace(text)) return modes;
+            foreach (var part in text.Split('/'))
+            {
+                var p = part.Trim().TrimEnd('*');
+                switch (p.ToUpperInvariant())
+                {
+                    case "SS": modes.Add(FireMode.SingleShot); break;
+                    case "SA": modes.Add(FireMode.SemiAutomatic); break;
+                    case "BF": modes.Add(FireMode.Burst); break;
+                    case "FA": modes.Add(FireMode.FullAutomatic); break;
+                }
+            }
+            return modes;
+        }
+
+        private static FirearmClass InferFirearmClass(List<string> categoryTree)
+        {
+            if (categoryTree.Count < 3) return FirearmClass.Unknown;
+            // CategoryTree like "Weapons > Firearms > {bucket} > ..."
+            var bucket = categoryTree[2].ToLowerInvariant();
+            var leaf = categoryTree.Count >= 4 ? categoryTree[3].ToLowerInvariant() : "";
+
+            if (bucket == "pistols")
+                return leaf.Contains("hold out") ? FirearmClass.HoldOut
+                     : leaf.Contains("heavy")    ? FirearmClass.HeavyPistol
+                     : leaf.Contains("machine")  ? FirearmClass.SMG
+                     : leaf.Contains("light")    ? FirearmClass.LightPistol
+                     : FirearmClass.HeavyPistol; // pistol-family default
+            if (bucket == "submachine guns" || bucket == "smgs") return FirearmClass.SMG;
+            if (bucket == "shotguns") return FirearmClass.Shotgun;
+            if (bucket == "sport rifles" || bucket == "sporting rifles") return FirearmClass.SportingRifle;
+            if (bucket == "assault rifles") return FirearmClass.AssaultRifle;
+            if (bucket == "sniper rifles") return FirearmClass.SniperRifle;
+            if (bucket == "launch weapons")
+                return leaf.Contains("grenade")  ? FirearmClass.GrenadeLauncher
+                     : leaf.Contains("missile")  ? FirearmClass.GrenadeLauncher
+                     : FirearmClass.GrenadeLauncher;
+            if (bucket == "heavy weapons")
+                return leaf.Contains("light machine") ? FirearmClass.LMG
+                     : leaf.Contains("medium machine") ? FirearmClass.MMG
+                     : leaf.Contains("assault cannon") ? FirearmClass.AssaultCannon
+                     : leaf.Contains("minigun")  ? FirearmClass.HMG
+                     : FirearmClass.HMG;
+            return FirearmClass.Unknown;
         }
 
         private static void AddStatsFromChild(Dictionary<string, string> stats, Dictionary<int, dynamic> childData, int gearId, params string[] fields)

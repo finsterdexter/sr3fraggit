@@ -21,9 +21,10 @@ public partial class CharacterShellViewModel : ViewModelBase
     public MagicContainerViewModel MagicContainerVM { get; }
     public AttributesViewModel AttributesVM { get; }
     public SkillsViewModel SkillsVM { get; }
-    public GearViewModel GearVM { get; }
-    public MatrixViewModel MatrixVM { get; }
-    public AugmentationsViewModel AugmentationsVM { get; }
+    public GearContainerViewModel GearContainerVM { get; }
+    public VehiclesContainerViewModel VehiclesContainerVM { get; }
+    public MatrixContainerViewModel MatrixContainerVM { get; }
+    public AugmentationsContainerViewModel AugmentationsContainerVM { get; }
     public ContactsViewModel ContactsVM { get; }
     public EdgesFlawsViewModel EdgesFlawsVM { get; }
     public SummaryViewModel SummaryVM { get; }
@@ -99,9 +100,10 @@ public partial class CharacterShellViewModel : ViewModelBase
         MagicContainerViewModel magicContainerVM,
         AttributesViewModel attributesVM,
         SkillsViewModel skillsVM,
-        GearViewModel gearVM,
-        MatrixViewModel matrixVM,
-        AugmentationsViewModel augmentationsVM,
+        GearContainerViewModel gearContainerVM,
+        VehiclesContainerViewModel vehiclesContainerVM,
+        MatrixContainerViewModel matrixContainerVM,
+        AugmentationsContainerViewModel augmentationsContainerVM,
         ContactsViewModel contactsVM,
         EdgesFlawsViewModel edgesFlawsVM,
         SummaryViewModel summaryVM)
@@ -114,9 +116,10 @@ public partial class CharacterShellViewModel : ViewModelBase
         MagicContainerVM = magicContainerVM;
         AttributesVM = attributesVM;
         SkillsVM = skillsVM;
-        GearVM = gearVM;
-        MatrixVM = matrixVM;
-        AugmentationsVM = augmentationsVM;
+        GearContainerVM = gearContainerVM;
+        VehiclesContainerVM = vehiclesContainerVM;
+        MatrixContainerVM = matrixContainerVM;
+        AugmentationsContainerVM = augmentationsContainerVM;
         ContactsVM = contactsVM;
         EdgesFlawsVM = edgesFlawsVM;
         SummaryVM = summaryVM;

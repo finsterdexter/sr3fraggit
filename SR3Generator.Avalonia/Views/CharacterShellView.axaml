@@ -122,6 +122,9 @@
                 <TabItem Header="{x:Static res:Strings.TabPriorities}">
                     <tabs:PrioritiesView DataContext="{Binding PrioritiesVM}"/>
                 </TabItem>
+                <TabItem Header="{x:Static res:Strings.TabEdgesFlaws}">
+                    <tabs:EdgesFlawsView DataContext="{Binding EdgesFlawsVM}"/>
+                </TabItem>
                 <TabItem Header="{x:Static res:Strings.TabRace}">
                     <tabs:RaceView DataContext="{Binding RaceVM}"/>
                 </TabItem>
@@ -135,19 +138,19 @@
                     <tabs:SkillsView DataContext="{Binding SkillsVM}"/>
                 </TabItem>
                 <TabItem Header="{x:Static res:Strings.TabGear}">
-                    <tabs:GearView DataContext="{Binding GearVM}"/>
+                    <tabs:GearContainerView DataContext="{Binding GearContainerVM}"/>
+                </TabItem>
+                <TabItem Header="{x:Static res:Strings.TabVehicles}">
+                    <tabs:VehiclesContainerView DataContext="{Binding VehiclesContainerVM}"/>
                 </TabItem>
                 <TabItem Header="{x:Static res:Strings.TabAugments}">
-                    <tabs:AugmentationsView DataContext="{Binding AugmentationsVM}"/>
+                    <tabs:AugmentationsContainerView DataContext="{Binding AugmentationsContainerVM}"/>
                 </TabItem>
                 <TabItem Header="{x:Static res:Strings.TabMatrix}">
-                    <tabs:MatrixView DataContext="{Binding MatrixVM}"/>
+                    <tabs:MatrixContainerView DataContext="{Binding MatrixContainerVM}"/>
                 </TabItem>
                 <TabItem Header="{x:Static res:Strings.TabContacts}">
                     <tabs:ContactsView DataContext="{Binding ContactsVM}"/>
-                </TabItem>
-                <TabItem Header="{x:Static res:Strings.TabEdgesFlaws}">
-                    <tabs:EdgesFlawsView DataContext="{Binding EdgesFlawsVM}"/>
                 </TabItem>
                 <TabItem Header="{x:Static res:Strings.TabSummary}">
                     <tabs:SummaryView DataContext="{Binding SummaryVM}"/>

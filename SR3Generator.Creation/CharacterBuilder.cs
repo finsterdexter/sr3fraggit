@@ -36,6 +36,17 @@ namespace SR3Generator.Creation
             var (_, deckIssues) = _cyberdeckValidator.Validate(this);
             ValidationIssues.AddRange(deckIssues);
 
+            // Attachment failures (firearm mount over-cap, vehicle CF/Load over-cap, cyberware
+            // capacity over-cap, etc.) are surfaced as Error-level Equipment issues so the
+            // top-bar / Summary feed reflects what the per-Mods-tab banners are already showing.
+            foreach (var failure in AttachmentValidator.Validate(Character))
+                ValidationIssues.Add(new ValidationIssue
+                {
+                    Level = ValidationIssueLevel.Error,
+                    Category = ValidationIssueCategory.Equipment,
+                    Message = failure.Message,
+                });
+
             return !ValidationIssues.Any(i => i.Level == ValidationIssueLevel.Error);
         }
         private readonly SkillDatabase _skillDatabase;
@@ -559,6 +570,108 @@ namespace SR3Generator.Creation
             return this;
         }
 
+        public CharacterBuilder AttachFirearmAccessory(
+            Guid firearmId, Equipment accessoryCatalog, string? mountLocation,
+            bool isModification, bool useStreetIndex = false)
+        {
+            if (!Character.Gear.TryGetValue(firearmId, out var item) || item is not Firearm firearm)
+            {
+                _logger.LogWarning("AttachFirearmAccessory: firearm {FirearmId} not found", firearmId);
+                return this;
+            }
+
+            var costm = accessoryCatalog.Cost * (useStreetIndex ? accessoryCatalog.StreetIndex : 1);
+            long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
+            var embedded = accessoryCatalog.CloneForPurchase();
+            embedded.PaidCost = cost;
+
+            firearm.Attachments.Add(new AttachmentSlot
+            {
+                Kind = isModification ? CapacityKind.FirearmModification : CapacityKind.FirearmMount,
+                MountLocation = isModification ? null : mountLocation,
+                CapacityCost = 1m,
+                Embedded = embedded,
+            });
+            RemoveNuyen(cost);
+            return this;
+        }
+
+        public CharacterBuilder InstallCyberwareEnhancement(
+            Guid hostId, Cyberware enhancementCatalog, bool useStreetIndex = false)
+        {
+            if (!Character.Gear.TryGetValue(hostId, out var item) || item is not Cyberware host)
+            {
+                _logger.LogWarning("InstallCyberwareEnhancement: host {HostId} not found", hostId);
+                return this;
+            }
+
+            // Grade carries from the host so a delta-grade cyberarm's enhancements share the
+            // grade-discounted cost track. UI may override; the catalog entry default is Standard.
+            var clone = (Cyberware)enhancementCatalog.CloneForPurchase();
+            clone.Grade = host.Grade;
+
+            var grossCost = clone.ActualCost;
+            var costm = grossCost * (useStreetIndex ? clone.StreetIndex : 1);
+            long cost = (long)System.Math.Round(costm, System.MidpointRounding.AwayFromZero);
+            clone.PaidCost = cost;
+
+            host.Attachments.Add(new AttachmentSlot
+            {
+                Kind = CapacityKind.CyberwareCapacity,
+                CapacityCost = clone.Capacity,
+                Embedded = clone,
+            });
+            RemoveNuyen(cost);
+            return this;
+        }
+
+        public CharacterBuilder RemoveCyberwareEnhancement(Guid hostId, Guid slotId, bool useStreetIndex = false)
+        {
+            if (!Character.Gear.TryGetValue(hostId, out var item) || item is not Cyberware host)
+            {
+                _logger.LogWarning("RemoveCyberwareEnhancement: host {HostId} not found", hostId);
+                return this;
+            }
+            var slot = host.Attachments.FirstOrDefault(s => s.Id == slotId);
+            if (slot is null)
+            {
+                _logger.LogWarning("RemoveCyberwareEnhancement: slot {SlotId} not on host {HostId}", slotId, hostId);
+                return this;
+            }
+            long refund = slot.Embedded is { PaidCost: > 0 } e
+                ? e.PaidCost
+                : slot.Embedded is { } e2
+                    ? (long)System.Math.Round(e2.Cost * (useStreetIndex ? e2.StreetIndex : 1), System.MidpointRounding.AwayFromZero)
+                    : 0;
+            host.Attachments.Remove(slot);
+            AddNuyen(refund);
+            return this;
+        }
+
+        public CharacterBuilder DetachFirearmAccessory(Guid firearmId, Guid slotId, bool useStreetIndex = false)
+        {
+            if (!Character.Gear.TryGetValue(firearmId, out var item) || item is not Firearm firearm)
+            {
+                _logger.LogWarning("DetachFirearmAccessory: firearm {FirearmId} not found", firearmId);
+                return this;
+            }
+            var slot = firearm.Attachments.FirstOrDefault(s => s.Id == slotId);
+            if (slot is null)
+            {
+                _logger.LogWarning("DetachFirearmAccessory: slot {SlotId} not on firearm {FirearmId}", slotId, firearmId);
+                return this;
+            }
+            // Refund what was paid at attach time; fall back to base cost for older slots.
+            long refund = slot.Embedded is { PaidCost: > 0 } e
+                ? e.PaidCost
+                : slot.Embedded is { } e2
+                    ? (long)Math.Round(e2.Cost * (useStreetIndex ? e2.StreetIndex : 1), MidpointRounding.AwayFromZero)
+                    : 0;
+            firearm.Attachments.Remove(slot);
+            AddNuyen(refund);
+            return this;
+        }
+
         // Matrix (cyberdeck + program) methods
         public CharacterBuilder BuyCyberdeck(Cyberdeck deck, bool useStreetIndex = false)
         {
@@ -713,6 +826,218 @@ namespace SR3Generator.Creation
             deck.Masking = Math.Max(0, masking);
             deck.Sensor = Math.Max(0, sensor);
             return this;
+        }
+
+        // Vehicle methods. A vehicle is a top-level IAttachmentHost in Character.Gear;
+        // vehicle modifications are embedded (multi-slot when they consume CF + Load + MP).
+        // Weapon mounts are themselves attachment hosts holding one weapon each.
+
+        public CharacterBuilder BuyVehicle(Vehicle vehicle, bool useStreetIndex = false)
+        {
+            BuyGear(vehicle, useStreetIndex);
+            return this;
+        }
+
+        /// <summary>Sells a vehicle, refunding its <see cref="Equipment.PaidCost"/> plus the
+        /// <see cref="Equipment.PaidCost"/> of every embedded mod (which would otherwise be lost).
+        /// Weapons mounted on the vehicle's weapon mounts are also refunded.</summary>
+        public CharacterBuilder SellVehicle(Guid vehicleId, bool useStreetIndex = false)
+        {
+            if (!Character.Gear.TryGetValue(vehicleId, out var item) || item is not Vehicle vehicle)
+            {
+                _logger.LogWarning("SellVehicle: Vehicle {VehicleId} not found", vehicleId);
+                return this;
+            }
+
+            // Refund every embedded payload: vehicle mods + their mounted weapons (if any).
+            // Use ReferenceEqualityComparer because a multi-bucket mod has multiple slots
+            // sharing one Embedded — we'd double-refund without dedup.
+            var seen = new HashSet<Equipment>(ReferenceEqualityComparer.Instance);
+            foreach (var slot in vehicle.Attachments)
+            {
+                if (slot.Embedded is null) continue;
+                if (!seen.Add(slot.Embedded)) continue;
+                if (slot.Embedded.PaidCost > 0)
+                    AddNuyen(slot.Embedded.PaidCost);
+
+                // Weapon mounts also hold a weapon; refund that too.
+                if (slot.Embedded is WeaponMount mount)
+                {
+                    foreach (var weaponSlot in mount.Attachments)
+                    {
+                        if (weaponSlot.Embedded?.PaidCost > 0)
+                            AddNuyen(weaponSlot.Embedded.PaidCost);
+                    }
+                }
+            }
+
+            vehicle.Attachments.Clear();
+            SellGear(vehicleId, useStreetIndex);
+            return this;
+        }
+
+        /// <summary>Attach a vehicle modification. Creates one slot per non-zero capacity
+        /// bucket (Cargo CF, Load kg, Mount Points); all slots share the same Embedded
+        /// reference so the UI can group them and detach removes them together.</summary>
+        public CharacterBuilder AttachVehicleMod(Guid vehicleId, VehicleModification catalogMod, bool useStreetIndex = false)
+        {
+            if (!Character.Gear.TryGetValue(vehicleId, out var item) || item is not Vehicle vehicle)
+            {
+                _logger.LogWarning("AttachVehicleMod: Vehicle {VehicleId} not found", vehicleId);
+                return this;
+            }
+
+            var costm = catalogMod.Cost * (useStreetIndex ? catalogMod.StreetIndex : 1);
+            long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
+
+            var clone = (VehicleModification)catalogMod.CloneForPurchase();
+            clone.PaidCost = cost;
+
+            // Resolve the Body-scaled load formula now (R3 p.131: per-mod load is computed
+            // against the host vehicle's Body at attach time and frozen). Removing the mod
+            // refunds the same kg; later edits to Body don't drift the slot's stored value.
+            var loadKg = clone.ResolveLoadKg(vehicle.Body);
+
+            if (clone.CargoCfCost > 0m)
+                vehicle.Attachments.Add(new AttachmentSlot
+                {
+                    Kind = CapacityKind.VehicleCargoCF,
+                    CapacityCost = clone.CargoCfCost,
+                    VehicleCategory = clone.Category,
+                    EngineTrack = clone.EngineTrack,
+                    Embedded = clone,
+                });
+            if (loadKg > 0m)
+                vehicle.Attachments.Add(new AttachmentSlot
+                {
+                    Kind = CapacityKind.VehicleLoadKg,
+                    CapacityCost = loadKg,
+                    VehicleCategory = clone.Category,
+                    EngineTrack = clone.EngineTrack,
+                    Embedded = clone,
+                });
+            if (clone.MountPointsCost > 0)
+                vehicle.Attachments.Add(new AttachmentSlot
+                {
+                    Kind = CapacityKind.VehicleMountPoints,
+                    CapacityCost = clone.MountPointsCost,
+                    VehicleCategory = clone.Category,
+                    IsVehicleHardpoint = clone.MountPointsCost >= 2,
+                    Embedded = clone,
+                });
+            // Engine-track mods don't consume any of the three bucket kinds at the catalog
+            // level (they boost the host's Load when track=Load) but still need a slot to
+            // exist so they're visible and removable; use a zero-cost CF slot as the home.
+            if (clone.CargoCfCost == 0m && loadKg == 0m && clone.MountPointsCost == 0)
+                vehicle.Attachments.Add(new AttachmentSlot
+                {
+                    Kind = CapacityKind.VehicleCargoCF,
+                    CapacityCost = 0m,
+                    VehicleCategory = clone.Category,
+                    EngineTrack = clone.EngineTrack,
+                    Embedded = clone,
+                });
+
+            RemoveNuyen(cost);
+            return this;
+        }
+
+        /// <summary>Removes a vehicle modification, refunding its <see cref="Equipment.PaidCost"/>.
+        /// Identifies the mod via any one of the AttachmentSlot Ids belonging to it; walks all
+        /// multi-bucket slots sharing the same Embedded reference and drops them as a set. Any
+        /// weapon attached to a removed WeaponMount is refunded too.</summary>
+        public CharacterBuilder DetachVehicleMod(Guid vehicleId, Guid slotId)
+        {
+            if (!Character.Gear.TryGetValue(vehicleId, out var item) || item is not Vehicle vehicle)
+            {
+                _logger.LogWarning("DetachVehicleMod: Vehicle {VehicleId} not found", vehicleId);
+                return this;
+            }
+
+            var anchorSlot = vehicle.Attachments.FirstOrDefault(s => s.Id == slotId);
+            if (anchorSlot?.Embedded is not VehicleModification embedded)
+            {
+                _logger.LogWarning("DetachVehicleMod: slot {SlotId} on vehicle {VehicleId} has no embedded VehicleModification", slotId, vehicleId);
+                return this;
+            }
+
+            var siblingSlots = vehicle.Attachments
+                .Where(s => ReferenceEquals(s.Embedded, embedded))
+                .ToList();
+
+            if (embedded is WeaponMount mount)
+            {
+                foreach (var weaponSlot in mount.Attachments)
+                {
+                    if (weaponSlot.Embedded?.PaidCost > 0)
+                        AddNuyen(weaponSlot.Embedded.PaidCost);
+                }
+                mount.Attachments.Clear();
+            }
+
+            if (embedded.PaidCost > 0)
+                AddNuyen(embedded.PaidCost);
+
+            foreach (var slot in siblingSlots)
+                vehicle.Attachments.Remove(slot);
+            return this;
+        }
+
+        /// <summary>Attach a firearm to an installed weapon mount. The mount is identified
+        /// by the slot ID on the parent vehicle that embeds it. Doesn't validate mount-class
+        /// compatibility — the AttachmentValidator surfaces that as a validation failure for
+        /// the UI to flag.</summary>
+        public CharacterBuilder MountWeapon(Guid vehicleId, Guid mountSlotId, Firearm catalogWeapon, bool useStreetIndex = false)
+        {
+            var mount = FindMountBySlot(vehicleId, mountSlotId);
+            if (mount is null)
+            {
+                _logger.LogWarning("MountWeapon: mount slot {SlotId} on vehicle {VehicleId} not found", mountSlotId, vehicleId);
+                return this;
+            }
+
+            var costm = catalogWeapon.Cost * (useStreetIndex ? catalogWeapon.StreetIndex : 1);
+            long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
+
+            var clone = (Firearm)catalogWeapon.CloneForPurchase();
+            clone.PaidCost = cost;
+
+            mount.Attachments.Add(new AttachmentSlot
+            {
+                Kind = CapacityKind.VehicleWeaponSlot,
+                CapacityCost = 1m,
+                Embedded = clone,
+            });
+
+            RemoveNuyen(cost);
+            return this;
+        }
+
+        public CharacterBuilder UnmountWeapon(Guid vehicleId, Guid mountSlotId)
+        {
+            var mount = FindMountBySlot(vehicleId, mountSlotId);
+            if (mount is null)
+            {
+                _logger.LogWarning("UnmountWeapon: mount slot {SlotId} on vehicle {VehicleId} not found", mountSlotId, vehicleId);
+                return this;
+            }
+
+            foreach (var slot in mount.Attachments.ToList())
+            {
+                if (slot.Embedded?.PaidCost > 0)
+                    AddNuyen(slot.Embedded.PaidCost);
+                mount.Attachments.Remove(slot);
+            }
+            return this;
+        }
+
+        /// <summary>Resolve a WeaponMount by the slot ID on its parent vehicle.</summary>
+        private WeaponMount? FindMountBySlot(Guid vehicleId, Guid mountSlotId)
+        {
+            if (!Character.Gear.TryGetValue(vehicleId, out var item) || item is not Vehicle vehicle)
+                return null;
+            var slot = vehicle.Attachments.FirstOrDefault(s => s.Id == mountSlotId);
+            return slot?.Embedded as WeaponMount;
         }
 
         /// <summary>

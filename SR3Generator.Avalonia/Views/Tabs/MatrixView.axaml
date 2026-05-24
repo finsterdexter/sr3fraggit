@@ -7,17 +7,17 @@
              x:Class="SR3Generator.Avalonia.Views.Tabs.MatrixView"
              x:DataType="vm:MatrixViewModel">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
         <!-- Header -->
         <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
             <TextBlock Text="MATRIX" Classes="page-title"/>
             <TextBlock Classes="page-subtitle"
-                       Text="Cyberdecks and utility programs. Buy gear, load programs into storage, activate into running memory."/>
+                       Text="Buy and sell cyberdecks and utility programs. Loading programs into Storage/Active memory and persona tuning lives on the paired Matrix Mods tab."/>
         </StackPanel>
 
         <!-- Resource bar -->
         <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                 <CheckBox Grid.Column="0" Content="Street index"
                           IsChecked="{Binding UseStreetIndex}"
                           VerticalAlignment="Center"/>
@@ -33,26 +33,6 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8"
-                            VerticalAlignment="Center" Margin="0,0,16,0"
-                            IsVisible="{Binding MemoryMapDeck, Converter={x:Static ObjectConverters.IsNotNull}}">
-                    <TextBlock Text="MEMORY" Classes="micro-label"/>
-                    <TextBlock Classes="stat-value-lg" VerticalAlignment="Center">
-                        <Run Text="{Binding SelectedDeckActiveUsed}"
-                             Foreground="{StaticResource AccentCyberBrush}"/>
-                        <Run Text="/" Foreground="{StaticResource InkMutedBrush}"/>
-                        <Run Text="{Binding SelectedDeckActiveTotal}"
-                             Foreground="{StaticResource InkSecondaryBrush}"/>
-                        <Run Text=" act " Foreground="{StaticResource InkMutedBrush}"/>
-                        <Run Text="{Binding SelectedDeckStorageUsed}"
-                             Foreground="{StaticResource AccentCyberBrush}"/>
-                        <Run Text="/" Foreground="{StaticResource InkMutedBrush}"/>
-                        <Run Text="{Binding SelectedDeckStorageTotal}"
-                             Foreground="{StaticResource InkSecondaryBrush}"/>
-                        <Run Text=" sto" Foreground="{StaticResource InkMutedBrush}"/>
-                    </TextBlock>
-                </StackPanel>
-
-                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="8"
                             VerticalAlignment="Center">
                     <TextBlock Text="NUYEN" Classes="micro-label"/>
                     <TextBlock Classes="stat-value-lg" VerticalAlignment="Center">
@@ -88,7 +68,8 @@
                                         </TextBlock.IsVisible>
                                     </TextBlock>
 
-                                    <!-- Owned deck detail (full stats + Equip/Sell actions) -->
+                                    <!-- Owned deck detail (read-only stats + Sell action only).
+                                         Persona BEMS tuning + Equip / Memory loadouts move to the Matrix Mods tab. -->
                                     <StackPanel Spacing="10"
                                                 IsVisible="{Binding SelectedOwnedDeck, Converter={x:Static ObjectConverters.IsNotNull}}">
                                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -103,70 +84,32 @@
                                             </Border>
                                         </StackPanel>
                                         <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
-                                              RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                                              RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto">
                                             <TextBlock Grid.Row="0" Grid.Column="0" Text="MPCP" Classes="micro-label"/>
                                             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.MPCP}"
                                                        Classes="data" FontSize="11" Foreground="{StaticResource AccentCyberBrush}"/>
-                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="BOD" Classes="micro-label"/>
-                                            <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding EditBod}"
-                                                           Minimum="0" Maximum="{Binding PersonaStatCap}"
-                                                           Increment="1" ShowButtonSpinner="True"
-                                                           FormatString="0" MinWidth="80"/>
-                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="EVASION" Classes="micro-label"/>
-                                            <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding EditEvasion}"
-                                                           Minimum="0" Maximum="{Binding PersonaStatCap}"
-                                                           Increment="1" ShowButtonSpinner="True"
-                                                           FormatString="0" MinWidth="80"/>
-                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="MASKING" Classes="micro-label"/>
-                                            <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding EditMasking}"
-                                                           Minimum="0" Maximum="{Binding PersonaStatCap}"
-                                                           Increment="1" ShowButtonSpinner="True"
-                                                           FormatString="0" MinWidth="80"/>
-                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="SENSOR" Classes="micro-label"/>
-                                            <NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding EditSensor}"
-                                                           Minimum="0" Maximum="{Binding PersonaStatCap}"
-                                                           Increment="1" ShowButtonSpinner="True"
-                                                           FormatString="0" MinWidth="80"/>
-                                            <TextBlock Grid.Row="5" Grid.Column="0" Text="PERSONA SUM" Classes="micro-label"/>
-                                            <TextBlock Grid.Row="5" Grid.Column="1" Classes="data" FontSize="11">
-                                                <Run Text="{Binding PersonaSumCurrent}"
-                                                     Foreground="{StaticResource AccentCyberBrush}"/>
-                                                <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
-                                                <Run Text="{Binding PersonaSumCap}"
-                                                     Foreground="{StaticResource InkSecondaryBrush}"/>
-                                            </TextBlock>
-                                            <TextBlock Grid.Row="6" Grid.Column="0" Text="HARDENING" Classes="micro-label"/>
-                                            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.Hardening}"
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="HARDENING" Classes="micro-label"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.Hardening}"
                                                        Classes="data" FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
-                                            <TextBlock Grid.Row="7" Grid.Column="0" Text="ACTIVE MEM" Classes="micro-label"/>
-                                            <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.ActiveMemory, StringFormat='{}{0} Mp'}"
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Text="ACTIVE MEM" Classes="micro-label"/>
+                                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.ActiveMemory, StringFormat='{}{0} Mp'}"
                                                        Classes="data" FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
-                                            <TextBlock Grid.Row="8" Grid.Column="0" Text="STORAGE MEM" Classes="micro-label"/>
-                                            <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.StorageMemory, StringFormat='{}{0} Mp'}"
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Text="STORAGE MEM" Classes="micro-label"/>
+                                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.StorageMemory, StringFormat='{}{0} Mp'}"
                                                        Classes="data" FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
-                                            <TextBlock Grid.Row="9" Grid.Column="0" Text="I/O SPEED" Classes="micro-label"/>
-                                            <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.IOSpeed}"
+                                            <TextBlock Grid.Row="4" Grid.Column="0" Text="I/O SPEED" Classes="micro-label"/>
+                                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.IOSpeed}"
                                                        Classes="data" FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
-                                            <TextBlock Grid.Row="10" Grid.Column="0" Text="RESPONSE INC" Classes="micro-label"/>
-                                            <TextBlock Grid.Row="10" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.ResponseIncrease, StringFormat='{}+{0}'}"
+                                            <TextBlock Grid.Row="5" Grid.Column="0" Text="RESPONSE INC" Classes="micro-label"/>
+                                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding SelectedOwnedDeck.Deck.ResponseIncrease, StringFormat='{}+{0}'}"
                                                        Classes="data" FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
-                                            <TextBlock Grid.Row="11" Grid.Column="0" Text="PAID" Classes="micro-label"/>
-                                            <TextBlock Grid.Row="11" Grid.Column="1" Text="{Binding SelectedOwnedDeck.PaidCostDisplay}"
+                                            <TextBlock Grid.Row="6" Grid.Column="0" Text="PAID" Classes="micro-label"/>
+                                            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding SelectedOwnedDeck.PaidCostDisplay}"
                                                        Classes="data" FontSize="11" Foreground="{StaticResource AccentNuyenBrush}"/>
                                         </Grid>
-                                        <StackPanel Spacing="6">
-                                            <Button Content="Equip deck" Classes="primary action"
-                                                    HorizontalAlignment="Stretch"
-                                                    Command="{Binding ToggleEquipDeckCommand}"
-                                                    IsVisible="{Binding !SelectedOwnedDeck.IsEquipped}"/>
-                                            <Button Content="Unequip deck" Classes="action"
-                                                    HorizontalAlignment="Stretch"
-                                                    Command="{Binding ToggleEquipDeckCommand}"
-                                                    IsVisible="{Binding SelectedOwnedDeck.IsEquipped}"/>
-                                            <Button Content="Sell deck" Classes="action"
-                                                    HorizontalAlignment="Stretch"
-                                                    Command="{Binding SellDeckCommand}"/>
-                                        </StackPanel>
+                                        <Button Content="Sell deck" Classes="action"
+                                                HorizontalAlignment="Stretch"
+                                                Command="{Binding SellDeckCommand}"/>
                                     </StackPanel>
 
                                     <!-- Catalog deck detail (Buy action) -->
@@ -328,15 +271,10 @@
                                                        Classes="data" FontSize="11" Foreground="{StaticResource InkSecondaryBrush}"/>
                                         </Grid>
 
-                                        <StackPanel Spacing="6">
-                                            <Button Content="Store on selected deck" Classes="primary action"
-                                                    HorizontalAlignment="Stretch"
-                                                    Command="{Binding StoreOnSelectedDeckCommand}"
-                                                    IsEnabled="{Binding MemoryMapDeck, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                                            <Button Content="Sell program" Classes="action"
-                                                    HorizontalAlignment="Stretch"
-                                                    Command="{Binding SellProgramCommand}"/>
-                                        </StackPanel>
+                                        <!-- Selling a program lives here; loading it onto a deck moves to Matrix Mods. -->
+                                        <Button Content="Sell program" Classes="action"
+                                                HorizontalAlignment="Stretch"
+                                                Command="{Binding SellProgramCommand}"/>
                                     </StackPanel>
 
                                     <!-- Catalog archetype detail (Buy at rating) -->
@@ -445,75 +383,5 @@
             </TabItem>
 
         </TabControl>
-
-        <!-- Memory map for the sticky MemoryMapDeck — persists across catalog clicks so the
-             user can browse decks/programs above without losing their memory-map view. -->
-        <Border Grid.Row="3" Classes="panel" Padding="12"
-                IsVisible="{Binding MemoryMapDeck, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <Grid ColumnDefinitions="*,12,*" RowDefinitions="Auto,*">
-                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="STORED" Classes="section-header"/>
-                    <TextBlock VerticalAlignment="Center" FontSize="10"
-                               Foreground="{StaticResource InkMutedBrush}">
-                        <Run Text="{Binding SelectedDeckStorageUsed}"/>
-                        <Run Text="/"/>
-                        <Run Text="{Binding SelectedDeckStorageTotal}"/>
-                        <Run Text=" Mp"/>
-                    </TextBlock>
-                </StackPanel>
-                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="ACTIVE" Classes="section-header"/>
-                    <TextBlock VerticalAlignment="Center" FontSize="10"
-                               Foreground="{StaticResource InkMutedBrush}">
-                        <Run Text="{Binding SelectedDeckActiveUsed}"/>
-                        <Run Text="/"/>
-                        <Run Text="{Binding SelectedDeckActiveTotal}"/>
-                        <Run Text=" Mp"/>
-                    </TextBlock>
-                </StackPanel>
-
-                <ListBox Grid.Row="1" Grid.Column="0" MaxHeight="180"
-                         ItemsSource="{Binding SelectedDeckStoredPrograms}"
-                         Background="Transparent" BorderThickness="0">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate DataType="vm:DeckSlotItem">
-                            <Grid ColumnDefinitions="*,Auto,Auto">
-                                <TextBlock Text="{Binding Display}" Classes="body-sm"
-                                           TextTrimming="CharacterEllipsis"
-                                           VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Content="Activate" Classes="compact"
-                                        CommandParameter="{Binding ProgramId}"
-                                        Command="{Binding $parent[UserControl].((vm:MatrixViewModel)DataContext).ActivateProgramCommand}"
-                                        IsVisible="{Binding !IsActive}"
-                                        Margin="4,0,0,0"/>
-                                <Button Grid.Column="2" Content="Unload" Classes="compact"
-                                        CommandParameter="{Binding ProgramId}"
-                                        Command="{Binding $parent[UserControl].((vm:MatrixViewModel)DataContext).UnloadFromDeckCommand}"
-                                        Margin="4,0,0,0"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-
-                <ListBox Grid.Row="1" Grid.Column="2" MaxHeight="180"
-                         ItemsSource="{Binding SelectedDeckActivePrograms}"
-                         Background="Transparent" BorderThickness="0">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate DataType="vm:DeckSlotItem">
-                            <Grid ColumnDefinitions="*,Auto">
-                                <TextBlock Text="{Binding Display}" Classes="body-sm"
-                                           TextTrimming="CharacterEllipsis"
-                                           VerticalAlignment="Center"
-                                           Foreground="{StaticResource AccentCyberBrush}"/>
-                                <Button Grid.Column="1" Content="Deactivate" Classes="compact"
-                                        CommandParameter="{Binding ProgramId}"
-                                        Command="{Binding $parent[UserControl].((vm:MatrixViewModel)DataContext).DeactivateProgramCommand}"
-                                        Margin="4,0,0,0"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </Grid>
-        </Border>
     </Grid>
 </UserControl>

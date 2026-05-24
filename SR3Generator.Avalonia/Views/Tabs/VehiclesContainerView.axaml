@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:tabs="using:SR3Generator.Avalonia.Views.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.VehiclesContainerView"
+             x:DataType="vm:VehiclesContainerViewModel">
+
+    <TabControl SelectedIndex="{Binding SelectedSubtabIndex}" Padding="0">
+        <TabItem Header="{x:Static res:Strings.SubtabCatalog}">
+            <tabs:VehiclesView DataContext="{Binding CatalogVM}"/>
+        </TabItem>
+        <TabItem Header="{x:Static res:Strings.SubtabMods}">
+            <tabs:VehicleModsView DataContext="{Binding ModsVM}"/>
+        </TabItem>
+    </TabControl>
+</UserControl>

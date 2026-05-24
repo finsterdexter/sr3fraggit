@@ -147,11 +147,18 @@
   <data name="TabAdept" xml:space="preserve"><value>Adept</value></data>
   <data name="TabFoci" xml:space="preserve"><value>Foci</value></data>
   <data name="TabGear" xml:space="preserve"><value>Gear</value></data>
+  <data name="TabVehicles" xml:space="preserve"><value>Vehicles</value></data>
+  <data name="TabVehicleMods" xml:space="preserve"><value>Vehicle Mods</value></data>
   <data name="TabAugments" xml:space="preserve"><value>Augments</value></data>
+  <data name="TabAugmentMods" xml:space="preserve"><value>Augment Mods</value></data>
+  <data name="TabGearMods" xml:space="preserve"><value>Gear Mods</value></data>
+  <data name="TabMatrixMods" xml:space="preserve"><value>Matrix Mods</value></data>
   <data name="TabMatrix" xml:space="preserve"><value>Matrix</value></data>
   <data name="TabContacts" xml:space="preserve"><value>Contacts</value></data>
   <data name="TabEdgesFlaws" xml:space="preserve"><value>Edges &amp; Flaws</value></data>
   <data name="TabSummary" xml:space="preserve"><value>Summary</value></data>
+  <data name="SubtabCatalog" xml:space="preserve"><value>Catalog</value></data>
+  <data name="SubtabMods" xml:space="preserve"><value>Mods</value></data>
 
   <!-- Page titles + subtitles -->
   <data name="PrioritiesTitle" xml:space="preserve"><value>Priorities</value></data>

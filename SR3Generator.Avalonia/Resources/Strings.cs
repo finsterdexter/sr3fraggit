@@ -149,11 +149,18 @@ public static class Strings
     public static string TabAdept => Get(nameof(TabAdept));
     public static string TabFoci => Get(nameof(TabFoci));
     public static string TabGear => Get(nameof(TabGear));
+    public static string TabVehicles => Get(nameof(TabVehicles));
+    public static string TabVehicleMods => Get(nameof(TabVehicleMods));
     public static string TabAugments => Get(nameof(TabAugments));
+    public static string TabAugmentMods => Get(nameof(TabAugmentMods));
+    public static string TabGearMods => Get(nameof(TabGearMods));
+    public static string TabMatrixMods => Get(nameof(TabMatrixMods));
     public static string TabMatrix => Get(nameof(TabMatrix));
     public static string TabContacts => Get(nameof(TabContacts));
     public static string TabEdgesFlaws => Get(nameof(TabEdgesFlaws));
     public static string TabSummary => Get(nameof(TabSummary));
+    public static string SubtabCatalog => Get(nameof(SubtabCatalog));
+    public static string SubtabMods => Get(nameof(SubtabMods));
 
     // Page titles + subtitles
     public static string PrioritiesTitle => Get(nameof(PrioritiesTitle));

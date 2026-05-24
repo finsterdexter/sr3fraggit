@@ -179,6 +179,30 @@ public class CharacterBuilderService : ICharacterBuilderService
         OnCharacterChanged();
     }
 
+    public void AttachFirearmAccessory(Guid firearmId, Equipment accessoryCatalog, string? mountLocation, bool isModification, bool useStreetIndex = false)
+    {
+        _builder.AttachFirearmAccessory(firearmId, accessoryCatalog, mountLocation, isModification, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void DetachFirearmAccessory(Guid firearmId, Guid slotId, bool useStreetIndex = false)
+    {
+        _builder.DetachFirearmAccessory(firearmId, slotId, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void InstallCyberwareEnhancement(Guid hostId, Cyberware enhancementCatalog, bool useStreetIndex = false)
+    {
+        _builder.InstallCyberwareEnhancement(hostId, enhancementCatalog, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void RemoveCyberwareEnhancement(Guid hostId, Guid slotId, bool useStreetIndex = false)
+    {
+        _builder.RemoveCyberwareEnhancement(hostId, slotId, useStreetIndex);
+        OnCharacterChanged();
+    }
+
     public void BuyCyberdeck(Cyberdeck deck, bool useStreetIndex = false)
     {
         _builder.BuyCyberdeck(deck, useStreetIndex);
@@ -236,6 +260,42 @@ public class CharacterBuilderService : ICharacterBuilderService
     public void SetDeckPersona(Guid deckId, int bod, int evasion, int masking, int sensor)
     {
         _builder.SetDeckPersona(deckId, bod, evasion, masking, sensor);
+        OnCharacterChanged();
+    }
+
+    public void BuyVehicle(Vehicle vehicle, bool useStreetIndex = false)
+    {
+        _builder.BuyVehicle(vehicle, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void SellVehicle(Guid vehicleId, bool useStreetIndex = false)
+    {
+        _builder.SellVehicle(vehicleId, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void AttachVehicleMod(Guid vehicleId, VehicleModification mod, bool useStreetIndex = false)
+    {
+        _builder.AttachVehicleMod(vehicleId, mod, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void DetachVehicleMod(Guid vehicleId, Guid slotId)
+    {
+        _builder.DetachVehicleMod(vehicleId, slotId);
+        OnCharacterChanged();
+    }
+
+    public void MountWeapon(Guid vehicleId, Guid mountSlotId, Firearm weapon, bool useStreetIndex = false)
+    {
+        _builder.MountWeapon(vehicleId, mountSlotId, weapon, useStreetIndex);
+        OnCharacterChanged();
+    }
+
+    public void UnmountWeapon(Guid vehicleId, Guid mountSlotId)
+    {
+        _builder.UnmountWeapon(vehicleId, mountSlotId);
         OnCharacterChanged();
     }
 

@@ -50,5 +50,9 @@ namespace SR3Generator.Data.Gear.Attachments
         /// <summary>Storage program memory on a cyberdeck (Mp). Sum of stored
         /// program Size must not exceed the deck's StorageMemory.</summary>
         ProgramStorageMemory,
+
+        /// <summary>The single weapon slot exposed by a WeaponMount once installed
+        /// on a vehicle. Capacity is 1 — one weapon per mount (R3 p.135).</summary>
+        VehicleWeaponSlot,
     }
 }

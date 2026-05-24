@@ -60,18 +60,23 @@ public partial class App : Application
         {
             options.DatabasePath = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
-                "data", "data_f718f0119.db");
+                "data", "data_4a07a76e3.db");
         });
 
         // Database services - uses the public constructor
         services.AddSingleton<SkillDatabase>();
         services.AddSingleton<GearDatabase>();
+        services.AddSingleton<EquipmentCapacityDatabase>();
         services.AddSingleton<AugmentationDatabase>();
         services.AddSingleton<AdeptPowerDatabase>();
         services.AddSingleton<FocusDatabase>();
         services.AddSingleton<SpellDatabase>();
         services.AddSingleton<CyberdeckDatabase>();
         services.AddSingleton<ProgramDatabase>();
+        services.AddSingleton<VehicleDatabase>();
+        services.AddSingleton<VehicleModificationDatabase>();
+        services.AddSingleton<FirearmAccessoryDatabase>();
+        services.AddSingleton<CyberwareEnhancementDatabase>();
         services.AddSingleton<RulesGlossary>();
         services.AddSingleton<TotemDatabase>();
         services.AddSingleton<BookDatabase>();
@@ -100,11 +105,22 @@ public partial class App : Application
         services.AddTransient<AdeptPowersViewModel>();
         services.AddTransient<FociViewModel>();
         services.AddTransient<GearViewModel>();
+        services.AddTransient<GearModsViewModel>();
+        services.AddTransient<VehiclesViewModel>();
+        services.AddTransient<VehicleModsViewModel>();
         services.AddTransient<MatrixViewModel>();
+        services.AddTransient<MatrixModsViewModel>();
         services.AddTransient<AugmentationsViewModel>();
+        services.AddTransient<AugmentModsViewModel>();
         services.AddTransient<ContactsViewModel>();
         services.AddTransient<EdgesFlawsViewModel>();
         services.AddTransient<SummaryViewModel>();
+
+        // Section container ViewModels — each wraps a Catalog + Mods inner pair.
+        services.AddTransient<GearContainerViewModel>();
+        services.AddTransient<VehiclesContainerViewModel>();
+        services.AddTransient<AugmentationsContainerViewModel>();
+        services.AddTransient<MatrixContainerViewModel>();
 
         // Shell and Main ViewModels
         services.AddTransient<CharacterShellViewModel>();

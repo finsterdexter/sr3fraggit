@@ -30,6 +30,8 @@ namespace SR3Generator.Data.Gear
     [JsonDerivedType(typeof(Program), "program")]
     [JsonDerivedType(typeof(VehicleControlRig), "vcr")]
     [JsonDerivedType(typeof(Vehicle), "vehicle")]
+    [JsonDerivedType(typeof(VehicleModification), "vehicleMod")]
+    [JsonDerivedType(typeof(WeaponMount), "weaponMount")]
     [JsonDerivedType(typeof(FirearmAccessory), "firearmAccessory")]
     public class Equipment
     {

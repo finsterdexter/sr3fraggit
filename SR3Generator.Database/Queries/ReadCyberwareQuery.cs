@@ -18,7 +18,7 @@ namespace SR3Generator.Database.Queries
     {
         const string cyberwareSql = @"
             SELECT id, name, Notes, BookPage, category_tree, Availability,
-                   EssCost, Cost, Mods, LegalCode, Capacity, StreetIndex
+                   EssCost, Cost, Mods, LegalCode, Capacity, StreetIndex, Category
             FROM cyberware;";
 
         public async Task<IEnumerable<Cyberware>> HandleAsync(ReadCyberwareQuery query, IDbConnection dbConnection, IDbTransaction dbTransaction)
@@ -50,6 +50,12 @@ namespace SR3Generator.Database.Queries
                 {
                     cyberware.Mods = ParseMods(dto.Mods);
                 }
+
+                // M&M placement code (E=Eye, R=Ear, A=Arm, L=Leg, T=Torso, H=Head, F=Foot,
+                // D=Hand). Surfaced as Stats["mm_category"] for downstream consumers — the
+                // typed Cyberware model has no dedicated field for this single-char hint.
+                if (!string.IsNullOrWhiteSpace(dto.Category))
+                    cyberware.Stats["mm_category"] = dto.Category!;
 
                 // Encephalon's "+N Int for learning new skills" is a scoped bonus that isn't
                 // expressible in the generic mod abbrev column; encode it as a KnowledgeSkillIntMod.
@@ -214,5 +220,6 @@ namespace SR3Generator.Database.Queries
         public string? LegalCode { get; set; }
         public string? Capacity { get; set; }
         public string? StreetIndex { get; set; }
+        public string? Category { get; set; }
     }
 }

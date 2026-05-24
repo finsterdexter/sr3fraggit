@@ -1,0 +1,202 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:res="using:SR3Generator.Avalonia.Resources"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.VehiclesView"
+             x:DataType="vm:VehiclesViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.crumb-sep">
+            <Setter Property="Text" Value="›"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{StaticResource InkMutedBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="4,0"/>
+        </Style>
+        <Style Selector="ComboBox.crumb">
+            <Setter Property="MinWidth" Value="140"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="16">
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="VEHICLES" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="Buy and sell vehicles. Mod management for an owned vehicle is on the paired Vehicle Mods tab."/>
+        </StackPanel>
+
+        <!-- Resource bar -->
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,8">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <CheckBox Grid.Column="0" Content="Use Street Index"
+                          IsChecked="{Binding UseStreetIndex}"
+                          VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="NUYEN" Classes="micro-label"/>
+                    <TextBlock Classes="stat-value-lg">
+                        <Run Text="{Binding NuyenRemaining, StringFormat='{}{0:N0}'}"
+                             Foreground="{StaticResource AccentNuyenBrush}"/>
+                        <Run Text="¥" Foreground="{StaticResource InkMutedBrush}"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Breadcrumb filter bar -->
+        <Border Grid.Row="2" Classes="resource-bar" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                <ItemsControl Grid.Column="0"
+                              ItemsSource="{Binding BreadcrumbSteps}"
+                              VerticalAlignment="Center">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:BreadcrumbStep">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Classes="crumb-sep" IsVisible="{Binding !IsFirstVisible}"/>
+                                <ComboBox Classes="crumb"
+                                          ItemsSource="{Binding Options}"
+                                          SelectedItem="{Binding SelectedValue}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Button Grid.Column="1" Content="Clear" Classes="compact"
+                        Command="{Binding ClearFiltersCommand}"/>
+                <TextBox Grid.Column="2"
+                         Text="{Binding FilterText}"
+                         Watermark="Search"
+                         MinWidth="200"/>
+            </Grid>
+        </Border>
+
+        <!-- Detail | Available | Owned -->
+        <Grid Grid.Row="3" ColumnDefinitions="2*,12,5*,12,3*">
+
+            <!-- Detail -->
+            <Border Grid.Column="0" Classes="panel">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="DETAIL" Classes="section-header"/>
+                    <ScrollViewer>
+                        <Grid>
+                            <TextBlock Text="Select a vehicle to see details."
+                                       Classes="body" TextWrapping="Wrap"
+                                       Foreground="{StaticResource InkMutedBrush}"
+                                       IsVisible="{Binding !HasCatalogSelection}"/>
+                            <StackPanel Spacing="10"
+                                        IsVisible="{Binding HasCatalogSelection}">
+                                <TextBlock Text="{Binding DetailName}"
+                                           FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding DetailSubtitle}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"/>
+                                <ItemsControl ItemsSource="{Binding DetailStats}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:VehicleStatRow">
+                                            <Grid ColumnDefinitions="120,*" Margin="0,1">
+                                                <TextBlock Text="{Binding Label}" Classes="micro-label"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Value}"
+                                                           Classes="data" FontSize="11"
+                                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Text="{Binding DetailBookRef}" FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           IsVisible="{Binding DetailBookRef, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                <Button Content="Buy vehicle" Classes="primary action"
+                                        HorizontalAlignment="Stretch" Margin="0,8,0,0"
+                                        Command="{Binding BuyCommand}"
+                                        IsEnabled="{Binding CanBuy}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- Available catalog -->
+            <Border Grid.Column="2" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="12,12,12,8">
+                        <TextBlock Text="AVAILABLE" Classes="section-header"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding FilteredCount, StringFormat='{}{0} items'}"
+                                   Classes="body-sm"
+                                   Foreground="{StaticResource InkMutedBrush}"
+                                   VerticalAlignment="Center"/>
+                    </Grid>
+                    <ListBox ItemsSource="{Binding CatalogItems}"
+                             SelectedItem="{Binding SelectedCatalogItem}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:CatalogRow">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Name}"
+                                               Classes="body" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CostDisplay}"
+                                               Classes="data" FontSize="10"
+                                               Foreground="{StaticResource AccentNuyenBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                          ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding Description}"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource InkMutedBrush}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding BookRef}"
+                                                   FontSize="9"
+                                                   Foreground="{StaticResource InkFaintBrush}"
+                                                   FontStyle="Italic"/>
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Owned -->
+            <Border Grid.Column="4" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="OWNED"
+                               Classes="section-header" Margin="12,12,12,8"/>
+                    <ListBox ItemsSource="{Binding OwnedVehicles}"
+                             SelectedItem="{Binding SelectedOwned}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:OwnedVehicleItem">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Text="{Binding Name}" Classes="body" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Subtitle}" FontSize="9"
+                                                   Foreground="{StaticResource AccentCyberBrush}"
+                                                   LetterSpacing="0.5"/>
+                                        <TextBlock Text="{Binding Summary}" Classes="data" FontSize="10"
+                                                   Foreground="{StaticResource InkMutedBrush}"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Sell" Classes="compact"
+                                            VerticalAlignment="Center"
+                                            CommandParameter="{Binding Id}"
+                                            Command="{Binding $parent[UserControl].((vm:VehiclesViewModel)DataContext).SellCommand}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock DockPanel.Dock="Bottom" Text="(no vehicles owned)"
+                               Classes="body-sm" FontStyle="Italic"
+                               Foreground="{StaticResource InkMutedBrush}"
+                               Margin="12,0,12,12"
+                               IsVisible="{Binding !OwnedVehicles.Count}"/>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

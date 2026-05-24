@@ -14,13 +14,16 @@ namespace SR3Generator.Database
         public Dictionary<string, List<Cyberware>> CyberwareByCategory { get; } = new();
         public Dictionary<string, List<Bioware>> BiowareByCategory { get; } = new();
 
+        public EquipmentCapacityDatabase EquipmentCapacity { get; }
+
         /// <summary>
         /// Public constructor for external consumers (DI registration).
         /// </summary>
         public AugmentationDatabase(IOptions<DatabaseOptions> options)
             : this(new DbConnectionFactory(options),
                    new ReadCyberwareQueryHandler(),
-                   new ReadBiowareQueryHandler())
+                   new ReadBiowareQueryHandler(),
+                   new EquipmentCapacityDatabase(options))
         {
         }
 
@@ -29,13 +32,44 @@ namespace SR3Generator.Database
         /// </summary>
         internal AugmentationDatabase(DbConnectionFactory dbConnectionFactory,
             ReadCyberwareQueryHandler readCyberwareQueryHandler,
-            ReadBiowareQueryHandler readBiowareQueryHandler)
+            ReadBiowareQueryHandler readBiowareQueryHandler,
+            EquipmentCapacityDatabase equipmentCapacity)
         {
+            EquipmentCapacity = equipmentCapacity;
             var conn = dbConnectionFactory.CreateConnection();
 
             // Load cyberware
             var cyberware = readCyberwareQueryHandler.HandleAsync(new ReadCyberwareQuery(), conn, null!).Result;
             AllCyberware = cyberware.ToList();
+
+            // Set host-side Capacity from the M&M Equipment Capacity Table
+            // (mm_host_capacity in the .db, built from mm_equipment_capacity.json).
+            // cyber.dat doesn't carry these values; without this pass cyberlimbs
+            // would have Capacity 0 and reject every enhancement.
+            //
+            // For non-host items: if M&M's Equipment Capacity Cost Table (p.36)
+            // lists the item, set its Capacity to the per-item ECU cost. That
+            // makes the Capacity field do double duty (host = pool size,
+            // enhancement = per-attach cost) — same convention the original
+            // Cyberware model already uses for the 13 NSRCG-tagged entries.
+            foreach (var item in AllCyberware)
+            {
+                var host = EquipmentCapacity.ResolveHost(item.Name);
+                if (host is not null)
+                {
+                    item.Capacity = EquipmentCapacity.AdjustEcuForGrade(host.Ecu, item.Grade.ToString());
+                    continue;
+                }
+                foreach (var acc in EquipmentCapacity.Accessories)
+                {
+                    if (!acc.Ecu.HasValue) continue;
+                    if (item.Name.Contains(acc.Name, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        item.Capacity = acc.Ecu.Value;
+                        break;
+                    }
+                }
+            }
 
             foreach (var item in AllCyberware)
             {

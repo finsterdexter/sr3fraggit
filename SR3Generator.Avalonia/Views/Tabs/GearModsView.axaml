@@ -1,0 +1,340 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.GearModsView"
+             x:DataType="vm:GearModsViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Border.mount-slot">
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Background" Value="{StaticResource Surface200Brush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderDefaultBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="2"/>
+        </Style>
+        <Style Selector="Border.mount-slot.selected">
+            <Setter Property="BorderBrush" Value="{StaticResource AccentCyberBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+        </Style>
+        <Style Selector="Border.mount-slot.over">
+            <Setter Property="BorderBrush" Value="{StaticResource DestructiveBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="GEAR MODS" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="Mount accessories on owned firearms and add modifications. Buy firearms themselves on the paired Gear tab."/>
+        </StackPanel>
+
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="12">
+                <Button Grid.Column="0" Classes="compact"
+                        Classes.primary="{Binding IsMountMode}"
+                        Content="Mounts"
+                        Command="{Binding SetMountModeCommand}"/>
+                <Button Grid.Column="1" Classes="compact"
+                        Classes.primary="{Binding IsModMode}"
+                        Content="Modifications"
+                        Command="{Binding SetModModeCommand}"/>
+                <TextBox Grid.Column="3"
+                         Text="{Binding FilterText}"
+                         Watermark="Search accessories"
+                         MinWidth="220"/>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="220,12,*,12,*">
+
+            <!-- ===== LEFT: OWNED FIREARMS ===== -->
+            <Border Grid.Column="0" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="OWNED FIREARMS"
+                               Classes="section-header" Margin="12,12,12,8"/>
+                    <ListBox ItemsSource="{Binding OwnedFirearms}"
+                             SelectedItem="{Binding SelectedFirearm}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:OwnedFirearmItem">
+                                <StackPanel Spacing="2" Margin="0,2">
+                                    <TextBlock Text="{Binding Name}" Classes="body" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Subtitle}" FontSize="9"
+                                               Foreground="{StaticResource AccentCyberBrush}"
+                                               LetterSpacing="0.5"/>
+                                    <TextBlock Text="{Binding Summary}" Classes="data" FontSize="10"
+                                               Foreground="{StaticResource InkMutedBrush}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock DockPanel.Dock="Bottom"
+                               Text="(no firearms owned — buy one on the Gear tab)"
+                               Classes="body-sm" FontStyle="Italic"
+                               Foreground="{StaticResource InkMutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="12,0,12,12"
+                               IsVisible="{Binding !OwnedFirearms.Count}"/>
+                </DockPanel>
+            </Border>
+
+            <!-- ===== CENTER: TARGET + MOUNTS + MODIFICATIONS ===== -->
+            <Border Grid.Column="2" Classes="panel">
+                <DockPanel LastChildFill="True">
+
+                    <Grid IsVisible="{Binding !HasSelection}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" MaxWidth="380">
+                            <TextBlock Text="Select a firearm" Classes="page-title" HorizontalAlignment="Center"/>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Classes="body"
+                                       Foreground="{StaticResource InkSecondaryBrush}"
+                                       Text="Pick an owned firearm from the left to manage its mount accessories and modifications."/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border DockPanel.Dock="Top" Classes="panel-inset" Padding="10,8" Margin="0,0,0,10"
+                            IsVisible="{Binding HasSelection}">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="TARGET" Classes="section-header" Margin="0"/>
+                            <TextBlock Text="{Binding HostName}" FontSize="14" FontWeight="SemiBold"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding HostSubtitle}" FontSize="10"
+                                       Foreground="{StaticResource AccentCyberBrush}"
+                                       LetterSpacing="0.5"/>
+                            <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
+                                <TextBlock Grid.Column="0" Text="MOUNT BUDGET" Classes="micro-label"/>
+                                <TextBlock Grid.Column="2" Classes="data" FontSize="11">
+                                    <Run Text="{Binding MountUsed}"/>
+                                    <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                                    <Run Text="{Binding MountTotal}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                                    <Run Text=" slots" Foreground="{StaticResource InkMutedBrush}"/>
+                                </TextBlock>
+                            </Grid>
+                            <ProgressBar Maximum="100" Value="{Binding MountPercent}"
+                                         Classes.over="{Binding IsOverMounts}" MinHeight="4"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border DockPanel.Dock="Top" Margin="0,0,0,10"
+                            Background="#1aef4444"
+                            BorderBrush="{StaticResource DestructiveBrush}"
+                            BorderThickness="1" CornerRadius="2" Padding="10,6"
+                            IsVisible="{Binding ValidationMessages.Count}">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="VALIDATION FAILURES" Classes="micro-label"
+                                       Foreground="{StaticResource DestructiveBrush}"/>
+                            <ItemsControl ItemsSource="{Binding ValidationMessages}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" Classes="body"
+                                                   Foreground="{StaticResource DestructiveBrush}"
+                                                   TextWrapping="Wrap"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <ScrollViewer IsVisible="{Binding HasSelection}">
+                        <StackPanel Spacing="12">
+
+                            <!-- Mount slots: Top / Barrel / Under / Internal + specialty -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="MOUNTS" Classes="section-header"/>
+                                <ListBox ItemsSource="{Binding Mounts}"
+                                         SelectedItem="{Binding SelectedMount}"
+                                         Background="Transparent" BorderThickness="0"
+                                         Padding="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="vm:FirearmMountRow">
+                                            <Border Classes="mount-slot"
+                                                    Classes.over="{Binding IsOver}"
+                                                    Margin="0,2">
+                                                <Grid ColumnDefinitions="120,*,Auto">
+                                                    <StackPanel Grid.Column="0" Spacing="1">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   Classes="body" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding CountLabel}" Classes="data" FontSize="10"
+                                                                   Foreground="{StaticResource InkMutedBrush}"/>
+                                                    </StackPanel>
+                                                    <ItemsControl Grid.Column="1" ItemsSource="{Binding Items}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate DataType="vm:AttachedAccessoryItem">
+                                                                <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,2">
+                                                                    <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                                                               Classes="body-sm" VerticalAlignment="Center"
+                                                                               TextTrimming="CharacterEllipsis"/>
+                                                                    <Border Grid.Column="1"
+                                                                            Background="{StaticResource AccentCyberBrush}"
+                                                                            CornerRadius="2" Padding="4,1" Margin="6,0,0,0"
+                                                                            VerticalAlignment="Center"
+                                                                            IsVisible="{Binding IsStandard}">
+                                                                        <TextBlock Text="STD" FontSize="9" FontWeight="Bold"
+                                                                                   Foreground="Black"/>
+                                                                    </Border>
+                                                                    <TextBlock Grid.Column="2" Text="{Binding CostSummary}"
+                                                                               Classes="data" FontSize="10"
+                                                                               Foreground="{StaticResource AccentNuyenBrush}"
+                                                                               VerticalAlignment="Center" Margin="6,0"/>
+                                                                    <Button Grid.Column="3" Content="✕"
+                                                                            Classes="icon danger"
+                                                                            Width="20" Height="20"
+                                                                            IsVisible="{Binding !IsStandard}"
+                                                                            CommandParameter="{Binding SlotId}"
+                                                                            Command="{Binding $parent[UserControl].((vm:GearModsViewModel)DataContext).DetachCommand}"/>
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </StackPanel>
+
+                            <!-- Modifications (uncapped) -->
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="MODIFICATIONS" Classes="section-header"/>
+                                <Border Classes="panel-inset" Padding="6"
+                                        IsVisible="{Binding Modifications.Count}">
+                                    <ItemsControl ItemsSource="{Binding Modifications}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="vm:FirearmModRow">
+                                                <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,3">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                                               Classes="body" FontWeight="SemiBold"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               VerticalAlignment="Center"/>
+                                                    <Border Grid.Column="1"
+                                                            Background="{StaticResource AccentCyberBrush}"
+                                                            CornerRadius="2" Padding="4,1" Margin="6,0,0,0"
+                                                            VerticalAlignment="Center"
+                                                            IsVisible="{Binding IsStandard}">
+                                                        <TextBlock Text="STD" FontSize="9" FontWeight="Bold"
+                                                                   Foreground="Black"/>
+                                                    </Border>
+                                                    <TextBlock Grid.Column="2" Text="{Binding CostSummary}"
+                                                               Classes="data" FontSize="10"
+                                                               Foreground="{StaticResource AccentNuyenBrush}"
+                                                               VerticalAlignment="Center" Margin="6,0"/>
+                                                    <Button Grid.Column="3" Content="✕"
+                                                            Classes="icon danger"
+                                                            Width="20" Height="20"
+                                                            IsVisible="{Binding !IsStandard}"
+                                                            CommandParameter="{Binding SlotId}"
+                                                            Command="{Binding $parent[UserControl].((vm:GearModsViewModel)DataContext).DetachCommand}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                                <TextBlock Text="(no modifications installed)" Classes="body-sm"
+                                           FontStyle="Italic"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           IsVisible="{Binding !Modifications.Count}"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- ===== RIGHT: CATALOG ===== -->
+            <Border Grid.Column="4" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+
+                    <StackPanel DockPanel.Dock="Top" Margin="12,12,12,8" Spacing="6">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="CATALOG" Classes="section-header" Margin="0"/>
+                            <TextBlock Grid.Column="1" Text="{Binding MountFilterLabel}"
+                                       Classes="body-sm"
+                                       Foreground="{StaticResource AccentCyberBrush}"
+                                       VerticalAlignment="Center"
+                                       IsVisible="{Binding IsMountMode}"/>
+                        </Grid>
+                        <CheckBox Content="Use Street Index" IsChecked="{Binding UseStreetIndex}"/>
+                    </StackPanel>
+
+                    <Border DockPanel.Dock="Bottom" Background="{StaticResource Surface200Brush}"
+                            BorderBrush="{StaticResource BorderDefaultBrush}"
+                            BorderThickness="0,1,0,0" Padding="12,10">
+                        <Button Classes="primary"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                Content="{Binding AttachLabel}"
+                                IsEnabled="{Binding CanAttach}"
+                                Command="{Binding AttachCommand}"/>
+                    </Border>
+
+                    <Border DockPanel.Dock="Bottom" Margin="12,0,12,8"
+                            IsVisible="{Binding HasDetail}"
+                            Background="{StaticResource Surface200Brush}"
+                            BorderBrush="{StaticResource BorderDefaultBrush}"
+                            BorderThickness="1" CornerRadius="2" Padding="10,8">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="DETAIL" Classes="section-header" Margin="0,0,0,2"/>
+                            <StackPanel Spacing="1">
+                                <TextBlock Text="{Binding DetailName}" FontSize="13" FontWeight="SemiBold"
+                                           TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding DetailSubtitle}" FontSize="10"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           LetterSpacing="0.3"/>
+                                <TextBlock Text="{Binding DetailMountText}" FontSize="10"
+                                           Foreground="{StaticResource AccentCyberBrush}"/>
+                            </StackPanel>
+                            <ItemsControl ItemsSource="{Binding DetailStats}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:FirearmAccessoryStatRow">
+                                        <Grid ColumnDefinitions="120,*" Margin="0,1">
+                                            <TextBlock Text="{Binding Label}" Classes="micro-label"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Value}"
+                                                       Classes="data" FontSize="11"
+                                                       TextWrapping="Wrap"
+                                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="{Binding DetailBookRef}" FontSize="10"
+                                       Foreground="{StaticResource InkMutedBrush}"
+                                       IsVisible="{Binding DetailBookRef, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <ListBox ItemsSource="{Binding CatalogItems}"
+                             SelectedItem="{Binding SelectedCatalogItem}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:FirearmAccessoryCatalogItem">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Name}"
+                                               Classes="body" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CostDisplay}"
+                                               Classes="data" FontSize="10"
+                                               Foreground="{StaticResource AccentNuyenBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                          ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding CategoryLabel}"
+                                                   FontSize="10"
+                                                   Foreground="{StaticResource InkMutedBrush}"
+                                                   LetterSpacing="0.3"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding BookRef}"
+                                                   FontSize="9"
+                                                   Foreground="{StaticResource InkFaintBrush}"
+                                                   FontStyle="Italic"/>
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

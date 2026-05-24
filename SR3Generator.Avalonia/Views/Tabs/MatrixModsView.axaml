@@ -1,0 +1,292 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.MatrixModsView"
+             x:DataType="vm:MatrixModsViewModel">
+
+    <Grid RowDefinitions="Auto,*" Margin="16">
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="MATRIX MODS" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="Equip a cyberdeck, tune the persona BEMS, and load utility programs into Storage / Active memory. Buy decks and programs on the paired Matrix tab."/>
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnDefinitions="220,12,*,12,*">
+
+            <!-- ===== LEFT: OWNED DECKS ===== -->
+            <Border Grid.Column="0" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="OWNED DECKS"
+                               Classes="section-header" Margin="12,12,12,8"/>
+                    <ListBox ItemsSource="{Binding OwnedDecks}"
+                             SelectedItem="{Binding SelectedDeck}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:OwnedDeckItem">
+                                <Grid ColumnDefinitions="12,*,Auto" Margin="0,2">
+                                    <TextBlock Text="✓" FontWeight="Bold" FontSize="12"
+                                               Foreground="{StaticResource AccentCyberBrush}"
+                                               VerticalAlignment="Center"
+                                               IsVisible="{Binding IsEquipped}"/>
+                                    <StackPanel Grid.Column="1" Spacing="1">
+                                        <TextBlock Text="{Binding Name}" Classes="body" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding MemoryDisplay}" Classes="data" FontSize="10"
+                                                   Foreground="{StaticResource InkMutedBrush}"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="{Binding MPCP, StringFormat='MPCP {0}'}"
+                                               Classes="data" FontSize="10"
+                                               Foreground="{StaticResource AccentCyberBrush}"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                    <TextBlock DockPanel.Dock="Bottom"
+                               Text="(no cyberdecks owned — buy one on the Matrix tab)"
+                               Classes="body-sm" FontStyle="Italic"
+                               Foreground="{StaticResource InkMutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="12,0,12,12"
+                               IsVisible="{Binding !OwnedDecks.Count}"/>
+                </DockPanel>
+            </Border>
+
+            <!-- ===== CENTER: TARGET + CAPACITY + PERSONA + LOADOUT ===== -->
+            <Border Grid.Column="2" Classes="panel">
+                <DockPanel LastChildFill="True">
+
+                    <Grid IsVisible="{Binding !HasSelection}">
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8" MaxWidth="380">
+                            <TextBlock Text="Select a cyberdeck" Classes="page-title" HorizontalAlignment="Center"/>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Classes="body"
+                                       Foreground="{StaticResource InkSecondaryBrush}"
+                                       Text="Pick an owned cyberdeck from the left to manage its persona stats and program loadout."/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border DockPanel.Dock="Top" Classes="panel-inset" Padding="10,8" Margin="0,0,0,10"
+                            IsVisible="{Binding HasSelection}">
+                        <StackPanel Spacing="6">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <StackPanel Grid.Column="0" Spacing="1">
+                                    <TextBlock Text="TARGET" Classes="section-header" Margin="0"/>
+                                    <TextBlock Text="{Binding HostName}" FontSize="14" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding HostSubtitle}" FontSize="10"
+                                               Foreground="{StaticResource AccentCyberBrush}"
+                                               LetterSpacing="0.5"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Classes="compact"
+                                        VerticalAlignment="Top"
+                                        Content="{Binding EquipLabel}"
+                                        Command="{Binding ToggleEquipCommand}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border DockPanel.Dock="Top" Margin="0,0,0,10"
+                            Background="#1aef4444"
+                            BorderBrush="{StaticResource DestructiveBrush}"
+                            BorderThickness="1" CornerRadius="2" Padding="10,6"
+                            IsVisible="{Binding ValidationMessages.Count}">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="VALIDATION FAILURES" Classes="micro-label"
+                                       Foreground="{StaticResource DestructiveBrush}"/>
+                            <ItemsControl ItemsSource="{Binding ValidationMessages}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" Classes="body"
+                                                   Foreground="{StaticResource DestructiveBrush}"
+                                                   TextWrapping="Wrap"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <ScrollViewer IsVisible="{Binding HasSelection}">
+                        <StackPanel Spacing="12">
+
+                            <!-- Capacity bars -->
+                            <Border Classes="panel-inset">
+                                <StackPanel Spacing="10">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <TextBlock Grid.Column="0" Text="ACTIVE MEM" Classes="micro-label"/>
+                                        <TextBlock Grid.Column="2" Classes="data" FontSize="11">
+                                            <Run Text="{Binding ActiveUsed}"/>
+                                            <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                                            <Run Text="{Binding ActiveTotal}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                                            <Run Text=" Mp" Foreground="{StaticResource InkMutedBrush}"/>
+                                        </TextBlock>
+                                    </Grid>
+                                    <ProgressBar Maximum="100" Value="{Binding ActivePercent}"
+                                                 Classes.over="{Binding IsOverActive}" MinHeight="4"/>
+
+                                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,4,0,0">
+                                        <TextBlock Grid.Column="0" Text="STORAGE MEM" Classes="micro-label"/>
+                                        <TextBlock Grid.Column="2" Classes="data" FontSize="11">
+                                            <Run Text="{Binding StorageUsed}"/>
+                                            <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                                            <Run Text="{Binding StorageTotal}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                                            <Run Text=" Mp" Foreground="{StaticResource InkMutedBrush}"/>
+                                        </TextBlock>
+                                    </Grid>
+                                    <ProgressBar Maximum="100" Value="{Binding StoragePercent}"
+                                                 Classes.over="{Binding IsOverStorage}" MinHeight="4"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Persona BEMS editor -->
+                            <Border Classes="panel-inset">
+                                <StackPanel Spacing="6">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Text="PERSONA (BEMS)" Classes="section-header" Margin="0"/>
+                                        <TextBlock Grid.Column="1" Classes="data" FontSize="11" VerticalAlignment="Center">
+                                            <Run Text="Σ "  Foreground="{StaticResource InkMutedBrush}"/>
+                                            <Run Text="{Binding PersonaSumCurrent}"
+                                                 Foreground="{StaticResource AccentCyberBrush}"/>
+                                            <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
+                                            <Run Text="{Binding PersonaSumCap}"
+                                                 Foreground="{StaticResource InkSecondaryBrush}"/>
+                                        </TextBlock>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,Auto" RowSpacing="4"
+                                          RowDefinitions="Auto,Auto,Auto,Auto">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="BOD" Classes="micro-label" VerticalAlignment="Center"/>
+                                        <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding EditBod}"
+                                                       Minimum="0" Maximum="{Binding PersonaStatCap}"
+                                                       Increment="1" ShowButtonSpinner="True"
+                                                       FormatString="0" MinWidth="80"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="EVASION" Classes="micro-label" VerticalAlignment="Center"/>
+                                        <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding EditEvasion}"
+                                                       Minimum="0" Maximum="{Binding PersonaStatCap}"
+                                                       Increment="1" ShowButtonSpinner="True"
+                                                       FormatString="0" MinWidth="80"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="MASKING" Classes="micro-label" VerticalAlignment="Center"/>
+                                        <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding EditMasking}"
+                                                       Minimum="0" Maximum="{Binding PersonaStatCap}"
+                                                       Increment="1" ShowButtonSpinner="True"
+                                                       FormatString="0" MinWidth="80"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="SENSOR" Classes="micro-label" VerticalAlignment="Center"/>
+                                        <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding EditSensor}"
+                                                       Minimum="0" Maximum="{Binding PersonaStatCap}"
+                                                       Increment="1" ShowButtonSpinner="True"
+                                                       FormatString="0" MinWidth="80"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Stored programs -->
+                            <StackPanel Spacing="4">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="STORED" Classes="section-header"/>
+                                </Grid>
+                                <Border Classes="panel-inset" Padding="6"
+                                        IsVisible="{Binding StoredPrograms.Count}">
+                                    <ItemsControl ItemsSource="{Binding StoredPrograms}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="vm:DeckSlotItem">
+                                                <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,3">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Display}"
+                                                               Classes="body-sm"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               VerticalAlignment="Center"/>
+                                                    <Button Grid.Column="1" Content="Activate" Classes="compact"
+                                                            CommandParameter="{Binding ProgramId}"
+                                                            Command="{Binding $parent[UserControl].((vm:MatrixModsViewModel)DataContext).ActivateCommand}"
+                                                            IsVisible="{Binding !IsActive}"
+                                                            Margin="4,0,0,0"/>
+                                                    <Button Grid.Column="2" Content="✕"
+                                                            Classes="icon danger"
+                                                            Width="20" Height="20"
+                                                            VerticalAlignment="Center"
+                                                            CommandParameter="{Binding ProgramId}"
+                                                            Command="{Binding $parent[UserControl].((vm:MatrixModsViewModel)DataContext).UnloadCommand}"
+                                                            Margin="4,0,0,0"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                                <TextBlock Text="(no programs in storage memory)" Classes="body-sm"
+                                           FontStyle="Italic"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           IsVisible="{Binding !StoredPrograms.Count}"/>
+                            </StackPanel>
+
+                            <!-- Active programs -->
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="ACTIVE" Classes="section-header"/>
+                                <Border Classes="panel-inset" Padding="6"
+                                        IsVisible="{Binding ActivePrograms.Count}">
+                                    <ItemsControl ItemsSource="{Binding ActivePrograms}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="vm:DeckSlotItem">
+                                                <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Display}"
+                                                               Classes="body-sm"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{StaticResource AccentCyberBrush}"/>
+                                                    <Button Grid.Column="1" Content="Deactivate" Classes="compact"
+                                                            CommandParameter="{Binding ProgramId}"
+                                                            Command="{Binding $parent[UserControl].((vm:MatrixModsViewModel)DataContext).DeactivateCommand}"
+                                                            Margin="4,0,0,0"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+                                <TextBlock Text="(no programs in active memory)" Classes="body-sm"
+                                           FontStyle="Italic"
+                                           Foreground="{StaticResource InkMutedBrush}"
+                                           IsVisible="{Binding !ActivePrograms.Count}"/>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- ===== RIGHT: AVAILABLE PROGRAMS ===== -->
+            <Border Grid.Column="4" Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="AVAILABLE PROGRAMS"
+                               Classes="section-header" Margin="12,12,12,8"/>
+                    <TextBlock DockPanel.Dock="Bottom"
+                               Text="(no unloaded programs — buy more on the Matrix tab)"
+                               Classes="body-sm" FontStyle="Italic"
+                               Foreground="{StaticResource InkMutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="12,0,12,12"
+                               IsVisible="{Binding !AvailablePrograms.Count}"/>
+                    <ListBox ItemsSource="{Binding AvailablePrograms}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:OwnedProgramItem">
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                    <StackPanel Grid.Column="0" Spacing="1">
+                                        <TextBlock Text="{Binding Name}" Classes="body" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding TypeDisplay}" FontSize="10"
+                                                   Foreground="{StaticResource InkMutedBrush}"/>
+                                        <TextBlock Text="{Binding SizeDisplay}" Classes="data" FontSize="10"
+                                                   Foreground="{StaticResource AccentCyberBrush}"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Load" Classes="compact"
+                                            VerticalAlignment="Center"
+                                            CommandParameter="{Binding ProgramId}"
+                                            Command="{Binding $parent[UserControl].((vm:MatrixModsViewModel)DataContext).LoadCommand}"
+                                            IsEnabled="{Binding $parent[UserControl].((vm:MatrixModsViewModel)DataContext).HasSelection}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

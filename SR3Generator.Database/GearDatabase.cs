@@ -1,3 +1,4 @@
+using Dapper;
 using Microsoft.Extensions.Options;
 using SR3Generator.Data.Gear;
 using SR3Generator.Database.Connection;
@@ -39,6 +40,44 @@ namespace SR3Generator.Database
                     GearByCategory[topCategory] = new List<Equipment>();
                 GearByCategory[topCategory].Add(item);
             }
+
+            // Hydrate firearm standard accessories from the join table. Each row
+            // points (firearm_gear_id, accessory_gear_id) at two gear rows we've
+            // already materialized; we just need to attach a StandardAccessory
+            // to the host Firearm.
+            var firearmsById = AllGear.OfType<Firearm>().ToDictionary(f => f.Id, f => f);
+            var gearById = AllGear.ToDictionary(g => g.Id, g => g);
+            var stdRows = conn.Query<FirearmStandardAccessoryRow>(@"
+                SELECT firearm_gear_id AS FirearmId,
+                       accessory_gear_id AS AccessoryId,
+                       mount_location AS MountLocation,
+                       rating AS Rating,
+                       params_json AS ParamsJson,
+                       raw_text AS RawText
+                FROM firearm_standard_accessories").ToList();
+            foreach (var row in stdRows)
+            {
+                if (!firearmsById.TryGetValue(row.FirearmId, out var firearm)) continue;
+                if (!gearById.TryGetValue(row.AccessoryId, out var item)) continue;
+                firearm.StandardAccessories.Add(new StandardAccessory
+                {
+                    Item = item,
+                    MountLocation = row.MountLocation,
+                    Rating = row.Rating,
+                    ParamsJson = row.ParamsJson,
+                    RawText = row.RawText,
+                });
+            }
+        }
+
+        private class FirearmStandardAccessoryRow
+        {
+            public int FirearmId { get; init; }
+            public int AccessoryId { get; init; }
+            public string? MountLocation { get; init; }
+            public int? Rating { get; init; }
+            public string? ParamsJson { get; init; }
+            public string? RawText { get; init; }
         }
 
         /// <summary>

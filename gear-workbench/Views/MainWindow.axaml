@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GearWorkbench.ViewModels"
+        xmlns:views="using:GearWorkbench.Views"
+        x:Class="GearWorkbench.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="SR3 Gear Workbench"
+        Width="1300" Height="820"
+        MinWidth="1100" MinHeight="680">
+
+    <Grid>
+        <views:GearTabView DataContext="{Binding Gear}"/>
+    </Grid>
+</Window>

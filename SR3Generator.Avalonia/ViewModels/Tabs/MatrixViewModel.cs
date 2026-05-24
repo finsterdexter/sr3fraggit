@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SR3Generator.Avalonia.Services;
 using SR3Generator.Data.Gear;
-using SR3Generator.Data.Gear.Attachments;
 using SR3Generator.Database;
 using System;
 using System.Collections.Generic;
@@ -12,6 +11,9 @@ using GearProgram = SR3Generator.Data.Gear.Program;
 
 namespace SR3Generator.Avalonia.ViewModels.Tabs;
 
+/// <summary>The Matrix catalog tab: buy / sell cyberdecks and programs. Program
+/// loadout management (Storage/Active, Activate/Deactivate, Equip, Persona BEMS
+/// tuning) lives on the paired Matrix Mods tab.</summary>
 public partial class MatrixViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
@@ -24,8 +26,6 @@ public partial class MatrixViewModel : ViewModelBase
 
     // Core decker starter kit — these archetypes sort above everything else so a new user
     // building a first decker can find the essentials without scrolling the full catalog.
-    // Order here is the display order among the core group. Attack is four distinct programs
-    // (one per damage code) and all four belong in the starter kit since you run exactly one.
     private static readonly string[] CoreArchetypes =
     {
         "Attack-L", "Attack-M", "Attack-S", "Attack-D",
@@ -47,39 +47,12 @@ public partial class MatrixViewModel : ViewModelBase
     [ObservableProperty] private OwnedDeckItem? _selectedOwnedDeck;
     [ObservableProperty] private OwnedProgramItem? _selectedOwnedProgram;
 
-    // Sticky "which deck's memory map am I looking at". Detail-panel exclusivity clears
-    // SelectedOwnedDeck when a catalog deck is clicked, but the memory-map bar at the bottom
-    // should stay visible across that click. MemoryMapDeck sets when the user picks an owned
-    // deck and stays until a different owned deck is picked or the deck leaves the character.
-    [ObservableProperty] private OwnedDeckItem? _memoryMapDeck;
-
     [ObservableProperty] private string _deckFilterText = string.Empty;
     [ObservableProperty] private string _programFilterText = string.Empty;
     [ObservableProperty] private bool _useStreetIndex;
 
-    // Resource bar snapshot
     [ObservableProperty] private long _nuyenRemaining;
     [ObservableProperty] private int _hackingDicePool;
-    [ObservableProperty] private int _selectedDeckActiveUsed;
-    [ObservableProperty] private int _selectedDeckActiveTotal;
-    [ObservableProperty] private int _selectedDeckStorageUsed;
-    [ObservableProperty] private int _selectedDeckStorageTotal;
-
-    // Stored/Active lists for the memory-map panel, scoped to SelectedOwnedDeck.
-    [ObservableProperty] private ObservableCollection<DeckSlotItem> _selectedDeckStoredPrograms = new();
-    [ObservableProperty] private ObservableCollection<DeckSlotItem> _selectedDeckActivePrograms = new();
-
-    // BEMS edit fields for the selected owned deck. Two-way bound to NumericUpDowns; a
-    // commit fires on every change. Re-entry from RefreshFromBuilder is guarded.
-    [ObservableProperty] private int _editBod;
-    [ObservableProperty] private int _editEvasion;
-    [ObservableProperty] private int _editMasking;
-    [ObservableProperty] private int _editSensor;
-    [ObservableProperty] private int _personaSumCap;      // 3 × MPCP
-    [ObservableProperty] private int _personaStatCap;     // MPCP
-
-    private bool _suppressPersonaSync;
-    public int PersonaSumCurrent => EditBod + EditEvasion + EditMasking + EditSensor;
 
     public MatrixViewModel(
         ICharacterBuilderService characterService,
@@ -118,7 +91,6 @@ public partial class MatrixViewModel : ViewModelBase
             })
             .Where(item => item is not null)
             .Select(item => item!)
-            // Core decker kit to the top, then alphabetical within core, then the rest by type.
             .OrderBy(item => CoreSortKey.TryGetValue(item.Archetype, out var k) ? k : int.MaxValue)
             .ThenBy(item => item.ProgramType)
             .ThenBy(item => item.Archetype)
@@ -128,64 +100,13 @@ public partial class MatrixViewModel : ViewModelBase
     partial void OnDeckFilterTextChanged(string value) => ApplyFilters();
     partial void OnProgramFilterTextChanged(string value) => ApplyFilters();
 
-    // Mutual exclusion between catalog and owned selections inside each tab, so only one
-    // detail panel is visible at a time. Mirrors GearViewModel's handlers.
     partial void OnSelectedDeckCatalogItemChanged(DeckCatalogItem? value)
     {
         if (value != null) SelectedOwnedDeck = null;
     }
     partial void OnSelectedOwnedDeckChanged(OwnedDeckItem? value)
     {
-        if (value != null)
-        {
-            SelectedDeckCatalogItem = null;
-            MemoryMapDeck = value; // sticky; catalog clicks won't clear this below
-        }
-        SyncPersonaEditFromDeck();
-        RefreshDeckSlots();
-    }
-
-    partial void OnMemoryMapDeckChanged(OwnedDeckItem? value) => RefreshDeckSlots();
-
-    partial void OnEditBodChanged(int value) => CommitPersonaEdit();
-    partial void OnEditEvasionChanged(int value) => CommitPersonaEdit();
-    partial void OnEditMaskingChanged(int value) => CommitPersonaEdit();
-    partial void OnEditSensorChanged(int value) => CommitPersonaEdit();
-
-    private void CommitPersonaEdit()
-    {
-        OnPropertyChanged(nameof(PersonaSumCurrent));
-        if (_suppressPersonaSync || SelectedOwnedDeck is null) return;
-        _characterService.SetDeckPersona(
-            SelectedOwnedDeck.DeckId, EditBod, EditEvasion, EditMasking, EditSensor);
-    }
-
-    private void SyncPersonaEditFromDeck()
-    {
-        _suppressPersonaSync = true;
-        try
-        {
-            if (SelectedOwnedDeck is null)
-            {
-                EditBod = EditEvasion = EditMasking = EditSensor = 0;
-                PersonaStatCap = PersonaSumCap = 0;
-            }
-            else
-            {
-                var deck = SelectedOwnedDeck.Deck;
-                EditBod = deck.Bod;
-                EditEvasion = deck.Evasion;
-                EditMasking = deck.Masking;
-                EditSensor = deck.Sensor;
-                PersonaStatCap = deck.MPCP;
-                PersonaSumCap = deck.MPCP * 3;
-            }
-        }
-        finally
-        {
-            _suppressPersonaSync = false;
-            OnPropertyChanged(nameof(PersonaSumCurrent));
-        }
+        if (value != null) SelectedDeckCatalogItem = null;
     }
     partial void OnSelectedArchetypeChanged(ProgramArchetypeItem? value)
     {
@@ -220,9 +141,7 @@ public partial class MatrixViewModel : ViewModelBase
         HackingDicePool = character.DicePools.TryGetValue(Data.Character.DicePoolType.Hacking, out var dp)
             ? dp.Value : 0;
 
-        // Decks and programs live together in Character.Gear.
         var prevDeckId = SelectedOwnedDeck?.DeckId;
-        var prevMemoryMapDeckId = MemoryMapDeck?.DeckId;
         var prevProgramId = SelectedOwnedProgram?.ProgramId;
 
         OwnedDecks.Clear();
@@ -237,36 +156,19 @@ public partial class MatrixViewModel : ViewModelBase
             .Select(kvp => (Id: kvp.Key, Program: (GearProgram)kvp.Value))
             .ToDictionary(t => t.Id, t => t.Program);
 
-        var deckNameById = decksInGear.ToDictionary(t => t.Id, t => t.Deck.Name);
-
         foreach (var (id, deck) in decksInGear)
             OwnedDecks.Add(new OwnedDeckItem(id, deck));
 
-        foreach (var (id, program) in programsInGear.Select(kvp => (Id: kvp.Key, Program: kvp.Value)))
+        foreach (var kvp in programsInGear)
         {
-            var (loadedOn, isActive) = FindLoadState(id, decksInGear);
-            OwnedPrograms.Add(new OwnedProgramItem(id, program, loadedOn, isActive));
+            var (loadedOn, isActive) = FindLoadState(kvp.Key, decksInGear);
+            OwnedPrograms.Add(new OwnedProgramItem(kvp.Key, kvp.Value, loadedOn, isActive));
         }
 
         if (prevDeckId is not null)
             SelectedOwnedDeck = OwnedDecks.FirstOrDefault(d => d.DeckId == prevDeckId);
         if (prevProgramId is not null)
             SelectedOwnedProgram = OwnedPrograms.FirstOrDefault(p => p.ProgramId == prevProgramId);
-
-        // Re-bind MemoryMapDeck to the rebuilt OwnedDeckItem instance. Falls back to the
-        // equipped deck (or the first owned) so the memory map stays populated through catalog
-        // clicks and across loads/rebuilds.
-        MemoryMapDeck = (prevMemoryMapDeckId is not null
-                ? OwnedDecks.FirstOrDefault(d => d.DeckId == prevMemoryMapDeckId)
-                : null)
-            ?? OwnedDecks.FirstOrDefault(d => d.IsEquipped)
-            ?? OwnedDecks.FirstOrDefault();
-
-        // After CharacterChanged fires from a SetDeckPersona commit, re-sync edit fields so the
-        // UI reflects clamped/stored values. OnSelectedOwnedDeckChanged also calls this, but the
-        // reference may not change if the same deck is still selected.
-        SyncPersonaEditFromDeck();
-        RefreshDeckSlots();
     }
 
     private static (string? LoadedOnDeckName, bool IsActive) FindLoadState(
@@ -277,57 +179,11 @@ public partial class MatrixViewModel : ViewModelBase
             foreach (var slot in deck.Attachments)
             {
                 if (slot.GearReferenceId != programId) continue;
-                if (slot.Kind == CapacityKind.ProgramActiveMemory) return (deck.Name, true);
-                if (slot.Kind == CapacityKind.ProgramStorageMemory) return (deck.Name, false);
+                if (slot.Kind == SR3Generator.Data.Gear.Attachments.CapacityKind.ProgramActiveMemory) return (deck.Name, true);
+                if (slot.Kind == SR3Generator.Data.Gear.Attachments.CapacityKind.ProgramStorageMemory) return (deck.Name, false);
             }
         }
         return (null, false);
-    }
-
-    private void RefreshDeckSlots()
-    {
-        SelectedDeckStoredPrograms.Clear();
-        SelectedDeckActivePrograms.Clear();
-
-        if (MemoryMapDeck is null)
-        {
-            SelectedDeckActiveUsed = SelectedDeckActiveTotal = 0;
-            SelectedDeckStorageUsed = SelectedDeckStorageTotal = 0;
-            return;
-        }
-
-        var character = _characterService.Builder.Character;
-        var deck = MemoryMapDeck.Deck;
-
-        var activeIds = new HashSet<Guid>(deck.Attachments
-            .Where(s => s.Kind == CapacityKind.ProgramActiveMemory && s.GearReferenceId.HasValue)
-            .Select(s => s.GearReferenceId!.Value));
-
-        int storedSize = 0;
-        foreach (var slot in deck.Attachments.Where(s => s.Kind == CapacityKind.ProgramStorageMemory))
-        {
-            if (!slot.GearReferenceId.HasValue) continue;
-            var id = slot.GearReferenceId.Value;
-            if (!character.Gear.TryGetValue(id, out var eq) || eq is not GearProgram p) continue;
-            var active = activeIds.Contains(id);
-            SelectedDeckStoredPrograms.Add(new DeckSlotItem(id, p, active));
-            storedSize += p.Size;
-        }
-
-        int activeSize = 0;
-        foreach (var slot in deck.Attachments.Where(s => s.Kind == CapacityKind.ProgramActiveMemory))
-        {
-            if (!slot.GearReferenceId.HasValue) continue;
-            var id = slot.GearReferenceId.Value;
-            if (!character.Gear.TryGetValue(id, out var eq) || eq is not GearProgram p) continue;
-            SelectedDeckActivePrograms.Add(new DeckSlotItem(id, p, true));
-            activeSize += p.Size;
-        }
-
-        SelectedDeckActiveUsed = activeSize;
-        SelectedDeckActiveTotal = deck.ActiveMemory;
-        SelectedDeckStorageUsed = storedSize;
-        SelectedDeckStorageTotal = deck.StorageMemory;
     }
 
     [RelayCommand]
@@ -344,18 +200,6 @@ public partial class MatrixViewModel : ViewModelBase
         _characterService.SellCyberdeck(SelectedOwnedDeck.DeckId, UseStreetIndex);
     }
 
-    // Toggle semantics: equipping an already-equipped deck unequips it; otherwise equip (and
-    // the builder unequips every other deck to enforce single-equipped).
-    [RelayCommand]
-    private void ToggleEquipDeck()
-    {
-        if (SelectedOwnedDeck is null) return;
-        if (SelectedOwnedDeck.IsEquipped)
-            _characterService.EquipCyberdeck(null);
-        else
-            _characterService.EquipCyberdeck(SelectedOwnedDeck.DeckId);
-    }
-
     [RelayCommand]
     private void BuyProgramAtRating()
     {
@@ -369,37 +213,9 @@ public partial class MatrixViewModel : ViewModelBase
         if (SelectedOwnedProgram is null) return;
         _characterService.SellProgram(SelectedOwnedProgram.ProgramId, UseStreetIndex);
     }
-
-    // Memory-map-scoped commands target the sticky MemoryMapDeck so catalog clicks on the
-    // Cyberdecks or Programs tab don't break the bottom bar's actions.
-    [RelayCommand]
-    private void StoreOnSelectedDeck()
-    {
-        if (SelectedOwnedProgram is null || MemoryMapDeck is null) return;
-        _characterService.StoreProgramOnDeck(MemoryMapDeck.DeckId, SelectedOwnedProgram.ProgramId);
-    }
-
-    [RelayCommand]
-    private void UnloadFromDeck(Guid programId)
-    {
-        if (MemoryMapDeck is null) return;
-        _characterService.RemoveProgramFromDeck(MemoryMapDeck.DeckId, programId);
-    }
-
-    [RelayCommand]
-    private void ActivateProgram(Guid programId)
-    {
-        if (MemoryMapDeck is null) return;
-        _characterService.ActivateProgram(MemoryMapDeck.DeckId, programId);
-    }
-
-    [RelayCommand]
-    private void DeactivateProgram(Guid programId)
-    {
-        if (MemoryMapDeck is null) return;
-        _characterService.DeactivateProgram(MemoryMapDeck.DeckId, programId);
-    }
 }
+
+// ---------- Shared Matrix VM types (used by Matrix + MatrixMods tabs) ----------
 
 public class DeckCatalogItem
 {

@@ -56,6 +56,10 @@ public interface ICharacterBuilderService
     // Gear methods
     void BuyGear(Equipment item, bool useStreetIndex = false);
     void SellGear(Guid gearId, bool useStreetIndex = false);
+    void AttachFirearmAccessory(Guid firearmId, Equipment accessoryCatalog, string? mountLocation, bool isModification, bool useStreetIndex = false);
+    void DetachFirearmAccessory(Guid firearmId, Guid slotId, bool useStreetIndex = false);
+    void InstallCyberwareEnhancement(Guid hostId, Cyberware enhancementCatalog, bool useStreetIndex = false);
+    void RemoveCyberwareEnhancement(Guid hostId, Guid slotId, bool useStreetIndex = false);
 
     // Matrix (cyberdeck + program) methods
     void BuyCyberdeck(Cyberdeck deck, bool useStreetIndex = false);
@@ -68,6 +72,14 @@ public interface ICharacterBuilderService
     void DeactivateProgram(Guid deckId, Guid programId);
     void EquipCyberdeck(Guid? deckId);
     void SetDeckPersona(Guid deckId, int bod, int evasion, int masking, int sensor);
+
+    // Vehicle methods
+    void BuyVehicle(Vehicle vehicle, bool useStreetIndex = false);
+    void SellVehicle(Guid vehicleId, bool useStreetIndex = false);
+    void AttachVehicleMod(Guid vehicleId, VehicleModification mod, bool useStreetIndex = false);
+    void DetachVehicleMod(Guid vehicleId, Guid slotId);
+    void MountWeapon(Guid vehicleId, Guid mountSlotId, Firearm weapon, bool useStreetIndex = false);
+    void UnmountWeapon(Guid vehicleId, Guid mountSlotId);
 
     // Cyberware/Bioware methods
     void InstallCyberware(Cyberware cyberware, bool useStreetIndex = false);

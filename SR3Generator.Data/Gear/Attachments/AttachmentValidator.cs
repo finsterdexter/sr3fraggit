@@ -89,6 +89,25 @@ namespace SR3Generator.Data.Gear.Attachments
             CheckBuckets(host, failures);
             if (host is Firearm firearm)
                 CheckFirearmMountPositions(firearm, failures);
+            if (host is WeaponMount mount)
+                CheckMountedWeaponClass(mount, failures);
+        }
+
+        private static void CheckMountedWeaponClass(
+            WeaponMount mount, List<AttachmentValidationFailure> failures)
+        {
+            foreach (var slot in mount.Attachments.Where(s => s.Kind == CapacityKind.VehicleWeaponSlot))
+            {
+                if (slot.Embedded is not Firearm weapon) continue;
+                if (FirearmClassRules.Fits(weapon.Class, mount.MountClass)) continue;
+                var allowed = mount.MountClass == VehicleMountClass.Firmpoint
+                    ? "LMG and smaller"
+                    : "MMG and larger";
+                failures.Add(new AttachmentValidationFailure(
+                    mount, CapacityKind.VehicleWeaponSlot, 1m, 1m,
+                    $"{HostLabel(mount)}: {weapon.Name} ({weapon.Class}) does not fit a "
+                    + $"{mount.MountClass} (R3 p.135 — {allowed})."));
+            }
         }
 
         private static void CheckBuckets(
