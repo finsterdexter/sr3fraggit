@@ -85,6 +85,20 @@ internal static class VehicleDisplay
         ? ""
         : (eq.Page > 0 ? $"{eq.Book} p.{eq.Page}" : eq.Book);
 
+    public static string FormatVehicleModCost(VehicleModification m, Vehicle? host = null)
+    {
+        if (!string.IsNullOrWhiteSpace(m.CostFormula))
+        {
+            if (host is not null)
+                return $"¥{m.ResolveCostFormula(host):N0}";
+            // No host selected yet — show the formula so the player sees
+            // what drives the cost rather than a blank "—".
+            return m.CostFormula;
+        }
+        if (m.HasVariableCost) return "—";
+        return $"¥{m.Cost:N0}";
+    }
+
     public static string GetStat(Data.Gear.Equipment eq, string key)
         => eq.Stats.TryGetValue(key, out var v) ? v : "-";
 

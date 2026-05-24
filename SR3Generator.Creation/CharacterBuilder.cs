@@ -887,7 +887,10 @@ namespace SR3Generator.Creation
                 return this;
             }
 
-            var costm = catalogMod.Cost * (useStreetIndex ? catalogMod.StreetIndex : 1);
+            decimal baseCost = string.IsNullOrWhiteSpace(catalogMod.CostFormula)
+                ? catalogMod.Cost
+                : catalogMod.ResolveCostFormula(vehicle);
+            var costm = baseCost * (useStreetIndex ? catalogMod.StreetIndex : 1);
             long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
 
             var clone = (VehicleModification)catalogMod.CloneForPurchase();

@@ -21,13 +21,18 @@ namespace SR3Generator.Database.Queries
     internal class ReadVehicleModsQueryHandler : IQueryHandler<ReadVehicleModsQuery, IEnumerable<VehicleModification>>
     {
         const string sql = @"
-            SELECT id, name, category_tree, Availability, Cost, StreetIndex, BookPage, Notes,
+            SELECT id, name, category_tree, Availability,
+                   CAST(Cost AS TEXT) AS Cost,
+                   CAST(StreetIndex AS TEXT) AS StreetIndex,
+                   BookPage, Notes,
                    Equipment AS EquipmentRequired,
                    BaseTimeSkillTest,
-                   CF AS CargoCfRaw,
-                   Load AS LoadRaw
+                    CF AS CargoCfRaw,
+                    COALESCE(Load, Weight) AS LoadRaw,
+                    CostFormula
             FROM vehicles
-            WHERE category_tree LIKE 'Vehicle Gear%';";
+            WHERE category_tree LIKE 'Vehicle Gear%'
+              AND name NOT LIKE '%R-C Deck Ports%';";
 
         public async Task<IEnumerable<VehicleModification>> HandleAsync(
             ReadVehicleModsQuery query, IDbConnection dbConnection, IDbTransaction dbTransaction)
@@ -58,6 +63,10 @@ namespace SR3Generator.Database.Queries
                 mod.CategoryTree = categoryTree;
                 mod.Category = category;
                 mod.Cost = ParseCost(dto.Cost);
+                mod.CostFormula = NullIfEmpty(dto.CostFormula)
+                    ?? ExtractCostFormulaFromRaw(dto.Cost);
+                mod.HasVariableCost = mod.Cost == 0
+                    && string.IsNullOrWhiteSpace(mod.CostFormula);
                 mod.StreetIndex = ParseDecimal(dto.StreetIndex, 1.0m);
                 mod.Page = page;
                 mod.Notes = dto.Notes;
@@ -140,6 +149,7 @@ namespace SR3Generator.Database.Queries
                 "Engine Modifications" => VehicleModCategory.Engine,
                 "Control-System Modifications" => VehicleModCategory.ControlSystems,
                 "Defensive Modifications" => VehicleModCategory.ProtectiveSystems,
+                "Signature Modifications" => VehicleModCategory.Signature,
                 "Electronic Systems" => VehicleModCategory.ElectronicSystems,
                 "Vehicle Weapon Mounts" => VehicleModCategory.WeaponMount,
                 "Drones Systems" => VehicleModCategory.Accessory,
@@ -167,6 +177,43 @@ namespace SR3Generator.Database.Queries
                 cleaned = split[^1];
             }
             return int.TryParse(cleaned, out var n) ? n : 0;
+        }
+
+        /// <summary>Some .dat type-23 rows store parametric costs in the Cost
+        /// column as human text (e.g. "Vehicle Cost x 1.25"). This helper parses
+        /// the multiplier from each individual row so every item gets its own
+        /// correct formula — never hardcodes one value for a whole class.</summary>
+        private static string? ExtractCostFormulaFromRaw(string? rawCost)
+        {
+            if (string.IsNullOrWhiteSpace(rawCost)) return null;
+            var cleaned = rawCost.Replace(",", "").Replace("¥", "").Trim();
+
+            // "Vehicle Cost x 1.25"  →  "vehicle_cost * 1.25"
+            // "Vehicle Cost x 0.25"    →  "vehicle_cost * 0.25"
+            var idx = cleaned.IndexOf("Vehicle Cost x", System.StringComparison.OrdinalIgnoreCase);
+            if (idx >= 0)
+            {
+                var after = cleaned[(idx + "Vehicle Cost x".Length)..].Trim();
+                if (decimal.TryParse(after, System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out var mult))
+                {
+                    return $"vehicle_cost * {mult}";
+                }
+            }
+
+            // "10% of vehicle cost" → "vehicle_cost * 0.10"
+            var pctMatch = System.Text.RegularExpressions.Regex.Match(cleaned,
+                @"(\d+(?:\.\d+)?)%\s+of\s+vehicle\s+cost",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (pctMatch.Success
+                && decimal.TryParse(pctMatch.Groups[1].Value,
+                    System.Globalization.NumberStyles.Number,
+                    System.Globalization.CultureInfo.InvariantCulture, out var pct))
+            {
+                return $"vehicle_cost * {pct / 100m}";
+            }
+
+            return null;
         }
 
         private static List<string> ParseCategoryTree(string? categoryTree)
@@ -202,5 +249,6 @@ namespace SR3Generator.Database.Queries
         public string? BaseTimeSkillTest { get; set; }
         public string? CargoCfRaw { get; set; }
         public string? LoadRaw { get; set; }
+        public string? CostFormula { get; set; }
     }
 }

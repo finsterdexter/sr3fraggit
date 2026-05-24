@@ -425,7 +425,7 @@ public partial class VehicleModsViewModel : ViewModelBase
             VehicleDisplay.BookPage(f), f.Notes ?? ""),
         VehicleModification m => new CatalogRow(m, m.Name,
             $"{VehicleDisplay.FormatCategory(m.Category)}  •  {VehicleDisplay.FormatCostSummary(m, SelectedVehicle?.Body ?? 0)}",
-            $"¥{m.Cost:N0}", "", VehicleDisplay.BookPage(m), m.Notes ?? ""),
+            VehicleDisplay.FormatVehicleModCost(m, SelectedVehicle), "", VehicleDisplay.BookPage(m), m.Notes ?? ""),
         _ => new CatalogRow(e, e.Name, "", $"¥{e.Cost:N0}", "", VehicleDisplay.BookPage(e), e.Notes ?? ""),
     };
 
@@ -450,7 +450,9 @@ public partial class VehicleModsViewModel : ViewModelBase
         switch (SelectedCatalogItem.Source)
         {
             case VehicleModification m:
-                DetailStats.Add(new VehicleStatRow("Cost", $"¥{m.Cost:N0}"));
+                DetailStats.Add(new VehicleStatRow("Cost", VehicleDisplay.FormatVehicleModCost(m, SelectedVehicle)));
+                if (!string.IsNullOrWhiteSpace(m.CostFormula))
+                    DetailStats.Add(new VehicleStatRow("Cost formula", m.CostFormula));
                 DetailStats.Add(new VehicleStatRow("Category", VehicleDisplay.FormatCategory(m.Category)));
                 if (!string.IsNullOrEmpty(m.CargoCfRaw))
                     DetailStats.Add(new VehicleStatRow("CF consumed", m.CargoCfRaw));

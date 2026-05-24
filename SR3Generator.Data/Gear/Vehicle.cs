@@ -178,6 +178,31 @@ namespace SR3Generator.Data.Gear
         /// mods boost the host's Load cap (see <see cref="Vehicle"/>).</summary>
         public Attachments.EngineCustomizationTrack? EngineTrack { get; set; }
 
+        /// <summary>True when the source data carries no fixed cost value
+        /// (e.g. parametric costs like "Body × 250¥" or "% of engine cost").
+        /// Distinguishes these from items that genuinely cost 0¥.</summary>
+        public bool HasVariableCost { get; set; }
+
+        /// <summary>Parametric cost formula expressed against the host vehicle's
+        /// stats — e.g. <c>"body * 250"</c>, <c>"vehicle_cost * 0.05"</c>,
+        /// <c>"2500"</c>. Resolved against the target vehicle at attach time.
+        /// Empty/null means no formula is available (cost is either fixed in
+        /// <see cref="Equipment.Cost"/> or genuinely unlisted).</summary>
+        public string? CostFormula { get; set; }
+
+        /// <summary>Resolve <see cref="CostFormula"/> against a host vehicle,
+        /// producing the nuyen cost to install this modification. Supports
+        /// <c>body</c>, <c>vehicle_cost</c>, <c>pilot</c>, <c>crane_load</c>,
+        /// <c>rating</c> and <c>strength</c> as variables, decimal numbers,
+        /// and the operators <c>+ - * / ^</c> with parentheses. Returns 0 when
+        /// the formula is empty or unparseable.</summary>
+        public decimal ResolveCostFormula(Vehicle host, int defaultRating = 3)
+        {
+            if (string.IsNullOrWhiteSpace(CostFormula)) return 0m;
+            var parser = new FormulaParser(CostFormula, host, defaultRating);
+            return parser.Parse();
+        }
+
         // Raw text columns sourced directly from vehicles.dat type 23 (Vehicle
         // modifications). The .dat carries these for every R3 mod entry as text
         // — formulas like "Body^2*5kg", "10kg+Weapon"; human strings like
@@ -253,6 +278,179 @@ namespace SR3Generator.Data.Gear
             if (t.EndsWith("kg", System.StringComparison.OrdinalIgnoreCase))
                 return t[..^2].Trim();
             return t;
+        }
+
+        // -------------------------------------------------------------------
+        // Lightweight recursive-descent formula parser for CostFormula
+        // -------------------------------------------------------------------
+        private class FormulaParser
+        {
+            private readonly string _src;
+            private int _pos;
+            private readonly Vehicle _host;
+            private readonly int _defaultRating;
+
+            public FormulaParser(string src, Vehicle host, int defaultRating)
+            {
+                _src = src;
+                _host = host;
+                _defaultRating = defaultRating;
+            }
+
+            public decimal Parse()
+            {
+                try
+                {
+                    var result = ParseExpression();
+                    SkipWhitespace();
+                    return _pos == _src.Length ? result : 0m;
+                }
+                catch
+                {
+                    return 0m;
+                }
+            }
+
+            private decimal ParseExpression()
+            {
+                var left = ParseTerm();
+                while (true)
+                {
+                    SkipWhitespace();
+                    if (Match('+')) { left += ParseTerm(); continue; }
+                    if (Match('-')) { left -= ParseTerm(); continue; }
+                    break;
+                }
+                return left;
+            }
+
+            private decimal ParseTerm()
+            {
+                var left = ParsePower();
+                while (true)
+                {
+                    SkipWhitespace();
+                    if (Match('*')) { left *= ParsePower(); continue; }
+                    if (Match('/'))
+                    {
+                        var right = ParsePower();
+                        left = right == 0m ? 0m : left / right;
+                        continue;
+                    }
+                    break;
+                }
+                return left;
+            }
+
+            private decimal ParsePower()
+            {
+                var left = ParseFactor();
+                SkipWhitespace();
+                if (Match('^'))
+                {
+                    var right = ParsePower(); // right-associative
+                    left = right == 0m ? 1m : DecimalPow(left, (double)right);
+                }
+                return left;
+            }
+
+            private decimal ParseFactor()
+            {
+                SkipWhitespace();
+                if (Match('('))
+                {
+                    var val = ParseExpression();
+                    SkipWhitespace();
+                    if (!Match(')')) throw new System.InvalidOperationException("Missing )");
+                    return val;
+                }
+
+                // Number?
+                int start = _pos;
+                bool seenDot = false;
+                while (_pos < _src.Length && (char.IsDigit(_src[_pos]) || (_src[_pos] == '.' && !seenDot)))
+                {
+                    if (_src[_pos] == '.') seenDot = true;
+                    _pos++;
+                }
+                if (_pos > start)
+                {
+                    var numStr = _src[start.._pos];
+                    if (decimal.TryParse(numStr, System.Globalization.NumberStyles.Number,
+                        System.Globalization.CultureInfo.InvariantCulture, out var n))
+                        return n;
+                    throw new System.InvalidOperationException($"Bad number: {numStr}");
+                }
+
+                // Variable?
+                start = _pos;
+                while (_pos < _src.Length && (char.IsLetter(_src[_pos]) || _src[_pos] == '_'))
+                    _pos++;
+                if (_pos > start)
+                {
+                    var name = _src[start.._pos];
+                    return ResolveVariable(name);
+                }
+
+                throw new System.InvalidOperationException($"Unexpected character '{Current}' at pos {_pos}");
+            }
+
+            private decimal ResolveVariable(string name)
+            {
+                return name.ToLowerInvariant() switch
+                {
+                    "body" => _host.Body,
+                    "vehicle_cost" => _host.Cost,
+                    "pilot" => _host.Pilot ?? 1,
+                    "crane_load" => ResolveCraneLoad(_host.Body),
+                    "rating" => _defaultRating,
+                    "strength" => _host.Body, // mechanical arm defaults to Body
+                    _ => 0m,
+                };
+            }
+
+            private static decimal ResolveCraneLoad(int body)
+            {
+                return body switch
+                {
+                    1 => 750m,
+                    2 => 2000m,
+                    3 => 5000m,
+                    4 => 20000m,
+                    5 => 30000m,
+                    6 => 45000m,
+                    7 => 60000m,
+                    _ => body * body * 750m,
+                };
+            }
+
+            private static decimal DecimalPow(decimal b, double e)
+            {
+                // Handle common integer exponents exactly
+                if (e == 0) return 1m;
+                if (e == 1) return b;
+                if (e == 2) return b * b;
+                if (e == 3) return b * b * b;
+                // Fallback via double (sufficient for vehicle cost math)
+                return (decimal)System.Math.Pow((double)b, e);
+            }
+
+            private char Current => _pos < _src.Length ? _src[_pos] : '\0';
+
+            private void SkipWhitespace()
+            {
+                while (_pos < _src.Length && char.IsWhiteSpace(_src[_pos])) _pos++;
+            }
+
+            private bool Match(char expected)
+            {
+                if (_pos < _src.Length && _src[_pos] == expected)
+                {
+                    _pos++;
+                    return true;
+                }
+                return false;
+            }
         }
     }
 
