@@ -50,6 +50,11 @@ public partial class GearViewModel : ViewModelBase
 
     public ObservableCollection<BreadcrumbStep> BreadcrumbSteps { get; } = new();
 
+    /// <summary>Raised when the user clicks "Mods" on an owned firearm. The
+    /// container handles it by switching to the Mods sub-tab and selecting the
+    /// firearm there.</summary>
+    public event Action<Guid>? OpenModsRequested;
+
     public GearViewModel(
         ICharacterBuilderService characterService,
         GearDatabase gearDatabase,
@@ -225,6 +230,9 @@ public partial class GearViewModel : ViewModelBase
         if (SelectedOwnedGear == null) return;
         _characterService.SellGear(SelectedOwnedGear.GearId, UseStreetIndex);
     }
+
+    [RelayCommand]
+    private void OpenMods(Guid gearId) => OpenModsRequested?.Invoke(gearId);
 }
 
 public class GearItem
@@ -335,10 +343,14 @@ public class OwnedGearItem
     public string? Notes { get; }
     public string BookPageDisplay { get; }
     public List<StatDisplay> Stats { get; }
+    /// <summary>True for firearms, which can take mount accessories and
+    /// modifications on the paired Gear Mods sub-tab.</summary>
+    public bool SupportsMods { get; }
 
     public OwnedGearItem(Guid gearId, Equipment equipment)
     {
         GearId = gearId;
+        SupportsMods = equipment is Firearm;
         Name = equipment.Name;
         Cost = equipment.Cost;
         PaidCost = equipment.PaidCost;

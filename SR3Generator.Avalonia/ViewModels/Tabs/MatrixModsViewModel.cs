@@ -48,6 +48,11 @@ public partial class MatrixModsViewModel : ViewModelBase
 
     private void OnCharacterChanged(object? sender, EventArgs e) => Refresh();
 
+    /// <summary>Select an owned cyberdeck by id — used when the user clicks "Mods"
+    /// on the paired Matrix catalog tab.</summary>
+    public void SelectDeck(Guid deckId)
+        => SelectedDeck = OwnedDecks.FirstOrDefault(d => d.DeckId == deckId);
+
     partial void OnSelectedDeckChanged(OwnedDeckItem? value)
     {
         SyncPersonaEditFromDeck();

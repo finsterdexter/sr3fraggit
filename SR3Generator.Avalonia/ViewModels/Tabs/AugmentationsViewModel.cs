@@ -16,6 +16,7 @@ public partial class AugmentationsViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
     private readonly AugmentationDatabase _augmentationDatabase;
+    private readonly EquipmentCapacityDatabase _equipmentCapacity;
     private readonly IUserSettingsService _settings;
 
     // Cyberware lists
@@ -109,13 +110,19 @@ public partial class AugmentationsViewModel : ViewModelBase
     public ObservableCollection<BreadcrumbStep> CyberwareBreadcrumbSteps { get; } = new();
     public ObservableCollection<BreadcrumbStep> BiowareBreadcrumbSteps { get; } = new();
 
+    /// <summary>Raised when the user clicks "Mods" on an installed cyberware host.
+    /// The container switches to the Mods sub-tab and selects the host there.</summary>
+    public event Action<Guid>? OpenModsRequested;
+
     public AugmentationsViewModel(
         ICharacterBuilderService characterService,
         AugmentationDatabase augmentationDatabase,
+        EquipmentCapacityDatabase equipmentCapacity,
         IUserSettingsService settings)
     {
         _characterService = characterService;
         _augmentationDatabase = augmentationDatabase;
+        _equipmentCapacity = equipmentCapacity;
         _settings = settings;
         _characterService.CharacterChanged += OnCharacterChanged;
         _settings.SettingsChanged += OnSettingsChanged;
@@ -466,6 +473,9 @@ public partial class AugmentationsViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void OpenMods(Guid gearId) => OpenModsRequested?.Invoke(gearId);
+
+    [RelayCommand]
     private void RemoveAugmentation()
     {
         if (SelectedInstalledAug == null) return;
@@ -506,7 +516,8 @@ public partial class AugmentationsViewModel : ViewModelBase
         {
             if (kvp.Value is Cyberware cyber)
             {
-                InstalledAugmentations.Add(new InstalledAugmentation(kvp.Key, cyber));
+                var supportsMods = CyberwareCapacityRules.IsHost(cyber, _equipmentCapacity);
+                InstalledAugmentations.Add(new InstalledAugmentation(kvp.Key, cyber, supportsMods));
             }
             else if (kvp.Value is Bioware bio)
             {
@@ -698,10 +709,15 @@ public class InstalledAugmentation
     public string GradeDisplay { get; }
     public string? Notes { get; }
     public string BookPageDisplay { get; }
+    /// <summary>True for capacity-bearing cyberware hosts (cyberlimbs, cybereyes,
+    /// cyberears) that can take enhancements on the Augment Mods sub-tab. Always
+    /// false for bioware.</summary>
+    public bool SupportsMods { get; }
 
-    public InstalledAugmentation(Guid gearId, Cyberware cyberware)
+    public InstalledAugmentation(Guid gearId, Cyberware cyberware, bool supportsMods = false)
     {
         GearId = gearId;
+        SupportsMods = supportsMods;
         Name = cyberware.Name;
         Type = $"Cyberware ({cyberware.Grade})";
         CostDisplay = FormatPaidCost(cyberware);

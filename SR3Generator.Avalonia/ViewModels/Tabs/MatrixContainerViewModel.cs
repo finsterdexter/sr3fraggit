@@ -1,3 +1,4 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SR3Generator.Avalonia.ViewModels.Tabs;
@@ -17,5 +18,13 @@ public partial class MatrixContainerViewModel : ViewModelBase
     {
         CatalogVM = catalogVM;
         ModsVM = modsVM;
+        CatalogVM.OpenModsRequested += OnOpenModsRequested;
+    }
+
+    // Catalog "Mods" button → flip to the Mods sub-tab (index 1) and select the deck.
+    private void OnOpenModsRequested(Guid deckId)
+    {
+        SelectedSubtabIndex = 1;
+        ModsVM.SelectDeck(deckId);
     }
 }

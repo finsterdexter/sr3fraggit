@@ -52,6 +52,14 @@
                 <DockPanel LastChildFill="True">
                     <TextBlock DockPanel.Dock="Top" Text="OWNED FIREARMS"
                                Classes="section-header" Margin="12,12,12,8"/>
+                    <!-- Before the ListBox so the ListBox stays the fill child (full width). -->
+                    <TextBlock DockPanel.Dock="Bottom"
+                               Text="(no firearms owned — buy one on the Gear tab)"
+                               Classes="body-sm" FontStyle="Italic"
+                               Foreground="{StaticResource InkMutedBrush}"
+                               TextWrapping="Wrap"
+                               Margin="12,0,12,12"
+                               IsVisible="{Binding !OwnedFirearms.Count}"/>
                     <ListBox ItemsSource="{Binding OwnedFirearms}"
                              SelectedItem="{Binding SelectedFirearm}"
                              Background="Transparent" BorderThickness="0"
@@ -70,13 +78,6 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <TextBlock DockPanel.Dock="Bottom"
-                               Text="(no firearms owned — buy one on the Gear tab)"
-                               Classes="body-sm" FontStyle="Italic"
-                               Foreground="{StaticResource InkMutedBrush}"
-                               TextWrapping="Wrap"
-                               Margin="12,0,12,12"
-                               IsVisible="{Binding !OwnedFirearms.Count}"/>
                 </DockPanel>
             </Border>
 

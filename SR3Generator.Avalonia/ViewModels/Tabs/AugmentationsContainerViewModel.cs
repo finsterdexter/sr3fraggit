@@ -1,3 +1,4 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SR3Generator.Avalonia.ViewModels.Tabs;
@@ -17,5 +18,14 @@ public partial class AugmentationsContainerViewModel : ViewModelBase
     {
         CatalogVM = catalogVM;
         ModsVM = modsVM;
+        CatalogVM.OpenModsRequested += OnOpenModsRequested;
+    }
+
+    // Catalog "Mods" button → flip to the Mods sub-tab (index 1, between
+    // Cyberware and Bioware) and select the host.
+    private void OnOpenModsRequested(Guid hostId)
+    {
+        SelectedSubtabIndex = 1;
+        ModsVM.SelectHost(hostId);
     }
 }

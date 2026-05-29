@@ -130,6 +130,11 @@ public partial class AugmentModsViewModel : ViewModelBase
     private void OnCharacterChanged(object? sender, EventArgs e) => Refresh();
     private void OnSettingsChanged(object? sender, EventArgs e) => RefreshCatalog();
 
+    /// <summary>Select an owned cyberware host by id — used when the user clicks
+    /// "Mods" on the paired Augmentations catalog tab.</summary>
+    public void SelectHost(Guid hostId)
+        => SelectedHost = OwnedHosts.FirstOrDefault(h => h.HostId == hostId);
+
     partial void OnSelectedHostChanged(OwnedCyberwareHostItem? value)
     {
         SelectedCatalogItem = null;

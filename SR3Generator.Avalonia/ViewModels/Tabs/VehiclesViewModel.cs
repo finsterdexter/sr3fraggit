@@ -48,6 +48,10 @@ public partial class VehiclesViewModel : ViewModelBase
     [ObservableProperty]
     private long _nuyenRemaining;
 
+    /// <summary>Raised when the user clicks "Mods" on an owned vehicle. The
+    /// container switches to the Mods sub-tab and selects the vehicle there.</summary>
+    public event Action<Guid>? OpenModsRequested;
+
     public VehiclesViewModel(
         ICharacterBuilderService characterService,
         VehicleDatabase vehicleDb,
@@ -92,6 +96,9 @@ public partial class VehiclesViewModel : ViewModelBase
         _characterService.SellVehicle(vehicleId, UseStreetIndex);
         if (SelectedOwned?.Id == vehicleId) SelectedOwned = null;
     }
+
+    [RelayCommand]
+    private void OpenMods(Guid vehicleId) => OpenModsRequested?.Invoke(vehicleId);
 
     [RelayCommand]
     private void ClearFilters()
@@ -203,6 +210,8 @@ public class OwnedVehicleItem
     public string Name => Vehicle.Name;
     public string Subtitle => Vehicle.CategoryTree.Count > 1 ? Vehicle.CategoryTree[1] : "Vehicle";
     public string Summary => $"Body {Vehicle.Body}  •  {Vehicle.Cargo} CF  •  {Vehicle.Load} kg";
+    /// <summary>Every owned vehicle can take mods (capacity buckets / weapon mounts).</summary>
+    public bool SupportsMods => true;
     public OwnedVehicleItem(Guid id, Vehicle vehicle) { Id = id; Vehicle = vehicle; }
 }
 

@@ -109,6 +109,11 @@ public partial class GearModsViewModel : ViewModelBase
     private void OnCharacterChanged(object? sender, EventArgs e) => Refresh();
     private void OnSettingsChanged(object? sender, EventArgs e) => RefreshCatalog();
 
+    /// <summary>Select an owned firearm by id — used when the user clicks "Mods"
+    /// on the paired Gear catalog tab.</summary>
+    public void SelectFirearm(Guid firearmId)
+        => SelectedFirearm = OwnedFirearms.FirstOrDefault(f => f.FirearmId == firearmId);
+
     partial void OnSelectedFirearmChanged(OwnedFirearmItem? value)
     {
         SelectedCatalogItem = null;

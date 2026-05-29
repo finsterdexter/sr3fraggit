@@ -1,3 +1,4 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace SR3Generator.Avalonia.ViewModels.Tabs;
@@ -17,5 +18,13 @@ public partial class VehiclesContainerViewModel : ViewModelBase
     {
         CatalogVM = catalogVM;
         ModsVM = modsVM;
+        CatalogVM.OpenModsRequested += OnOpenModsRequested;
+    }
+
+    // Catalog "Mods" button → flip to the Mods sub-tab (index 1) and select the vehicle.
+    private void OnOpenModsRequested(Guid vehicleId)
+    {
+        SelectedSubtabIndex = 1;
+        ModsVM.SelectVehicle(vehicleId);
     }
 }

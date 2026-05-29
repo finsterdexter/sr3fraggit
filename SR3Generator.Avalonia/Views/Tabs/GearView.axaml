@@ -316,7 +316,7 @@
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vm:OwnedGearItem">
-                                <Grid ColumnDefinitions="*,Auto">
+                                <Grid ColumnDefinitions="*,Auto,Auto">
                                     <TextBlock Text="{Binding Name}" Classes="body"
                                                TextTrimming="CharacterEllipsis"
                                                VerticalAlignment="Center"/>
@@ -324,6 +324,12 @@
                                                Classes="data" FontSize="10"
                                                Foreground="{StaticResource InkMutedBrush}"
                                                VerticalAlignment="Center"/>
+                                    <Button Grid.Column="2" Content="{x:Static res:Strings.ButtonMods}"
+                                            Classes="compact" Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            IsVisible="{Binding SupportsMods}"
+                                            CommandParameter="{Binding GearId}"
+                                            Command="{Binding $parent[UserControl].((vm:GearViewModel)DataContext).OpenModsCommand}"/>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

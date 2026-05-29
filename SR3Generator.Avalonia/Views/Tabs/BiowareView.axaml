@@ -247,17 +247,25 @@
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Spacing="2">
-                                    <TextBlock Text="{Binding Name}" Classes="body"
-                                               TextTrimming="CharacterEllipsis"/>
-                                    <StackPanel Orientation="Horizontal" Spacing="10">
-                                        <TextBlock Text="{Binding IndexDisplay}" FontSize="10"
-                                                   Foreground="{StaticResource AccentCyberBrush}"/>
-                                        <TextBlock Text="{Binding CostDisplay}" FontSize="10"
-                                                   Foreground="{StaticResource InkMutedBrush}"/>
+                            <DataTemplate DataType="vm:InstalledAugmentation">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{Binding Name}" Classes="body"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Text="{Binding IndexDisplay}" FontSize="10"
+                                                       Foreground="{StaticResource AccentCyberBrush}"/>
+                                            <TextBlock Text="{Binding CostDisplay}" FontSize="10"
+                                                       Foreground="{StaticResource InkMutedBrush}"/>
+                                        </StackPanel>
                                     </StackPanel>
-                                </StackPanel>
+                                    <Button Grid.Column="1" Content="{x:Static res:Strings.ButtonMods}"
+                                            Classes="compact" Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            IsVisible="{Binding SupportsMods}"
+                                            CommandParameter="{Binding GearId}"
+                                            Command="{Binding $parent[UserControl].((vm:AugmentationsViewModel)DataContext).OpenModsCommand}"/>
+                                </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

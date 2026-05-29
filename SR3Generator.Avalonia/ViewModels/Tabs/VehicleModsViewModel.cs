@@ -83,6 +83,10 @@ public partial class VehicleModsViewModel : ViewModelBase
     private void OnCharacterChanged(object? sender, EventArgs e) => Refresh();
     private void OnSettingsChanged(object? sender, EventArgs e) => RefreshCatalog();
 
+    /// <summary>Select an owned vehicle by id — used when the user clicks "Mods"
+    /// on the paired Vehicles catalog tab.</summary>
+    public void SelectVehicle(Guid vehicleId) => SelectedVehicleId = vehicleId;
+
     partial void OnSelectedVehicleIdChanged(Guid? value)
     {
         DrilledMountSlotId = null;

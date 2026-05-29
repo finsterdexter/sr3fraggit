@@ -166,13 +166,20 @@
                 <DockPanel LastChildFill="True">
                     <TextBlock DockPanel.Dock="Top" Text="OWNED"
                                Classes="section-header" Margin="12,12,12,8"/>
+                    <!-- Empty-state declared before the ListBox so the ListBox stays the
+                         DockPanel's fill child and stretches to the full column width. -->
+                    <TextBlock DockPanel.Dock="Bottom" Text="(no vehicles owned)"
+                               Classes="body-sm" FontStyle="Italic"
+                               Foreground="{StaticResource InkMutedBrush}"
+                               Margin="12,0,12,12"
+                               IsVisible="{Binding !OwnedVehicles.Count}"/>
                     <ListBox ItemsSource="{Binding OwnedVehicles}"
                              SelectedItem="{Binding SelectedOwned}"
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="vm:OwnedVehicleItem">
-                                <Grid ColumnDefinitions="*,Auto">
+                                <Grid ColumnDefinitions="*,Auto,Auto">
                                     <StackPanel Spacing="1">
                                         <TextBlock Text="{Binding Name}" Classes="body" FontWeight="SemiBold"
                                                    TextTrimming="CharacterEllipsis"/>
@@ -182,7 +189,13 @@
                                         <TextBlock Text="{Binding Summary}" Classes="data" FontSize="10"
                                                    Foreground="{StaticResource InkMutedBrush}"/>
                                     </StackPanel>
-                                    <Button Grid.Column="1" Content="Sell" Classes="compact"
+                                    <Button Grid.Column="1" Content="{x:Static res:Strings.ButtonMods}"
+                                            Classes="compact" Margin="0,0,6,0"
+                                            VerticalAlignment="Center"
+                                            IsVisible="{Binding SupportsMods}"
+                                            CommandParameter="{Binding Id}"
+                                            Command="{Binding $parent[UserControl].((vm:VehiclesViewModel)DataContext).OpenModsCommand}"/>
+                                    <Button Grid.Column="2" Content="Sell" Classes="compact"
                                             VerticalAlignment="Center"
                                             CommandParameter="{Binding Id}"
                                             Command="{Binding $parent[UserControl].((vm:VehiclesViewModel)DataContext).SellCommand}"/>
@@ -190,11 +203,6 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-                    <TextBlock DockPanel.Dock="Bottom" Text="(no vehicles owned)"
-                               Classes="body-sm" FontStyle="Italic"
-                               Foreground="{StaticResource InkMutedBrush}"
-                               Margin="12,0,12,12"
-                               IsVisible="{Binding !OwnedVehicles.Count}"/>
                 </DockPanel>
             </Border>
         </Grid>

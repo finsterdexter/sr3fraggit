@@ -54,6 +54,10 @@ public partial class MatrixViewModel : ViewModelBase
     [ObservableProperty] private long _nuyenRemaining;
     [ObservableProperty] private int _hackingDicePool;
 
+    /// <summary>Raised when the user clicks "Mods" on an owned cyberdeck. The
+    /// container switches to the Mods sub-tab and selects the deck there.</summary>
+    public event Action<Guid>? OpenModsRequested;
+
     public MatrixViewModel(
         ICharacterBuilderService characterService,
         CyberdeckDatabase cyberdeckDatabase,
@@ -213,6 +217,9 @@ public partial class MatrixViewModel : ViewModelBase
         if (SelectedOwnedProgram is null) return;
         _characterService.SellProgram(SelectedOwnedProgram.ProgramId, UseStreetIndex);
     }
+
+    [RelayCommand]
+    private void OpenMods(Guid deckId) => OpenModsRequested?.Invoke(deckId);
 }
 
 // ---------- Shared Matrix VM types (used by Matrix + MatrixMods tabs) ----------
@@ -312,6 +319,8 @@ public class OwnedDeckItem
     public string MemoryDisplay { get; }
     public string PaidCostDisplay { get; }
     public bool IsEquipped { get; }
+    /// <summary>Cyberdecks can load programs / tune persona on the Matrix Mods sub-tab.</summary>
+    public bool SupportsMods => true;
 
     public OwnedDeckItem(Guid id, Cyberdeck deck)
     {

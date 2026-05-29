@@ -78,6 +78,13 @@
                                 Command="{Binding ClearFiltersCommand}"/>
                     </StackPanel>
 
+                    <!-- Before the ListBox so the ListBox stays the fill child (full width). -->
+                    <Button DockPanel.Dock="Bottom"
+                            Content="{x:Static res:Strings.ButtonAdd}"
+                            Classes="primary action"
+                            Command="{Binding AddEdgeFlawCommand}"
+                            Margin="12,8,12,12"/>
+
                     <ListBox ItemsSource="{Binding FilteredItems}"
                              SelectedItem="{Binding SelectedAvailableItem}"
                              DoubleTapped="OnAvailableListDoubleTapped"
@@ -116,12 +123,6 @@
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
-
-                    <Button DockPanel.Dock="Bottom"
-                            Content="{x:Static res:Strings.ButtonAdd}"
-                            Classes="primary action"
-                            Command="{Binding AddEdgeFlawCommand}"
-                            Margin="12,8,12,12"/>
                 </DockPanel>
             </Border>
 
