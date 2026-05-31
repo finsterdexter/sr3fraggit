@@ -56,9 +56,22 @@
                         <Grid ColumnDefinitions="*,100,40,80" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
                             <!-- Body -->
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.AttrBody}" VerticalAlignment="Center" Classes="body"/>
-                            <NumericUpDown Grid.Row="0" Grid.Column="1" Classes="prominent"
-                                           Value="{Binding BodyValue}"
-                                           Minimum="1" Maximum="6"/>
+                            <Panel Grid.Row="0" Grid.Column="1">
+                                <NumericUpDown Classes="prominent" Value="{Binding BodyValue}"
+                                               Minimum="1" Maximum="6" IsVisible="{Binding !IsPlayMode}"/>
+                                <StackPanel IsVisible="{Binding IsPlayMode}" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                        <Button Content="−" Width="28" Padding="0"
+                                                Command="{Binding DecrementAttributeCommand}" CommandParameter="Body"/>
+                                        <TextBlock Text="{Binding BodyPlay}" Classes="stat-value-lg"
+                                                   Width="28" TextAlignment="Center" VerticalAlignment="Center"/>
+                                        <Button Content="+" Width="28" Padding="0"
+                                                Command="{Binding IncrementAttributeCommand}" CommandParameter="Body"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding BodyPendingCost}" FontSize="10" HorizontalAlignment="Center"
+                                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                                </StackPanel>
+                            </Panel>
                             <TextBlock Grid.Row="0" Grid.Column="2"
                                        Text="{Binding BodyRacialMod, StringFormat='{}{0:+#;-#;0}'}"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -71,9 +84,22 @@
 
                             <!-- Quickness -->
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.AttrQuickness}" VerticalAlignment="Center" Classes="body"/>
-                            <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="prominent"
-                                           Value="{Binding QuicknessValue}"
-                                           Minimum="1" Maximum="6"/>
+                            <Panel Grid.Row="1" Grid.Column="1">
+                                <NumericUpDown Classes="prominent" Value="{Binding QuicknessValue}"
+                                               Minimum="1" Maximum="6" IsVisible="{Binding !IsPlayMode}"/>
+                                <StackPanel IsVisible="{Binding IsPlayMode}" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                        <Button Content="−" Width="28" Padding="0"
+                                                Command="{Binding DecrementAttributeCommand}" CommandParameter="Quickness"/>
+                                        <TextBlock Text="{Binding QuicknessPlay}" Classes="stat-value-lg"
+                                                   Width="28" TextAlignment="Center" VerticalAlignment="Center"/>
+                                        <Button Content="+" Width="28" Padding="0"
+                                                Command="{Binding IncrementAttributeCommand}" CommandParameter="Quickness"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding QuicknessPendingCost}" FontSize="10" HorizontalAlignment="Center"
+                                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                                </StackPanel>
+                            </Panel>
                             <TextBlock Grid.Row="1" Grid.Column="2"
                                        Text="{Binding QuicknessRacialMod, StringFormat='{}{0:+#;-#;0}'}"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -86,9 +112,22 @@
 
                             <!-- Strength -->
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static res:Strings.AttrStrength}" VerticalAlignment="Center" Classes="body"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="1" Classes="prominent"
-                                           Value="{Binding StrengthValue}"
-                                           Minimum="1" Maximum="6"/>
+                            <Panel Grid.Row="2" Grid.Column="1">
+                                <NumericUpDown Classes="prominent" Value="{Binding StrengthValue}"
+                                               Minimum="1" Maximum="6" IsVisible="{Binding !IsPlayMode}"/>
+                                <StackPanel IsVisible="{Binding IsPlayMode}" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                        <Button Content="−" Width="28" Padding="0"
+                                                Command="{Binding DecrementAttributeCommand}" CommandParameter="Strength"/>
+                                        <TextBlock Text="{Binding StrengthPlay}" Classes="stat-value-lg"
+                                                   Width="28" TextAlignment="Center" VerticalAlignment="Center"/>
+                                        <Button Content="+" Width="28" Padding="0"
+                                                Command="{Binding IncrementAttributeCommand}" CommandParameter="Strength"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding StrengthPendingCost}" FontSize="10" HorizontalAlignment="Center"
+                                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                                </StackPanel>
+                            </Panel>
                             <TextBlock Grid.Row="2" Grid.Column="2"
                                        Text="{Binding StrengthRacialMod, StringFormat='{}{0:+#;-#;0}'}"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -114,9 +153,22 @@
                         <Grid ColumnDefinitions="*,100,40,80" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
                             <!-- Charisma -->
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.AttrCharisma}" VerticalAlignment="Center" Classes="body"/>
-                            <NumericUpDown Grid.Row="0" Grid.Column="1" Classes="prominent"
-                                           Value="{Binding CharismaValue}"
-                                           Minimum="1" Maximum="6"/>
+                            <Panel Grid.Row="0" Grid.Column="1">
+                                <NumericUpDown Classes="prominent" Value="{Binding CharismaValue}"
+                                               Minimum="1" Maximum="6" IsVisible="{Binding !IsPlayMode}"/>
+                                <StackPanel IsVisible="{Binding IsPlayMode}" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                        <Button Content="−" Width="28" Padding="0"
+                                                Command="{Binding DecrementAttributeCommand}" CommandParameter="Charisma"/>
+                                        <TextBlock Text="{Binding CharismaPlay}" Classes="stat-value-lg"
+                                                   Width="28" TextAlignment="Center" VerticalAlignment="Center"/>
+                                        <Button Content="+" Width="28" Padding="0"
+                                                Command="{Binding IncrementAttributeCommand}" CommandParameter="Charisma"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding CharismaPendingCost}" FontSize="10" HorizontalAlignment="Center"
+                                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                                </StackPanel>
+                            </Panel>
                             <TextBlock Grid.Row="0" Grid.Column="2"
                                        Text="{Binding CharismaRacialMod, StringFormat='{}{0:+#;-#;0}'}"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -129,9 +181,22 @@
 
                             <!-- Intelligence -->
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.AttrIntelligence}" VerticalAlignment="Center" Classes="body"/>
-                            <NumericUpDown Grid.Row="1" Grid.Column="1" Classes="prominent"
-                                           Value="{Binding IntelligenceValue}"
-                                           Minimum="1" Maximum="6"/>
+                            <Panel Grid.Row="1" Grid.Column="1">
+                                <NumericUpDown Classes="prominent" Value="{Binding IntelligenceValue}"
+                                               Minimum="1" Maximum="6" IsVisible="{Binding !IsPlayMode}"/>
+                                <StackPanel IsVisible="{Binding IsPlayMode}" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                        <Button Content="−" Width="28" Padding="0"
+                                                Command="{Binding DecrementAttributeCommand}" CommandParameter="Intelligence"/>
+                                        <TextBlock Text="{Binding IntelligencePlay}" Classes="stat-value-lg"
+                                                   Width="28" TextAlignment="Center" VerticalAlignment="Center"/>
+                                        <Button Content="+" Width="28" Padding="0"
+                                                Command="{Binding IncrementAttributeCommand}" CommandParameter="Intelligence"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding IntelligencePendingCost}" FontSize="10" HorizontalAlignment="Center"
+                                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                                </StackPanel>
+                            </Panel>
                             <TextBlock Grid.Row="1" Grid.Column="2"
                                        Text="{Binding IntelligenceRacialMod, StringFormat='{}{0:+#;-#;0}'}"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"
@@ -144,9 +209,22 @@
 
                             <!-- Willpower -->
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static res:Strings.AttrWillpower}" VerticalAlignment="Center" Classes="body"/>
-                            <NumericUpDown Grid.Row="2" Grid.Column="1" Classes="prominent"
-                                           Value="{Binding WillpowerValue}"
-                                           Minimum="1" Maximum="6"/>
+                            <Panel Grid.Row="2" Grid.Column="1">
+                                <NumericUpDown Classes="prominent" Value="{Binding WillpowerValue}"
+                                               Minimum="1" Maximum="6" IsVisible="{Binding !IsPlayMode}"/>
+                                <StackPanel IsVisible="{Binding IsPlayMode}" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Center">
+                                        <Button Content="−" Width="28" Padding="0"
+                                                Command="{Binding DecrementAttributeCommand}" CommandParameter="Willpower"/>
+                                        <TextBlock Text="{Binding WillpowerPlay}" Classes="stat-value-lg"
+                                                   Width="28" TextAlignment="Center" VerticalAlignment="Center"/>
+                                        <Button Content="+" Width="28" Padding="0"
+                                                Command="{Binding IncrementAttributeCommand}" CommandParameter="Willpower"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding WillpowerPendingCost}" FontSize="10" HorizontalAlignment="Center"
+                                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                                </StackPanel>
+                            </Panel>
                             <TextBlock Grid.Row="2" Grid.Column="2"
                                        Text="{Binding WillpowerRacialMod, StringFormat='{}{0:+#;-#;0}'}"
                                        VerticalAlignment="Center" HorizontalAlignment="Center"

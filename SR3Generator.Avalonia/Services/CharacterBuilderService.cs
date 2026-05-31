@@ -418,6 +418,82 @@ public class CharacterBuilderService : ICharacterBuilderService
         OnCharacterChanged();
     }
 
+    public void FinalizeCharacter()
+    {
+        _builder.FinalizeCharacter();
+        OnCharacterChanged();
+    }
+
+    public void AddJournalGain(int karma, long nuyen, string? title, string? note)
+    {
+        if (karma <= 0 && nuyen == 0) return;
+        if (karma > 0) _builder.AwardKarma(karma);
+        if (nuyen != 0) _builder.AddNuyen(nuyen);
+        _builder.Character.JournalEntries.Add(new JournalEntry
+        {
+            Type = JournalEntryType.Gain,
+            Title = string.IsNullOrWhiteSpace(title) ? "Session gain" : title,
+            Note = note,
+            KarmaChange = karma > 0 ? karma : 0,
+            NuyenChange = nuyen,
+        });
+        OnCharacterChanged();
+    }
+
+    public void ConvertKarmaToNuyen(int karma)
+    {
+        if (!_settings.KarmaConversionEnabled) return;
+        _builder.ConvertKarmaToNuyen(karma, _settings.KarmaConversionRate);
+        OnCharacterChanged();
+    }
+
+    public void ConvertNuyenToKarma(int karma)
+    {
+        if (!_settings.KarmaConversionEnabled) return;
+        _builder.ConvertNuyenToKarma(karma, _settings.KarmaConversionRate);
+        OnCharacterChanged();
+    }
+
+    public void ApplyAdvancement(AdvancementPlan plan)
+    {
+        // Apply attributes first so skill costs see any raised linked attribute (matching the
+        // advancement service's cost preview). Each improve call validates and spends karma.
+        foreach (var (name, target) in plan.AttributeTargets)
+        {
+            for (var v = _builder.Character.Attributes[name].BaseValue + 1; v <= target; v++)
+                _builder.ImproveAttribute(name, v);
+        }
+        foreach (var (skillName, target) in plan.SkillTargets)
+        {
+            var current = GetSkillBase(skillName);
+            for (var v = current + 1; v <= target; v++)
+                _builder.ImproveExistingSkill(skillName, v);
+        }
+        foreach (var skillName in plan.NewSkills)
+        {
+            _builder.ImproveNewSkill(skillName);
+        }
+
+        if (!string.IsNullOrEmpty(plan.Summary) || plan.TotalKarma > 0)
+        {
+            _builder.Character.JournalEntries.Add(new JournalEntry
+            {
+                Type = JournalEntryType.Advancement,
+                Title = "Advancement",
+                Note = plan.Summary,
+                KarmaChange = -plan.TotalKarma,
+            });
+        }
+        OnCharacterChanged();
+    }
+
+    private int GetSkillBase(string skillName)
+    {
+        if (_builder.Character.ActiveSkills.TryGetValue(skillName, out var a)) return a.BaseValue;
+        if (_builder.Character.KnowledgeSkills.TryGetValue(skillName, out var k)) return k.BaseValue;
+        return 0;
+    }
+
     public Character BuildCharacter()
     {
         return _builder.Build();

@@ -1,0 +1,160 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.JournalView"
+             x:DataType="vm:JournalViewModel">
+
+    <ScrollViewer Padding="16">
+        <StackPanel Spacing="12" MaxWidth="960" HorizontalAlignment="Left">
+            <!-- Header -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Journal" Classes="page-title"/>
+                <TextBlock Classes="page-subtitle"
+                           Text="Log karma and nuyen earned in play, convert between them, and review your history."/>
+            </StackPanel>
+
+            <!-- Resource summary -->
+            <Border Classes="resource-bar">
+                <StackPanel Orientation="Horizontal" Spacing="24">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="KARMA" Classes="micro-label"/>
+                        <TextBlock Classes="stat-value-lg">
+                            <Run Text="{Binding RemainingKarma}" Foreground="{StaticResource AccentKarmaBrush}"/>
+                            <Run Text=" free / " Foreground="{StaticResource InkMutedBrush}"/>
+                            <Run Text="{Binding TotalKarma}" Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <Run Text=" total" Foreground="{StaticResource InkMutedBrush}"/>
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="POOL" Classes="micro-label"/>
+                        <TextBlock Text="{Binding KarmaPool}" Classes="stat-value-lg"
+                                   Foreground="{StaticResource AccentKarmaBrush}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="NUYEN" Classes="micro-label"/>
+                        <TextBlock Text="{Binding Nuyen, StringFormat='{}{0:N0}¥'}" Classes="stat-value-lg"
+                                   Foreground="{StaticResource AccentNuyenBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Grid ColumnDefinitions="*,12,*">
+                <!-- Add entry -->
+                <Border Grid.Column="0" Classes="panel">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="ADD ENTRY" Classes="section-header"/>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Title" Classes="micro-label"/>
+                            <TextBox Text="{Binding NewTitle}" Watermark="e.g. Session 4 — Extraction"/>
+                        </StackPanel>
+                        <Grid ColumnDefinitions="*,12,*">
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <TextBlock Text="Karma gained" Classes="micro-label"/>
+                                <NumericUpDown Value="{Binding NewKarma}" Minimum="0" Maximum="1000" Increment="1"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="4">
+                                <TextBlock Text="Nuyen gained" Classes="micro-label"/>
+                                <NumericUpDown Value="{Binding NewNuyen}" Minimum="-100000000" Maximum="100000000"
+                                               Increment="100" FormatString="N0"/>
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Note" Classes="micro-label"/>
+                            <TextBox Text="{Binding NewNote}" AcceptsReturn="True" Height="56"
+                                     TextWrapping="Wrap" Watermark="Optional details"/>
+                        </StackPanel>
+                        <Button Classes="primary" Content="Add Entry"
+                                Command="{Binding AddEntryCommand}"
+                                IsEnabled="{Binding CanAddEntry}"
+                                HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Conversion -->
+                <Border Grid.Column="2" Classes="panel">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="CONVERSION" Classes="section-header"/>
+                            <TextBlock Grid.Column="1" Classes="micro-label"
+                                       Text="{Binding ConversionRate, StringFormat='{}1 K = {0:N0}¥'}"/>
+                        </Grid>
+
+                        <TextBlock IsVisible="{Binding !ConversionEnabled}"
+                                   Text="Conversion is disabled. Enable it in Options → Karma Conversion."
+                                   FontSize="11" TextWrapping="Wrap"
+                                   Foreground="{StaticResource WarningBrush}"/>
+
+                        <StackPanel Spacing="6" IsEnabled="{Binding ConversionEnabled}">
+                            <TextBlock Text="Karma → Nuyen" Classes="micro-label"/>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <NumericUpDown Grid.Column="0" Value="{Binding KarmaToConvert}"
+                                               Minimum="0" Maximum="1000" Increment="1"/>
+                                <Button Grid.Column="1" Classes="default" Content="Convert"
+                                        Command="{Binding ConvertKarmaToNuyenCommand}"
+                                        IsEnabled="{Binding CanConvertKarmaToNuyen}"/>
+                            </Grid>
+                            <TextBlock Classes="micro-label"
+                                       Text="{Binding KarmaToNuyenPreview, StringFormat='= {0:N0}¥'}"
+                                       Foreground="{StaticResource AccentNuyenBrush}"/>
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}"/>
+
+                        <StackPanel Spacing="6" IsEnabled="{Binding ConversionEnabled}">
+                            <TextBlock Text="Nuyen → Karma" Classes="micro-label"/>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                <NumericUpDown Grid.Column="0" Value="{Binding NuyenToKarmaAmount}"
+                                               Minimum="0" Maximum="1000" Increment="1"/>
+                                <Button Grid.Column="1" Classes="default" Content="Convert"
+                                        Command="{Binding ConvertNuyenToKarmaCommand}"
+                                        IsEnabled="{Binding CanConvertNuyenToKarma}"/>
+                            </Grid>
+                            <TextBlock Classes="micro-label"
+                                       Text="{Binding NuyenToKarmaCost, StringFormat='cost {0:N0}¥'}"
+                                       Foreground="{StaticResource AccentNuyenBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- History -->
+            <StackPanel Spacing="6">
+                <TextBlock Text="HISTORY" Classes="section-header"/>
+                <Border Classes="panel-inset" Padding="0">
+                    <ItemsControl ItemsSource="{Binding Entries}" Padding="4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:JournalEntryItem">
+                                <Border Padding="10,8" Margin="0,0,0,2"
+                                        Background="{StaticResource Surface100Brush}"
+                                        CornerRadius="3">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12">
+                                        <Border Grid.Column="0" VerticalAlignment="Center"
+                                                Background="{StaticResource Surface300Brush}"
+                                                CornerRadius="2" Padding="6,2">
+                                            <TextBlock Text="{Binding TypeLabel}" FontSize="9" FontWeight="Bold"
+                                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Title}" FontSize="12"
+                                                       Foreground="{StaticResource InkPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding Note}" FontSize="10" TextWrapping="Wrap"
+                                                       IsVisible="{Binding HasNote}"
+                                                       Foreground="{StaticResource InkMutedBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="{Binding KarmaDisplay}" VerticalAlignment="Center"
+                                                   Classes="stat-value" Foreground="{StaticResource AccentKarmaBrush}"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding NuyenDisplay}" VerticalAlignment="Center"
+                                                   Classes="stat-value" Foreground="{StaticResource AccentNuyenBrush}"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

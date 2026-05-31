@@ -16,6 +16,16 @@ namespace SR3Generator.Data.Character
             }
         }
         public List<KarmaOperation> KarmaOperations { get; set; } = new List<KarmaOperation>();
+
+        // Post-creation "in-play" state. Set once the character is finalized; locks priority
+        // allocation (the Priorities tab hides) and switches the app to karma-based advancement.
+        // Persists with the file.
+        public bool IsFinalized { get; set; }
+
+        // Play-mode session log: karma/nuyen gains, karma↔nuyen conversions, and applied
+        // advancements. Ordered oldest-first.
+        public List<JournalEntry> JournalEntries { get; set; } = new List<JournalEntry>();
+
         public Race Race { get; set; } = null!;
         public Identity Identity { get; set; } = new Identity();
         public List<Lifestyle> Lifestyles { get; set; } = new List<Lifestyle>();

@@ -14,6 +14,14 @@ namespace SR3Generator.Avalonia.ViewModels.Tabs;
 public partial class SummaryViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
+    private readonly IDialogService _dialogService;
+
+    // True once the character has been finalized into play mode.
+    [ObservableProperty]
+    private bool _isFinalized;
+
+    /// <summary>Finalize is offered only for a valid, not-yet-finalized character. </summary>
+    public bool CanFinalize => IsValid && !IsFinalized;
 
     // Basic Info
     [ObservableProperty]
@@ -137,11 +145,25 @@ public partial class SummaryViewModel : ViewModelBase
     [ObservableProperty] private int _cmSurvivalTn;
     [ObservableProperty] private int _cmUpkeepYen;
 
-    public SummaryViewModel(ICharacterBuilderService characterService)
+    public SummaryViewModel(ICharacterBuilderService characterService, IDialogService dialogService)
     {
         _characterService = characterService;
+        _dialogService = dialogService;
         _characterService.CharacterChanged += OnCharacterChanged;
         RefreshFromBuilder();
+    }
+
+    partial void OnIsFinalizedChanged(bool value) => OnPropertyChanged(nameof(CanFinalize));
+
+    [RelayCommand]
+    private async System.Threading.Tasks.Task FinalizeCharacter()
+    {
+        if (!CanFinalize) return;
+        var confirmed = await _dialogService.ConfirmAsync(
+            "Finalize Character?",
+            "This locks priority allocation and switches to play mode (karma-based advancement). " +
+            "You can still edit gear and advance with karma afterward. Continue?");
+        if (confirmed) _characterService.FinalizeCharacter();
     }
 
     private void OnCharacterChanged(object? sender, EventArgs e)
@@ -153,6 +175,8 @@ public partial class SummaryViewModel : ViewModelBase
     {
         var builder = _characterService.Builder;
         var character = builder.Character;
+
+        IsFinalized = character.IsFinalized;
 
         // Basic Info
         RaceName = character.Race?.Name.ToString() ?? "Not Selected";
@@ -295,6 +319,7 @@ public partial class SummaryViewModel : ViewModelBase
         var errorCount = issues.Count(i => i.Level == ValidationIssueLevel.Error);
         var warningCount = issues.Count(i => i.Level == ValidationIssueLevel.Warning);
         IsValid = errorCount == 0;
+        OnPropertyChanged(nameof(CanFinalize));
         HasIssues = issues.Count > 0;
         ValidationStatus = errorCount > 0
             ? $"{errorCount} error(s) must be fixed"

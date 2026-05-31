@@ -1686,11 +1686,81 @@ namespace SR3Generator.Creation
 
             return this;
         }
+
+        /// <summary>Lock the character into post-creation "in-play" mode. </summary>
+        public CharacterBuilder FinalizeCharacter()
+        {
+            Character.IsFinalized = true;
+            return this;
+        }
+
+        /// <summary>Spend Good Karma to gain nuyen (Shadowrun Companion house rule; rate supplied by
+        /// caller). Karma Pool is untouched — it only grows via <see cref="AwardKarma"/>. </summary>
+        public CharacterBuilder ConvertKarmaToNuyen(int karma, long ratePerKarma)
+        {
+            if (karma <= 0 || ratePerKarma <= 0) return this;
+            if (Character.RemainingKarma < karma)
+            {
+                _logger.LogWarning("ConvertKarmaToNuyen: Insufficient karma. Need {Karma}, have {RemainingKarma}", karma, Character.RemainingKarma);
+                return this;
+            }
+            long nuyen = karma * ratePerKarma;
+            Character.SpentKarma += karma;
+            AddNuyen(nuyen);
+            Character.KarmaOperations.Add(new KarmaOperation
+            {
+                Type = KarmaOperationType.ConvertToNuyen,
+                KarmaChangeValue = karma,
+                Description = $"Convert {karma} Karma to {nuyen:N0}¥"
+            });
+            Character.JournalEntries.Add(new JournalEntry
+            {
+                Type = JournalEntryType.KarmaToNuyen,
+                Title = "Karma → Nuyen",
+                KarmaChange = -karma,
+                NuyenChange = nuyen
+            });
+            return this;
+        }
+
+        /// <summary>Spend nuyen to gain Good Karma (Shadowrun Companion house rule; rate supplied by
+        /// caller). Routed through <see cref="AwardKarma"/> so the Karma Pool share accrues per RAW. </summary>
+        public CharacterBuilder ConvertNuyenToKarma(int karma, long ratePerKarma)
+        {
+            if (karma <= 0 || ratePerKarma <= 0) return this;
+            long nuyen = karma * ratePerKarma;
+            // Spendable cash = priority allowance + running delta (Character.Nuyen is negative after
+            // chargen purchases, positive as play income accrues).
+            long spendable = ResourcesAllowance + Character.Nuyen;
+            if (spendable < nuyen)
+            {
+                _logger.LogWarning("ConvertNuyenToKarma: Insufficient nuyen. Need {Nuyen}, have {Have}", nuyen, spendable);
+                return this;
+            }
+            RemoveNuyen(nuyen);
+            AwardKarma(karma);
+            Character.JournalEntries.Add(new JournalEntry
+            {
+                Type = JournalEntryType.NuyenToKarma,
+                Title = "Nuyen → Karma",
+                KarmaChange = karma,
+                NuyenChange = -nuyen
+            });
+            return this;
+        }
+
+        /// <summary>Karma cost to raise <paramref name="name"/> to <paramref name="newValue"/>
+        /// (rating×2 at/under the Racial Modified Limit, rating×3 above it). Preview helper for the
+        /// advancement UI; mirrors the cost logic in <see cref="ImproveAttribute"/>. </summary>
+        public int GetAttributeImproveCost(AttributeName name, int newValue)
+        {
+            var limit = Character.Attributes[name].GetRacialModifiedLimit(Character);
+            return newValue <= limit ? newValue * 2 : newValue * 3;
+        }
+
         public CharacterBuilder ImproveAttribute(AttributeName name, int newValue)
         {
             // calculate karma needed to improve attribute
-            var karmaCost = 0;
-            var limit = Character.Attributes[name].GetRacialModifiedLimit(Character);
             var maximum = Character.Attributes[name].GetRacialAttributeMaximum(Character);
             if (newValue > maximum)
             {
@@ -1702,14 +1772,7 @@ namespace SR3Generator.Creation
                 _logger.LogWarning("ImproveAttribute: {Attribute} value {NewValue} exceeds current base value {BaseValue} by more than 1", name, newValue, Character.Attributes[name].BaseValue);
                 return this;
             }
-            if (newValue <= maximum)
-            {
-                karmaCost = newValue * 3;
-            }
-            if (newValue <= limit)
-            {
-                karmaCost = newValue * 2;
-            }
+            var karmaCost = GetAttributeImproveCost(name, newValue);
             if (Character.RemainingKarma < karmaCost)
             {
                 _logger.LogWarning("ImproveAttribute: Insufficient karma for {Attribute}. Need {KarmaCost}, have {RemainingKarma}", name, karmaCost, Character.RemainingKarma);
@@ -1776,7 +1839,7 @@ namespace SR3Generator.Creation
 
             return this;
         }
-        private int GetImproveSkillCost(int newSkillValue, int currentAttributeValue, bool isSpecialization, SkillType skillType)
+        public int GetImproveSkillCost(int newSkillValue, int currentAttributeValue, bool isSpecialization, SkillType skillType)
         {
             double costMultiplier = 0;
             if (newSkillValue > 2 * currentAttributeValue)

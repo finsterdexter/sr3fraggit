@@ -2,7 +2,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using SR3Generator.Avalonia.Services;
+using SR3Generator.Creation.Validation;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SR3Generator.Avalonia.ViewModels;
@@ -24,7 +26,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private CharacterShellViewModel _characterShell;
 
-    /// <summary>Bound to the checkable Tools → GM Mode menu item. Persists on toggle. </summary>
+    /// <summary>Bound to the checkable Options → GM Mode menu item. Persists on toggle. </summary>
     [ObservableProperty]
     private bool _gmMode;
 
@@ -83,6 +85,32 @@ public partial class MainWindowViewModel : ViewModelBase
 
     [RelayCommand]
     private Task OpenOptions() => _dialogService.OpenOptionsAsync();
+
+    [RelayCommand]
+    private Task OpenKarmaConversion() => _dialogService.OpenKarmaConversionAsync();
+
+    [RelayCommand]
+    private async Task FinalizeCharacter()
+    {
+        var character = _characterService.Builder.Character;
+        if (character.IsFinalized) return;
+
+        var errors = _characterService.GetValidationIssues()
+            .Count(i => i.Level == ValidationIssueLevel.Error);
+        if (errors > 0)
+        {
+            await _dialogService.ShowErrorAsync(
+                "Cannot Finalize",
+                $"Resolve {errors} validation error(s) before finalizing the character.");
+            return;
+        }
+
+        var confirmed = await _dialogService.ConfirmAsync(
+            "Finalize Character?",
+            "This locks priority allocation and switches to play mode (karma-based advancement). " +
+            "You can still edit gear and advance with karma afterward. Continue?");
+        if (confirmed) _characterService.FinalizeCharacter();
+    }
 
     [RelayCommand]
     private async Task LoadCharacter()

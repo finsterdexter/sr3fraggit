@@ -1,0 +1,63 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SR3Generator.Avalonia.ViewModels"
+        x:Class="SR3Generator.Avalonia.Views.ApplyAdvancementDialog"
+        x:DataType="vm:ApplyAdvancementDialogViewModel"
+        Width="480" Height="380"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource Surface100Brush}"
+        Title="Apply Advancement">
+    <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
+        <DockPanel LastChildFill="True" Margin="20">
+            <!-- Header -->
+            <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,12">
+                <TextBlock Text="Apply Karma Advancement"
+                           FontSize="14" FontWeight="SemiBold"
+                           Foreground="{StaticResource InkPrimaryBrush}"/>
+                <TextBlock Text="The following changes will be committed and karma spent."
+                           FontSize="11" TextWrapping="Wrap"
+                           Foreground="{StaticResource InkSecondaryBrush}"/>
+            </StackPanel>
+
+            <!-- Footer -->
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,12,0,0">
+                <Button x:Name="CancelButton" Classes="default" Content="Cancel" Click="OnCancel"/>
+                <Button x:Name="ConfirmButton" Classes="primary" Content="Apply (permanent)" Click="OnConfirm" IsDefault="True"/>
+            </StackPanel>
+
+            <!-- Body -->
+            <StackPanel Spacing="12">
+                <Border BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4"
+                        Padding="10" MaxHeight="180">
+                    <ScrollViewer>
+                        <TextBlock Text="{Binding Summary}"
+                                   FontFamily="JetBrains Mono, Cascadia Code, monospace"
+                                   FontSize="12"
+                                   Foreground="{StaticResource InkPrimaryBrush}"
+                                   TextWrapping="Wrap"/>
+                    </ScrollViewer>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Spacing="16">
+                    <TextBlock Text="{Binding TotalKarmaDisplay}" FontWeight="SemiBold"
+                               Foreground="{StaticResource AccentKarmaBrush}"/>
+                    <TextBlock Text="{Binding RemainingAfterDisplay}"
+                               Foreground="{StaticResource InkSecondaryBrush}"/>
+                </StackPanel>
+
+                <Border Background="#15ef4444" BorderBrush="#30ef4444" BorderThickness="1"
+                        CornerRadius="3" Padding="10,8">
+                    <TextBlock Text="Are you sure? This cannot be undone once applied."
+                               FontSize="11" TextWrapping="Wrap"
+                               Foreground="{StaticResource DestructiveBrush}"/>
+                </Border>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</Window>

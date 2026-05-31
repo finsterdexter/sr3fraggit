@@ -36,11 +36,14 @@
                     <Separator/>
                     <MenuItem Header="E_xit" />
                 </MenuItem>
-                <MenuItem Header="_Tools">
+                <MenuItem Header="_Options">
                     <MenuItem Header="_GM / NPC Mode" ToggleType="CheckBox"
                               IsChecked="{Binding GmMode, Mode=TwoWay}"/>
                     <Separator/>
+                    <MenuItem Header="_Finalize Character..." Command="{Binding FinalizeCharacterCommand}" />
+                    <Separator/>
                     <MenuItem Header="_Sources..." Command="{Binding OpenOptionsCommand}" />
+                    <MenuItem Header="_Karma Conversion..." Command="{Binding OpenKarmaConversionCommand}" />
                 </MenuItem>
                 <MenuItem Header="_Help">
                     <MenuItem Header="_About" />

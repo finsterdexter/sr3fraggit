@@ -26,4 +26,10 @@ public interface IDialogService
     /// Show the Options dialog.
     /// </summary>
     Task OpenOptionsAsync();
+
+    /// <summary>Show the karma-conversion settings dialog. </summary>
+    Task OpenKarmaConversionAsync();
+
+    /// <summary>Show the advancement-apply confirmation. Returns true if the user confirms. </summary>
+    Task<bool> OpenApplyAdvancementAsync(string summary, int totalKarma, int remainingAfter);
 }

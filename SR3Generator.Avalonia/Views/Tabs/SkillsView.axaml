@@ -125,17 +125,30 @@
                                                 FontSize="12" FontWeight="Bold"
                                                 Width="24" Height="24"
                                                 Command="{Binding DecrementDetailRatingCommand}"/>
-                                        <TextBlock Text="{Binding DetailSkill.RatingDisplay}"
-                                                   Classes="stat-value"
-                                                   Foreground="{StaticResource AccentCyberBrush}"
-                                                   MinWidth="40" TextAlignment="Center"
-                                                   VerticalAlignment="Center"/>
+                                        <Panel MinWidth="40" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding DetailSkill.RatingDisplay}"
+                                                       Classes="stat-value"
+                                                       Foreground="{StaticResource AccentCyberBrush}"
+                                                       TextAlignment="Center"
+                                                       IsVisible="{Binding !IsPlayMode}"/>
+                                            <TextBlock Text="{Binding DetailPlayRating}"
+                                                       Classes="stat-value"
+                                                       Foreground="{StaticResource AccentCyberBrush}"
+                                                       TextAlignment="Center"
+                                                       IsVisible="{Binding IsPlayMode}"/>
+                                        </Panel>
                                         <Button Classes="icon" Content="+"
                                                 FontSize="12" FontWeight="Bold"
                                                 Width="24" Height="24"
                                                 Command="{Binding IncrementDetailRatingCommand}"/>
                                     </StackPanel>
                                 </Grid>
+
+                                <!-- Staged karma cost (play mode) -->
+                                <TextBlock Text="{Binding DetailPendingCost}" FontSize="10"
+                                           HorizontalAlignment="Right"
+                                           Foreground="{StaticResource AccentKarmaBrush}"
+                                           IsVisible="{Binding IsPlayMode}"/>
 
                                 <!-- Add Skill button — visible when not yet purchased -->
                                 <Button Content="Add Skill"
@@ -144,9 +157,14 @@
                                         Command="{Binding AddDetailSkillCommand}"
                                         IsVisible="{Binding !DetailSkill.IsPurchased}"/>
 
-                                <!-- Specialization section — only shown once the skill is purchased -->
-                                <StackPanel Spacing="10"
-                                            IsVisible="{Binding DetailSkill.IsPurchased}">
+                                <!-- Specialization section — creation-mode only, once the skill is purchased -->
+                                <StackPanel Spacing="10">
+                                    <StackPanel.IsVisible>
+                                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                            <Binding Path="DetailSkill.IsPurchased"/>
+                                            <Binding Path="!IsPlayMode"/>
+                                        </MultiBinding>
+                                    </StackPanel.IsVisible>
                                     <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}" Margin="0,4"/>
                                     <TextBlock Text="SPECIALIZATION" Classes="micro-label"/>
 

@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SR3Generator.Avalonia.ViewModels"
+        x:Class="SR3Generator.Avalonia.Views.KarmaConversionDialog"
+        x:DataType="vm:KarmaConversionDialogViewModel"
+        Width="460" Height="300"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource Surface100Brush}"
+        Title="Karma Conversion">
+    <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
+        <DockPanel LastChildFill="True" Margin="20">
+            <!-- Header -->
+            <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,16">
+                <TextBlock Text="Karma ↔ Nuyen Conversion"
+                           FontSize="14" FontWeight="SemiBold"
+                           Foreground="{StaticResource InkPrimaryBrush}"/>
+                <TextBlock Text="Play-mode house rule (Shadowrun Companion). Allow converting Good Karma to nuyen and back at a fixed rate."
+                           FontSize="11"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource InkSecondaryBrush}"/>
+            </StackPanel>
+
+            <!-- Footer (OK/Cancel) -->
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,16,0,0">
+                <Button x:Name="CancelButton" Classes="default" Content="Cancel" Click="OnCancel"/>
+                <Button x:Name="OkButton" Classes="primary" Content="OK" Click="OnOk" IsDefault="True"/>
+            </StackPanel>
+
+            <!-- Body -->
+            <StackPanel Spacing="16">
+                <CheckBox IsChecked="{Binding Enabled}" Content="Allow karma ↔ nuyen conversion"/>
+                <StackPanel Spacing="6" IsEnabled="{Binding Enabled}">
+                    <TextBlock Text="Nuyen per 1 Karma" Classes="micro-label"/>
+                    <NumericUpDown Value="{Binding Rate}"
+                                   Minimum="1" Maximum="1000000" Increment="500"
+                                   FormatString="N0"
+                                   Width="200" HorizontalAlignment="Left"/>
+                </StackPanel>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</Window>

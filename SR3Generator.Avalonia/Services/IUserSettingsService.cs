@@ -18,6 +18,15 @@ public interface IUserSettingsService
     /// <summary>Set and persist GM mode. Raises <see cref="SettingsChanged"/>. </summary>
     Task SetGmModeAsync(bool enabled);
 
+    /// <summary>Whether karma↔nuyen conversion (play mode) is permitted. House rule; defaults true. </summary>
+    bool KarmaConversionEnabled { get; }
+
+    /// <summary>Nuyen gained/spent per 1 Karma when converting. Defaults 5000. </summary>
+    long KarmaConversionRate { get; }
+
+    /// <summary>Set and persist the karma conversion rule. Raises <see cref="SettingsChanged"/>. </summary>
+    Task SetKarmaConversionAsync(bool enabled, long rate);
+
     /// <summary>Raised after the enabled-books set or GM mode changes. </summary>
     event EventHandler? SettingsChanged;
 }

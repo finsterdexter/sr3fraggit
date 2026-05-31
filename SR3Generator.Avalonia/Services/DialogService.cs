@@ -65,6 +65,22 @@ public class DialogService : IDialogService
         await dialog.ShowDialog<bool>(_owner);
     }
 
+    public async Task OpenKarmaConversionAsync()
+    {
+        if (_owner is null) return;
+        var vm = _serviceProvider.GetRequiredService<KarmaConversionDialogViewModel>();
+        var dialog = new KarmaConversionDialog(vm);
+        await dialog.ShowDialog<bool>(_owner);
+    }
+
+    public async Task<bool> OpenApplyAdvancementAsync(string summary, int totalKarma, int remainingAfter)
+    {
+        if (_owner is null) return false;
+        var vm = new ApplyAdvancementDialogViewModel(summary, totalKarma, remainingAfter);
+        var dialog = new ApplyAdvancementDialog(vm);
+        return await dialog.ShowDialog<bool>(_owner);
+    }
+
     private static FilePickerFileType BuildFileType(string extension, string mimeType) =>
         new($"SR3 Character (*{extension})")
         {

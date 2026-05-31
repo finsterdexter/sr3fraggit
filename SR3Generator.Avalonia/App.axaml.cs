@@ -85,6 +85,9 @@ public partial class App : Application
         services.AddSingleton<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<ICharacterBuilderService, CharacterBuilderService>();
 
+        // Play-mode staged karma advancement (singleton so staging survives shell rebuilds).
+        services.AddSingleton<IAdvancementService, AdvancementService>();
+
         // File + dialog services
         services.AddSingleton<DialogService>();
         services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
@@ -92,6 +95,7 @@ public partial class App : Application
 
         // Dialog viewmodels
         services.AddTransient<OptionsDialogViewModel>();
+        services.AddTransient<KarmaConversionDialogViewModel>();
 
         // Tab ViewModels
         services.AddTransient<PrioritiesViewModel>();
@@ -115,6 +119,7 @@ public partial class App : Application
         services.AddTransient<ContactsViewModel>();
         services.AddTransient<EdgesFlawsViewModel>();
         services.AddTransient<SummaryViewModel>();
+        services.AddTransient<JournalViewModel>();
 
         // Section container ViewModels — each wraps a Catalog + Mods inner pair.
         services.AddTransient<GearContainerViewModel>();

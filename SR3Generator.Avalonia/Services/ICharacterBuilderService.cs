@@ -114,6 +114,24 @@ public interface ICharacterBuilderService
     void AddNuyen(long nuyen);
     void RemoveNuyen(long nuyen);
 
+    // Play-mode (post-finalization) methods
+    /// <summary>Lock the character into in-play mode (hides Priorities, enables karma advancement). </summary>
+    void FinalizeCharacter();
+
+    /// <summary>Record a session gain: award karma (Pool share per RAW), add nuyen, and log a
+    /// Journal entry. Any of karma/nuyen may be zero. </summary>
+    void AddJournalGain(int karma, long nuyen, string? title, string? note);
+
+    /// <summary>Convert Good Karma to nuyen at the configured rate. No-op if conversion is disabled. </summary>
+    void ConvertKarmaToNuyen(int karma);
+
+    /// <summary>Convert nuyen to Good Karma at the configured rate. No-op if conversion is disabled. </summary>
+    void ConvertNuyenToKarma(int karma);
+
+    /// <summary>Commit a batch of staged karma advancements (attribute/skill raises, new skills),
+    /// replaying each step through the builder's improve methods and logging a Journal entry. </summary>
+    void ApplyAdvancement(AdvancementPlan plan);
+
     // Build and validation
     Character BuildCharacter();
     List<ValidationIssue> GetValidationIssues();

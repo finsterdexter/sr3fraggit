@@ -15,8 +15,13 @@ public partial class SkillsViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
     private readonly SkillDatabase _skillDatabase;
+    private readonly IAdvancementService _advancement;
 
     public SR3Generator.Database.Queries.RulesEntry? SpecializationRule { get; }
+
+    // True once finalized: rating changes stage karma-costed advancement instead of spending points.
+    [ObservableProperty]
+    private bool _isPlayMode;
 
     // All base skills from database (no specializations)
     private List<AvailableSkillItem> _allSkills = new();
@@ -124,6 +129,8 @@ public partial class SkillsViewModel : ViewModelBase
         CustomSpecName = string.Empty;
     }
 
+    partial void OnDetailSkillChanged(PurchasedSkillItem? value) => RefreshDetailPlay();
+
     private void UpdateDetailSkill()
     {
         // Prefer the real purchased row when present so the Detail binds directly to the
@@ -151,14 +158,48 @@ public partial class SkillsViewModel : ViewModelBase
     public SkillsViewModel(
         ICharacterBuilderService characterService,
         SkillDatabase skillDatabase,
-        RulesGlossary rulesGlossary)
+        RulesGlossary rulesGlossary,
+        IAdvancementService advancement)
     {
         _characterService = characterService;
         _skillDatabase = skillDatabase;
+        _advancement = advancement;
         SpecializationRule = rulesGlossary.Get("skill.specialization");
         _characterService.CharacterChanged += OnCharacterChanged;
+        _advancement.PendingChanged += (_, _) => RefreshDetailPlay();
         LoadSkills();
         RefreshFromBuilder();
+    }
+
+    // Play-mode detail display: staged rating + pending karma for the currently-selected skill.
+    public int DetailPlayRating
+    {
+        get
+        {
+            if (DetailSkill is null) return 0;
+            if (DetailSkill.IsPurchased) return _advancement.GetSkillTarget(DetailSkill.Name);
+            return _advancement.PendingNewSkills.Contains(DetailSkill.Name) ? 1 : 0;
+        }
+    }
+
+    public string DetailPendingCost
+    {
+        get
+        {
+            if (DetailSkill is null) return string.Empty;
+            if (DetailSkill.IsPurchased)
+            {
+                var cost = _advancement.GetSkillPendingCost(DetailSkill.Name);
+                return cost > 0 ? $"+{cost} K" : string.Empty;
+            }
+            return _advancement.PendingNewSkills.Contains(DetailSkill.Name) ? "+1 K" : string.Empty;
+        }
+    }
+
+    private void RefreshDetailPlay()
+    {
+        OnPropertyChanged(nameof(DetailPlayRating));
+        OnPropertyChanged(nameof(DetailPendingCost));
     }
 
     private void OnCharacterChanged(object? sender, EventArgs e)
@@ -244,6 +285,7 @@ public partial class SkillsViewModel : ViewModelBase
         var builder = _characterService.Builder;
         var character = builder.Character;
 
+        IsPlayMode = character.IsFinalized;
         ActivePointsAllowance = builder.SkillPointsAllowance;
         KnowledgePointsAllowance = builder.KnowledgeSkillPointsAllowance;
 
@@ -416,6 +458,13 @@ public partial class SkillsViewModel : ViewModelBase
     private void IncrementDetailRating()
     {
         if (DetailSkill is null) return;
+        if (IsPlayMode)
+        {
+            // Play mode: stage a karma-costed raise (or a new skill at rating 1).
+            if (DetailSkill.IsPurchased) _advancement.IncrementSkill(DetailSkill.Name);
+            else _advancement.AddNewSkill(DetailSkill.Name);
+            return;
+        }
         if (DetailSkill.Rating == 0)
         {
             var catalog = _allSkills.FirstOrDefault(s => s.Name == DetailSkill.Name);
@@ -428,7 +477,14 @@ public partial class SkillsViewModel : ViewModelBase
     [RelayCommand]
     private void DecrementDetailRating()
     {
-        if (DetailSkill is null || DetailSkill.Rating <= 0) return;
+        if (DetailSkill is null) return;
+        if (IsPlayMode)
+        {
+            if (DetailSkill.IsPurchased) _advancement.DecrementSkill(DetailSkill.Name);
+            else _advancement.RemoveNewSkill(DetailSkill.Name);
+            return;
+        }
+        if (DetailSkill.Rating <= 0) return;
         DecrementSkillRating(DetailSkill);
     }
 
@@ -436,6 +492,7 @@ public partial class SkillsViewModel : ViewModelBase
     private void AddDetailSkill()
     {
         if (DetailSkill is null || DetailSkill.IsPurchased) return;
+        if (IsPlayMode) { _advancement.AddNewSkill(DetailSkill.Name); return; }
         var catalog = _allSkills.FirstOrDefault(s => s.Name == DetailSkill.Name);
         if (catalog is not null) AddSkill(catalog, 1);
     }
@@ -443,6 +500,8 @@ public partial class SkillsViewModel : ViewModelBase
     [RelayCommand]
     private void RemoveDetailSkill()
     {
+        // No karma rebates in play mode — removal is creation-only.
+        if (IsPlayMode) return;
         if (DetailSkill is null || !DetailSkill.IsPurchased) return;
         RemoveSkill(DetailSkill);
     }

@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using SR3Generator.Avalonia.Services;
 using SR3Generator.Data.Character;
 using System;
@@ -11,7 +12,13 @@ namespace SR3Generator.Avalonia.ViewModels.Tabs;
 public partial class AttributesViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
+    private readonly IAdvancementService _advancement;
     private bool _isUpdating;
+
+    // True once the character is finalized: editing switches from priority-point NumericUpDowns to
+    // karma-costed staged steppers.
+    [ObservableProperty]
+    private bool _isPlayMode;
 
     // Physical Attributes
     [ObservableProperty]
@@ -111,16 +118,67 @@ public partial class AttributesViewModel : ViewModelBase
     [ObservableProperty]
     private int _pointsRemaining;
 
-    public AttributesViewModel(ICharacterBuilderService characterService)
+    // Play-mode staged targets (committed base + pending steps) and the karma staged per attribute.
+    public int BodyPlay => _advancement.GetAttributeTarget(AttributeName.Body);
+    public int QuicknessPlay => _advancement.GetAttributeTarget(AttributeName.Quickness);
+    public int StrengthPlay => _advancement.GetAttributeTarget(AttributeName.Strength);
+    public int CharismaPlay => _advancement.GetAttributeTarget(AttributeName.Charisma);
+    public int IntelligencePlay => _advancement.GetAttributeTarget(AttributeName.Intelligence);
+    public int WillpowerPlay => _advancement.GetAttributeTarget(AttributeName.Willpower);
+
+    public string BodyPendingCost => CostLabel(AttributeName.Body);
+    public string QuicknessPendingCost => CostLabel(AttributeName.Quickness);
+    public string StrengthPendingCost => CostLabel(AttributeName.Strength);
+    public string CharismaPendingCost => CostLabel(AttributeName.Charisma);
+    public string IntelligencePendingCost => CostLabel(AttributeName.Intelligence);
+    public string WillpowerPendingCost => CostLabel(AttributeName.Willpower);
+
+    private string CostLabel(AttributeName name)
+    {
+        var cost = _advancement.GetAttributePendingCost(name);
+        return cost > 0 ? $"+{cost} K" : string.Empty;
+    }
+
+    public AttributesViewModel(ICharacterBuilderService characterService, IAdvancementService advancement)
     {
         _characterService = characterService;
+        _advancement = advancement;
         _characterService.CharacterChanged += OnCharacterChanged;
+        _advancement.PendingChanged += (_, _) => RefreshPlayValues();
         RefreshFromBuilder();
     }
 
     private void OnCharacterChanged(object? sender, EventArgs e)
     {
         RefreshFromBuilder();
+    }
+
+    private void RefreshPlayValues()
+    {
+        OnPropertyChanged(nameof(BodyPlay));
+        OnPropertyChanged(nameof(QuicknessPlay));
+        OnPropertyChanged(nameof(StrengthPlay));
+        OnPropertyChanged(nameof(CharismaPlay));
+        OnPropertyChanged(nameof(IntelligencePlay));
+        OnPropertyChanged(nameof(WillpowerPlay));
+        OnPropertyChanged(nameof(BodyPendingCost));
+        OnPropertyChanged(nameof(QuicknessPendingCost));
+        OnPropertyChanged(nameof(StrengthPendingCost));
+        OnPropertyChanged(nameof(CharismaPendingCost));
+        OnPropertyChanged(nameof(IntelligencePendingCost));
+        OnPropertyChanged(nameof(WillpowerPendingCost));
+    }
+
+    [RelayCommand]
+    private void IncrementAttribute(string name)
+    {
+        if (Enum.TryParse<AttributeName>(name, out var attr)) _advancement.IncrementAttribute(attr);
+    }
+
+    [RelayCommand]
+    private void DecrementAttribute(string name)
+    {
+        if (Enum.TryParse<AttributeName>(name, out var attr)) _advancement.DecrementAttribute(attr);
     }
 
     private void RefreshFromBuilder()
@@ -131,6 +189,7 @@ public partial class AttributesViewModel : ViewModelBase
             var builder = _characterService.Builder;
             var character = builder.Character;
 
+            IsPlayMode = character.IsFinalized;
             PointsAllowance = builder.AttributePointsAllowance;
 
             // Load racial modifiers
@@ -177,6 +236,8 @@ public partial class AttributesViewModel : ViewModelBase
             OnPropertyChanged(nameof(IntelligenceDisplay));
             OnPropertyChanged(nameof(WillpowerDisplay));
             OnPropertyChanged(nameof(ReactionDisplay));
+
+            RefreshPlayValues();
         }
         finally
         {
