@@ -4,16 +4,20 @@ using SR3Generator.Avalonia.ViewModels.Tabs;
 using SR3Generator.Data.Character;
 using System;
 using System.Linq;
-using AttributeName = SR3Generator.Data.Character.Attribute.AttributeName;
 
 namespace SR3Generator.Avalonia.ViewModels;
 
 public partial class CharacterShellViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
+    private readonly IUserSettingsService _settings;
 
     [ObservableProperty]
     private int _selectedTabIndex;
+
+    // True when GM/NPC mode is active (drives the top-bar badge).
+    [ObservableProperty]
+    private bool _gmMode;
 
     // Tab ViewModels
     public PrioritiesViewModel PrioritiesVM { get; }
@@ -95,6 +99,7 @@ public partial class CharacterShellViewModel : ViewModelBase
 
     public CharacterShellViewModel(
         ICharacterBuilderService characterService,
+        IUserSettingsService settings,
         PrioritiesViewModel prioritiesVM,
         RaceViewModel raceVM,
         MagicContainerViewModel magicContainerVM,
@@ -109,6 +114,7 @@ public partial class CharacterShellViewModel : ViewModelBase
         SummaryViewModel summaryVM)
     {
         _characterService = characterService;
+        _settings = settings;
 
         // Initialize tab ViewModels
         PrioritiesVM = prioritiesVM;
@@ -138,9 +144,12 @@ public partial class CharacterShellViewModel : ViewModelBase
         var builder = _characterService.Builder;
         var character = builder.Character;
 
-        // Attribute points
+        GmMode = _settings.GmMode;
+
+        // Attribute points — defer to the builder so the top bar matches the validator (and so the
+        // cybermancy Willpower reduction isn't mis-counted as unspent points).
         AttributePointsAllowance = builder.AttributePointsAllowance;
-        AttributePointsSpent = CalculateAttributePointsSpent(character);
+        AttributePointsSpent = builder.AttributePointsSpent;
         AttributePointsRemaining = AttributePointsAllowance - AttributePointsSpent;
 
         // Skill points — defer to the builder's calc so top bar matches Skills tab and validation.
@@ -176,24 +185,6 @@ public partial class CharacterShellViewModel : ViewModelBase
         EdgePoints = builder.EdgePoints;
         FlawPoints = builder.FlawPoints;
         NetEdgeFlawPoints = builder.NetEdgeFlawPoints;
-    }
-
-    private int CalculateAttributePointsSpent(Character character)
-    {
-        // Sum base values of the 6 purchasable attributes
-        var purchasableAttributes = new[]
-        {
-            AttributeName.Body,
-            AttributeName.Quickness,
-            AttributeName.Strength,
-            AttributeName.Charisma,
-            AttributeName.Intelligence,
-            AttributeName.Willpower
-        };
-
-        return purchasableAttributes
-            .Where(name => character.Attributes.ContainsKey(name))
-            .Sum(name => character.Attributes[name].BaseValue);
     }
 
 }

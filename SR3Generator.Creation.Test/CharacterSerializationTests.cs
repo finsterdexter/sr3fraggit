@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using SR3Generator.Data.Character;
 using SR3Generator.Data.Character.Creation;
+using SR3Generator.Data.Gear;
 using SR3Generator.Data.Magic;
 using SR3Generator.Data.Serialization;
 using SR3Generator.Database;
@@ -9,6 +10,7 @@ using SR3Generator.Database.Connection;
 using SR3Generator.Database.Queries;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AttributeName = SR3Generator.Data.Character.Attribute.AttributeName;
 
 namespace SR3Generator.Creation.Test
 {
@@ -150,6 +152,65 @@ namespace SR3Generator.Creation.Test
             original.Validate();
             restored.Validate();
             Assert.Equal(original.ValidationIssues.Count, restored.ValidationIssues.Count);
+        }
+
+        [Fact]
+        public void RoundTrip_PreservesCyberzombieState()
+        {
+            var original = new CharacterBuilder(CreateSkillDatabase(), NullLogger<CharacterBuilder>.Instance);
+            original.WithRace(RaceDatabase.PlayerRaces.First(r => r.Name == RaceName.Human));
+            original.Character.Attributes[AttributeName.Willpower].BaseValue = 6;
+
+            Cyberware Cyber(string name, decimal ess) => new()
+            {
+                Name = name,
+                Book = "M&M",
+                Availability = new Availability { TargetNumber = 0, Interval = "Always" },
+                EssenceCost = ess,
+            };
+
+            original.SetCybermancy(true,
+                Cyber(CharacterBuilder.CybermancyImsName, 0.25m),
+                Cyber(CharacterBuilder.CybermancyInjectorName, 0.10m));
+            original.InstallCyberware(Cyber("Heavy Chrome", 8.65m)); // essence → -3.0
+            original.Build();
+
+            Assert.True(original.Character.IsCyberzombie);
+            Assert.Equal(-3.0m, original.GetCurrentEssence());
+            Assert.Equal(4, original.Character.Attributes[AttributeName.Willpower].BaseValue);
+
+            var file = new CharacterFile
+            {
+                Character = original.Character,
+                Priorities = original.Priorities,
+                BuilderState = new BuilderStateDto
+                {
+                    SpellPointsAllowance = original.SpellPointsAllowance,
+                    SpellPointsSpent = original.SpellPointsSpent,
+                },
+            };
+            var json = JsonSerializer.Serialize(file, JsonOptions);
+            var restoredFile = JsonSerializer.Deserialize<CharacterFile>(json, JsonOptions);
+            Assert.NotNull(restoredFile);
+
+            // Flag + snapshot survive the round-trip.
+            Assert.True(restoredFile!.Character.IsCyberzombie);
+            Assert.Equal(6, restoredFile.Character.PreCybermancyWillpower);
+            Assert.Contains(restoredFile.Character.Gear.Values.OfType<Cyberware>(), c => c.Name == "Heavy Chrome");
+
+            // Rebuilding re-derives the cybermancy-driven state from the persisted essence + snapshot.
+            var restored = new CharacterBuilder(
+                CreateSkillDatabase(),
+                NullLogger<CharacterBuilder>.Instance,
+                restoredFile.Character,
+                restoredFile.Priorities,
+                restoredFile.BuilderState.SpellPointsAllowance,
+                restoredFile.BuilderState.SpellPointsSpent);
+            restored.Build();
+
+            Assert.Equal(-3.0m, restored.GetCurrentEssence());
+            Assert.Equal(0, restored.Character.Attributes[AttributeName.Magic].BaseValue);
+            Assert.Equal(4, restored.Character.Attributes[AttributeName.Willpower].BaseValue);
         }
 
         [Fact]

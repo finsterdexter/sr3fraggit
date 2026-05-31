@@ -71,10 +71,22 @@ namespace SR3Generator.Creation
         // duplicate it. They read live Character state and are cheap — no caching needed.
 
         /// <summary>Sum of Physical+Mental attribute BaseValues — what the priority allowance buys.</summary>
-        public int AttributePointsSpent =>
-            Character.Attributes.Values
-                .Where(a => a.Type == Attribute.AttributeType.Physical || a.Type == Attribute.AttributeType.Mental)
-                .Sum(a => (int)a.BaseValue);
+        public int AttributePointsSpent
+        {
+            get
+            {
+                var spent = Character.Attributes.Values
+                    .Where(a => a.Type == Attribute.AttributeType.Physical || a.Type == Attribute.AttributeType.Mental)
+                    .Sum(a => (int)a.BaseValue);
+
+                // Cybermancy reduces Willpower.BaseValue as a side effect (M&M p.58); that reduction is
+                // not an un-purchase, so count the pre-cybermancy Willpower the player actually bought.
+                if (Character.IsCyberzombie && Character.PreCybermancyWillpower is int preWil)
+                    spent += preWil - Character.Attributes[AttributeName.Willpower].BaseValue;
+
+                return spent;
+            }
+        }
 
         /// <summary>Active-skill points spent, accounting for SR3 free-specialization adjustment.</summary>
         public int ActiveSkillPointsSpent =>
@@ -1088,9 +1100,10 @@ namespace SR3Generator.Creation
             var costm = cyberware.ActualCost * (useStreetIndex ? cyberware.StreetIndex : 1);
             long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
 
-            // Check if character has enough Essence
+            // Check if character has enough Essence. Cyberzombies (cybermancy, M&M p.54)
+            // deliberately push Essence below 0, so the floor only applies to normal characters.
             var currentEssence = GetCurrentEssence();
-            if (currentEssence - cyberware.ActualEssenceCost < 0)
+            if (!Character.IsCyberzombie && currentEssence - cyberware.ActualEssenceCost < 0)
             {
                 _logger.LogWarning("InstallCyberware: Insufficient Essence. Have {Current}, need {Cost}", currentEssence, cyberware.ActualEssenceCost);
                 return this;
@@ -1123,6 +1136,125 @@ namespace SR3Generator.Creation
             AddNuyen(cost).RemoveGear(cyberwareId);
             RecalculateEssenceAndMagic();
             return this;
+        }
+
+        // Cybermancy (Man & Machine pp. 50–58). The two cyberware items every cyberzombie
+        // automatically receives (M&M p.55). Matched by name so they can be removed on disable.
+        public const string CybermancyImsName = "Invoked Memory Stim";
+        public const string CybermancyInjectorName = "Autoinjector";
+
+        /// <summary>
+        /// Enable/disable cyberzombie state. On enable: snapshots the pre-cybermancy Willpower,
+        /// sets the flag, and force-adds the caller-supplied IMS + auto-injector cyberware
+        /// (via <see cref="AddGear"/>, so no nuyen is charged — cybermancy is a GM construct and
+        /// budget is non-blocking in GM mode). On disable: removes those two items by name,
+        /// clears the flag, and restores Willpower. Essence/Magic/Willpower are (re)derived by
+        /// <see cref="RecalculateEssenceAndMagic"/>, which <see cref="Build"/> runs after this.
+        /// Idempotent.
+        /// </summary>
+        public CharacterBuilder SetCybermancy(bool enabled, Cyberware? ims = null, Cyberware? injector = null)
+        {
+            if (enabled == Character.IsCyberzombie) return this;
+
+            if (enabled)
+            {
+                Character.PreCybermancyWillpower = Character.Attributes[AttributeName.Willpower].BaseValue;
+                Character.IsCyberzombie = true;
+
+                if (ims is not null && !HasCybermancyItem(CybermancyImsName))
+                {
+                    ims.PaidCost = 0;
+                    AddGear(ims);
+                }
+                if (injector is not null && !HasCybermancyItem(CybermancyInjectorName))
+                {
+                    injector.PaidCost = 0;
+                    AddGear(injector);
+                }
+            }
+            else
+            {
+                foreach (var id in Character.Gear
+                             .Where(kv => kv.Value is Cyberware c &&
+                                    (c.Name == CybermancyImsName || c.Name == CybermancyInjectorName))
+                             .Select(kv => kv.Key).ToList())
+                    Character.Gear.Remove(id);
+
+                Character.IsCyberzombie = false;
+                if (Character.PreCybermancyWillpower is int wil)
+                    Character.Attributes[AttributeName.Willpower].BaseValue = wil;
+                Character.PreCybermancyWillpower = null;
+            }
+            return this;
+        }
+
+        private bool HasCybermancyItem(string name) =>
+            Character.Gear.Values.Any(g => g is Cyberware c && c.Name == name);
+
+        /// <summary>
+        /// Derived, situational cyberzombie modifiers (M&M pp. 50–58) for display. Only the
+        /// Willpower penalty and Magic=0 actually mutate attributes (see
+        /// <see cref="RecalculateEssenceAndMagic"/>); everything here is informational TN/dice
+        /// guidance shown on the Summary tab.
+        /// </summary>
+        public CybermancyStats GetCybermancyStats()
+        {
+            var ess = GetCurrentEssence();        // signed; negative for a cyberzombie
+            var abs = Math.Abs(ess);
+            int ceilAbs = (int)Math.Ceiling(abs);
+
+            // Social/Charisma penalty (M&M p.58): +3 sub-zero cyberware social, plus the abs
+            // Essence as an added Charisma-linked modifier, with the portion beyond 2 doubled.
+            // Verified vs. the book's "Fred" example (Essence −3 → +7).
+            int within2 = (int)Math.Ceiling(Math.Min(abs, 2m));
+            int beyond2 = (int)Math.Ceiling(Math.Max(0m, abs - 2m));
+            int social = 3 + within2 + 2 * beyond2;
+
+            int surpriseRea = ceilAbs;                       // +1 per point or fraction of |Ess|
+            int perception = (int)Math.Ceiling(abs / 2m);    // +1 per 2 points of negative Ess "or part thereof"
+
+            // Net WIL penalty actually applied — capped at the pre-cybermancy Willpower (the ritual
+            // can't restore more than was there), so the display matches RecalculateEssenceAndMagic.
+            int wilPenalty = 0;
+            if (ess < 0)
+            {
+                var basis = Character.PreCybermancyWillpower
+                            ?? Character.Attributes[AttributeName.Willpower].BaseValue;
+                var raw = Math.Max(0, (int)Math.Ceiling(abs / 0.5m) - 4);
+                wilPenalty = Math.Min(basis, raw);
+            }
+
+            // Survival TN is keyed on the resulting (negative) Essence Rating — i.e. how far
+            // Essence drops below 0 — which already reflects every installed cyberware including
+            // the auto-added IMS + auto-injector.
+            int survivalTn = CybermancySurvivalTn(Math.Max(0m, -ess));
+            int upkeep = (int)(3000m * abs);
+
+            return new CybermancyStats(
+                Essence: ess,
+                MagicResistanceTnMod: ceilAbs,
+                SocialCharismaPenalty: social,
+                IntimidationInterrogationBonus: social,
+                SurpriseReactionBonus: surpriseRea,
+                PerceptionBonus: perception,
+                WillpowerPenalty: wilPenalty,
+                CybermancySurvivalTn: survivalTn,
+                AutoInjectorUpkeepYen: upkeep);
+        }
+
+        // Cybersurgery/Cybermancy Survival Table (M&M p.55), keyed on how far the resulting
+        // Essence Rating drops below 0 (belowZero = |resulting essence|).
+        private static int CybermancySurvivalTn(decimal belowZero)
+        {
+            if (belowZero <= 0.5m) return 4;
+            if (belowZero <= 1.0m) return 6;
+            if (belowZero <= 1.5m) return 8;
+            if (belowZero <= 2.0m) return 10;
+            if (belowZero <= 2.5m) return 12;
+            if (belowZero <= 3.0m) return 14;
+            // −3.01 and lower: base 16 for the first .25 past −3, then +2 per additional .25.
+            var steps = (int)Math.Ceiling((belowZero - 3.0m) / 0.25m);
+            return 14 + 2 * steps;
         }
 
         // Bioware methods
@@ -1199,9 +1331,28 @@ namespace SR3Generator.Creation
             var essence = GetCurrentEssence();
             var bioIndex = GetCurrentBioIndex();
 
-            // Store Essence as int (floor of actual value) for the attribute
-            // Note: Actual decimal essence is tracked via cyberware
+            // Store Essence as int (floor of actual value) for the attribute. May now be negative
+            // for a cyberzombie. The signed decimal value is tracked live via GetCurrentEssence().
             Character.Attributes[AttributeName.Essence].BaseValue = (int)Math.Floor(essence);
+
+            // Cybermancy (M&M pp. 50–58): cyberzombies cannot use magic, and negative Essence
+            // reduces Willpower (−1 per half-point or fraction), of which the ritual magically
+            // restores up to 4 (capped at the pre-cybermancy Willpower).
+            if (Character.IsCyberzombie)
+            {
+                Character.Attributes[AttributeName.Magic].BaseValue = 0;
+
+                var basis = Character.PreCybermancyWillpower
+                            ?? Character.Attributes[AttributeName.Willpower].BaseValue;
+                int penalty = 0;
+                if (essence < 0)
+                {
+                    var halfSteps = (int)Math.Ceiling(Math.Abs(essence) / 0.5m);
+                    penalty = Math.Max(0, halfSteps - 4);
+                }
+                Character.Attributes[AttributeName.Willpower].BaseValue = Math.Max(0, basis - penalty);
+                return;
+            }
 
             // For Awakened characters, Magic = floor(Essence - BioIndex/2)
             if (Character.MagicAspect != null && Character.MagicAspect.Name != AspectName.Mundane)
@@ -1730,6 +1881,12 @@ namespace SR3Generator.Creation
         /// </summary>
         public Character Build()
         {
+            // Keep Essence / Magic / cyberzombie-Willpower coherent on every rebuild and after a
+            // load. Cheap and deterministic (a pure function of installed gear); for a cyberzombie
+            // this also feeds the Willpower-based pool formulas below. Must run before the Reaction
+            // and pool calcs so they see the post-cybermancy attribute values.
+            RecalculateEssenceAndMagic();
+
             // Base reaction = (Quickness + Intelligence) / 2 (SR3 core p. 52).
             Character.Attributes[AttributeName.Reaction].BaseValue =
                 (Character.Attributes[AttributeName.Intelligence].BaseValue + Character.Attributes[AttributeName.Quickness].BaseValue) / 2;

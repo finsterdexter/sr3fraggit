@@ -157,6 +157,54 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Cybermancy (cyberzombie) -->
+                    <Border Classes="panel" IsVisible="{Binding IsCyberzombie}">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="CYBERMANCY (CYBERZOMBIE)" Classes="section-header"
+                                       Foreground="{StaticResource WarningBrush}"/>
+                            <TextBlock Text="Permanently dual-natured. Cannot use magic (Magic 0)."
+                                       Classes="body" TextWrapping="Wrap"
+                                       Foreground="{StaticResource InkSecondaryBrush}"/>
+                            <Grid ColumnDefinitions="*,Auto"
+                                  RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Essence (signed)" Classes="body"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CyberzombieEssence}"
+                                           Classes="summary-value" Foreground="{StaticResource AccentCyberBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Willpower penalty" Classes="body"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CmWillpowerPenalty, StringFormat='-{0}'}"
+                                           Classes="summary-value"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Magic-resist TN mod" Classes="body"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CmMagicResistanceTn, StringFormat='+{0}'}"
+                                           Classes="summary-value"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Social/Charisma penalty" Classes="body"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding CmSocialPenalty, StringFormat='+{0}'}"
+                                           Classes="summary-value"/>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Surprise Reaction" Classes="body"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CmSurpriseReaction, StringFormat='+{0}'}"
+                                           Classes="summary-value"/>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Perception" Classes="body"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding CmPerception, StringFormat='+{0}'}"
+                                           Classes="summary-value"/>
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Cybermancy survival TN" Classes="body"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding CmSurvivalTn}"
+                                           Classes="summary-value"/>
+                                <TextBlock Grid.Row="7" Grid.Column="0" Text="Auto-injector upkeep (10d)" Classes="body"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding CmUpkeepYen, StringFormat='{}{0:N0}¥'}"
+                                           Classes="summary-value"/>
+                            </Grid>
+                            <TextBlock Text="Karma accrues at one-half normal rate." Classes="body"
+                                       Foreground="{StaticResource InkMutedBrush}"/>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Active Skills -->
                     <Border Classes="panel">
                         <StackPanel Spacing="6">

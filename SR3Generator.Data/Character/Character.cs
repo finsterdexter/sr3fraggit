@@ -29,6 +29,16 @@ namespace SR3Generator.Data.Character
         public Dictionary<Guid, Equipment> Gear { get; set; } = new Dictionary<Guid, Equipment>();
         public Dictionary<string, Augmentation> NaturalAugmentations { get; set; } = new Dictionary<string, Augmentation>();
 
+        // Cybermancy (Man & Machine pp. 50–58). GM-only cyberzombie state. When true, sub-zero
+        // Essence is permitted, Magic is forced to 0, a Willpower penalty applies, and the
+        // character is permanently dual-natured. Per-character; persists with the file.
+        public bool IsCyberzombie { get; set; }
+
+        // Willpower BaseValue captured the moment cybermancy was enabled, so the ritual's +4
+        // restore can be capped at it and the original value restored on disable. Null when not
+        // a cyberzombie. Stored (not recomputed) so the penalty math is stable across save/load.
+        public int? PreCybermancyWillpower { get; set; }
+
         // Cyberdecks/Programs
 
         // Magical Data

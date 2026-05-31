@@ -19,6 +19,7 @@ public class CharacterBuilderService : ICharacterBuilderService
     private readonly SkillDatabase _skillDatabase;
     private readonly ILogger<CharacterBuilder> _builderLogger;
     private readonly IUserSettingsService _settings;
+    private readonly AugmentationDatabase _augmentations;
     private CharacterBuilder _builder;
     private bool _suppressDirty;
 
@@ -33,11 +34,13 @@ public class CharacterBuilderService : ICharacterBuilderService
     public CharacterBuilderService(
         SkillDatabase skillDatabase,
         ILogger<CharacterBuilder> builderLogger,
-        IUserSettingsService settings)
+        IUserSettingsService settings,
+        AugmentationDatabase augmentations)
     {
         _skillDatabase = skillDatabase;
         _builderLogger = builderLogger;
         _settings = settings;
+        _augmentations = augmentations;
         _builder = new CharacterBuilder(skillDatabase, builderLogger);
         // When enabled-books change, validation may gain/lose warnings; notify without dirtying.
         _settings.SettingsChanged += (_, _) => CharacterChanged?.Invoke(this, EventArgs.Empty);
@@ -323,6 +326,20 @@ public class CharacterBuilderService : ICharacterBuilderService
         OnCharacterChanged();
     }
 
+    public void SetCybermancy(bool enabled)
+    {
+        Cyberware? ims = null, inj = null;
+        if (enabled)
+        {
+            // Clone catalog entries so the character owns its own instances (mirrors
+            // InstallCyberware in AugmentationsViewModel). Standard grade per RAW.
+            ims = _augmentations.GetCyberwareById(551)?.CloneForPurchase() as Cyberware;
+            inj = _augmentations.GetCyberwareById(1)?.CloneForPurchase() as Cyberware;
+        }
+        _builder.SetCybermancy(enabled, ims, inj);
+        OnCharacterChanged();
+    }
+
     public void AddAdeptPower(AdeptPower power)
     {
         _builder.AddAdeptPower(power);
@@ -412,7 +429,34 @@ public class CharacterBuilderService : ICharacterBuilderService
         // and augment with settings-driven warnings the builder doesn't know about.
         var issues = new List<ValidationIssue>(_builder.ValidationIssues);
         issues.AddRange(CollectDisabledBookWarnings());
-        return issues;
+
+        if (!_settings.GmMode)
+        {
+            // Not in GM mode: a cyberzombie shouldn't normally exist. Surface a non-destructive
+            // warning rather than silently keeping rule-breaking state (mirrors disabled-book warnings).
+            if (_builder.Character.IsCyberzombie)
+                issues.Add(new ValidationIssue
+                {
+                    Level = ValidationIssueLevel.Warning,
+                    Category = ValidationIssueCategory.Misc,
+                    Message = "Character is a cyberzombie (Cybermancy) but GM mode is off — enable GM mode or disable Cybermancy.",
+                });
+            return issues;
+        }
+
+        // GM mode: nothing blocks "ready to finalize". Downgrade every Error to a Warning so the
+        // issue still shows (amber) but the error count becomes 0 → SummaryViewModel.IsValid = true.
+        var projected = issues.Select(i => i.Level == ValidationIssueLevel.Error
+            ? new ValidationIssue { Level = ValidationIssueLevel.Warning, Category = i.Category, Message = "[GM] " + i.Message }
+            : i).ToList();
+
+        projected.Insert(0, new ValidationIssue
+        {
+            Level = ValidationIssueLevel.Info,
+            Category = ValidationIssueCategory.Misc,
+            Message = "GM/NPC Mode active — validation errors are non-blocking.",
+        });
+        return projected;
     }
 
     /// <summary>

@@ -44,6 +44,12 @@
                         <TextBlock Text="{Binding SelectedMagicAspect}" FontWeight="SemiBold" FontSize="12"
                                    Foreground="{StaticResource AccentManaBrush}"/>
                     </StackPanel>
+                    <Border IsVisible="{Binding GmMode}" VerticalAlignment="Center"
+                            Background="#1Af59e0b" BorderBrush="#40f59e0b" BorderThickness="1"
+                            CornerRadius="3" Padding="6,2">
+                        <TextBlock Text="GM MODE" FontSize="10" FontWeight="Bold"
+                                   Foreground="{StaticResource WarningBrush}"/>
+                    </Border>
                 </StackPanel>
 
                 <Border Grid.Column="1" Width="1" Background="{StaticResource BorderSubtleBrush}" Margin="20,2"/>

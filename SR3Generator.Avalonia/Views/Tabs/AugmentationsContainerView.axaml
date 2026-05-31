@@ -23,6 +23,12 @@
                 <CheckBox Grid.Column="0" Content="{x:Static res:Strings.CheckStreetIndex}"
                           IsChecked="{Binding UseStreetIndex}"
                           VerticalAlignment="Center"/>
+                <CheckBox Grid.Column="1" HorizontalAlignment="Left" Margin="24,0,0,0"
+                          VerticalAlignment="Center"
+                          IsVisible="{Binding ShowCybermancyToggle}"
+                          IsChecked="{Binding IsCyberzombie}"
+                          Content="Cybermancy (cyberzombie)"
+                          ToolTip.Tip="Man &amp; Machine pp. 50–58. Allows sub-zero Essence; forces Magic to 0; adds Invoked Memory Stim + Autoinjector; applies the Willpower penalty."/>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10"
                             VerticalAlignment="Center" Margin="20,0,0,0">
                     <TextBlock Text="{x:Static res:Strings.LabelEssence}" Classes="micro-label"/>

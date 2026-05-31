@@ -87,6 +87,10 @@ public interface ICharacterBuilderService
     void InstallBioware(Bioware bioware, bool useStreetIndex = false);
     void RemoveBioware(Guid biowareId, bool useStreetIndex = false);
 
+    /// <summary>Enable/disable cyberzombie (cybermancy) state on the current character.
+    /// Adds/removes the auto IMS + auto-injector cyberware. GM-mode feature only. </summary>
+    void SetCybermancy(bool enabled);
+
     // Adept Power methods
     void AddAdeptPower(AdeptPower power);
     void RemoveAdeptPower(string powerKey);

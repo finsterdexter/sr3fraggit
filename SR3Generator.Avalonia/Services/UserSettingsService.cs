@@ -8,10 +8,13 @@ public class UserSettingsService : IUserSettingsService
     private readonly BookDatabase _bookDatabase;
     private readonly string _settingsPath;
     private HashSet<string> _enabledBooks;
+    private bool _gmMode;
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     public IReadOnlySet<string> EnabledBooks => _enabledBooks;
+
+    public bool GmMode => _gmMode;
 
     public event EventHandler? SettingsChanged;
 
@@ -43,6 +46,13 @@ public class UserSettingsService : IUserSettingsService
         SettingsChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    public async Task SetGmModeAsync(bool enabled)
+    {
+        _gmMode = enabled;
+        await PersistAsync();
+        SettingsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     private HashSet<string> LoadOrDefault()
     {
         if (File.Exists(_settingsPath))
@@ -51,13 +61,17 @@ public class UserSettingsService : IUserSettingsService
             {
                 var json = File.ReadAllText(_settingsPath);
                 var model = JsonSerializer.Deserialize<PersistedSettings>(json, JsonOptions);
-                if (model?.EnabledBooks is { Count: > 0 })
+                if (model is not null)
                 {
-                    var set = new HashSet<string>(model.EnabledBooks, StringComparer.OrdinalIgnoreCase)
+                    _gmMode = model.GmMode;
+                    if (model.EnabledBooks is { Count: > 0 })
                     {
-                        BookDatabase.CoreBookAbbreviation,
-                    };
-                    return set;
+                        var set = new HashSet<string>(model.EnabledBooks, StringComparer.OrdinalIgnoreCase)
+                        {
+                            BookDatabase.CoreBookAbbreviation,
+                        };
+                        return set;
+                    }
                 }
             }
             catch
@@ -85,6 +99,7 @@ public class UserSettingsService : IUserSettingsService
         var model = new PersistedSettings
         {
             EnabledBooks = _enabledBooks.ToList(),
+            GmMode = _gmMode,
         };
         await using var stream = File.Create(_settingsPath);
         await JsonSerializer.SerializeAsync(stream, model, JsonOptions);
@@ -93,5 +108,6 @@ public class UserSettingsService : IUserSettingsService
     private class PersistedSettings
     {
         public List<string>? EnabledBooks { get; set; }
+        public bool GmMode { get; set; }
     }
 }

@@ -94,6 +94,22 @@ public partial class AugmentationsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _useStreetIndex;
 
+    // Cybermancy (M&M pp. 50–58). IsCyberzombie is the two-way checkbox state. Set programmatically
+    // inside _suppressCybermancy to avoid a feedback loop back into the service when refreshing.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowCybermancyToggle))]
+    private bool _gmModeEnabled;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowCybermancyToggle))]
+    private bool _isCyberzombie;
+
+    private bool _suppressCybermancy;
+
+    // Show the Cybermancy checkbox when GM mode is on (to enable it) OR the character is already a
+    // cyberzombie (so it can still be disabled if GM mode was later turned off).
+    public bool ShowCybermancyToggle => GmModeEnabled || IsCyberzombie;
+
     [ObservableProperty]
     private CyberwareGrade _selectedCyberwareGrade = CyberwareGrade.Standard;
 
@@ -139,11 +155,18 @@ public partial class AugmentationsViewModel : ViewModelBase
 
     private void OnSettingsChanged(object? sender, EventArgs e)
     {
+        GmModeEnabled = _settings.GmMode;
         LoadAllAugmentations();
         BuildCyberwareFacets();
         BuildBiowareFacets();
         ApplyCyberwareFilters();
         ApplyBiowareFilters();
+    }
+
+    partial void OnIsCyberzombieChanged(bool value)
+    {
+        if (_suppressCybermancy) return;
+        _characterService.SetCybermancy(value);
     }
 
     // --- Breadcrumb steps --------------------------------------------------------------
@@ -509,6 +532,12 @@ public partial class AugmentationsViewModel : ViewModelBase
         EssenceDisplay = essence.ToString("F2");
         BioIndexDisplay = bioIndex.ToString("F2");
         MagicDisplay = character.Attributes[AttributeName.Magic].BaseValue.ToString();
+
+        // Cybermancy: reflect current state without re-triggering SetCybermancy.
+        GmModeEnabled = _settings.GmMode;
+        _suppressCybermancy = true;
+        IsCyberzombie = character.IsCyberzombie;
+        _suppressCybermancy = false;
 
         // Refresh installed augmentations
         InstalledAugmentations.Clear();

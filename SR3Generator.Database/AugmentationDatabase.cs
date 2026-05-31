@@ -93,6 +93,12 @@ namespace SR3Generator.Database
         }
 
         /// <summary>
+        /// Catalog cyberware by raw DB id (Man &amp; Machine ids). Returns null if absent.
+        /// Used for cybermancy auto-gear (Invoked Memory Stim id 551, Autoinjector id 1).
+        /// </summary>
+        public Cyberware? GetCyberwareById(int id) => AllCyberware.FirstOrDefault(c => c.Id == id);
+
+        /// <summary>
         /// Get cyberware items filtered by category path.
         /// </summary>
         public IEnumerable<Cyberware> GetCyberwareByCategory(params string[] categoryPath)

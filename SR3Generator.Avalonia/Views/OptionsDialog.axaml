@@ -8,7 +8,7 @@
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
         Background="{StaticResource Surface100Brush}"
-        Title="Options">
+        Title="Sources">
     <Border BorderBrush="{StaticResource BorderDefaultBrush}" BorderThickness="1">
         <DockPanel LastChildFill="True" Margin="20">
             <!-- Header -->

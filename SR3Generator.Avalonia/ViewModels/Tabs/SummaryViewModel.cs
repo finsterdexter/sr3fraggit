@@ -126,6 +126,17 @@ public partial class SummaryViewModel : ViewModelBase
     [ObservableProperty]
     private string _validationStatus = "Checking...";
 
+    // Cybermancy (M&M pp. 50–58) — only shown when the character is a cyberzombie.
+    [ObservableProperty] private bool _isCyberzombie;
+    [ObservableProperty] private string _cyberzombieEssence = "0.00";
+    [ObservableProperty] private int _cmMagicResistanceTn;
+    [ObservableProperty] private int _cmSocialPenalty;
+    [ObservableProperty] private int _cmSurpriseReaction;
+    [ObservableProperty] private int _cmPerception;
+    [ObservableProperty] private int _cmWillpowerPenalty;
+    [ObservableProperty] private int _cmSurvivalTn;
+    [ObservableProperty] private int _cmUpkeepYen;
+
     public SummaryViewModel(ICharacterBuilderService characterService)
     {
         _characterService = characterService;
@@ -158,6 +169,21 @@ public partial class SummaryViewModel : ViewModelBase
         Essence = builder.GetCurrentEssence();
         OnPropertyChanged(nameof(EssenceDisplay));
         Magic = character.Attributes[AttributeName.Magic].BaseValue;
+
+        // Cybermancy derived stats (display-only).
+        IsCyberzombie = character.IsCyberzombie;
+        if (IsCyberzombie)
+        {
+            var cm = builder.GetCybermancyStats();
+            CyberzombieEssence = cm.Essence.ToString("F2");
+            CmMagicResistanceTn = cm.MagicResistanceTnMod;
+            CmSocialPenalty = cm.SocialCharismaPenalty;
+            CmSurpriseReaction = cm.SurpriseReactionBonus;
+            CmPerception = cm.PerceptionBonus;
+            CmWillpowerPenalty = cm.WillpowerPenalty;
+            CmSurvivalTn = cm.CybermancySurvivalTn;
+            CmUpkeepYen = cm.AutoInjectorUpkeepYen;
+        }
 
         // Augmented totals: GetAugmentedValue gives base + gear/bio mods; racial
         // isn't folded in there, so we add it on top.

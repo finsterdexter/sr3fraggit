@@ -15,6 +15,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly ICharacterBuilderService _characterService;
     private readonly ICharacterFileService _fileService;
     private readonly IDialogService _dialogService;
+    private readonly IUserSettingsService _settings;
     private readonly IServiceProvider _serviceProvider;
 
     [ObservableProperty]
@@ -23,17 +24,31 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private CharacterShellViewModel _characterShell;
 
+    /// <summary>Bound to the checkable Tools → GM Mode menu item. Persists on toggle. </summary>
+    [ObservableProperty]
+    private bool _gmMode;
+
     public MainWindowViewModel(
         ICharacterBuilderService characterService,
         ICharacterFileService fileService,
         IDialogService dialogService,
+        IUserSettingsService settings,
         IServiceProvider serviceProvider)
     {
         _characterService = characterService;
         _fileService = fileService;
         _dialogService = dialogService;
+        _settings = settings;
         _serviceProvider = serviceProvider;
+        _gmMode = settings.GmMode; // direct field set: doesn't trigger OnGmModeChanged/persist
         _characterShell = _serviceProvider.GetRequiredService<CharacterShellViewModel>();
+    }
+
+    partial void OnGmModeChanged(bool value)
+    {
+        // Persist + raise SettingsChanged (which CharacterBuilderService re-broadcasts as
+        // CharacterChanged, refreshing the GM badge, validation feed, and Cybermancy checkbox).
+        _ = _settings.SetGmModeAsync(value);
     }
 
     [RelayCommand]
