@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             xmlns:tabs="using:SR3Generator.Avalonia.Views.Tabs"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="650"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.LivingView"
+             x:DataType="vm:LivingViewModel">
+
+    <Grid ColumnDefinitions="*,1,*">
+        <tabs:LifestyleView Grid.Column="0" DataContext="{Binding LifestyleVM}"/>
+        <Border Grid.Column="1" Background="{StaticResource BorderSubtleBrush}"/>
+        <tabs:ContactsView Grid.Column="2" DataContext="{Binding ContactsVM}"/>
+    </Grid>
+</UserControl>

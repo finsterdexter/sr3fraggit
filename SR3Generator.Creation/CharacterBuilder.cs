@@ -553,6 +553,35 @@ namespace SR3Generator.Creation
             Character.Nuyen -= nuyen;
             return this;
         }
+
+        /// <summary>Buy a lifestyle for <paramref name="months"/> months' upkeep (core pp. 239–241).
+        /// 100 months buys it permanently. Streets are free. Each purchase is a separate entry. </summary>
+        public CharacterBuilder BuyLifestyle(LifestyleTier tier, int months)
+        {
+            if (months <= 0) return this;
+            var monthly = tier.GetMonthlyCost();
+            long cost = (long)monthly * months;
+            RemoveNuyen(cost);
+            Character.Lifestyles.Add(new Lifestyle
+            {
+                Tier = tier,
+                MonthlyCost = monthly,
+                MonthsPaid = months,
+            });
+            return this;
+        }
+
+        /// <summary>Drop a lifestyle and refund what was paid (undo; mirrors gear sell). </summary>
+        public CharacterBuilder RemoveLifestyle(Lifestyle lifestyle)
+        {
+            if (!Character.Lifestyles.Remove(lifestyle))
+            {
+                _logger.LogWarning("RemoveLifestyle: lifestyle not found on character");
+                return this;
+            }
+            AddNuyen((long)lifestyle.MonthlyCost * lifestyle.MonthsPaid);
+            return this;
+        }
         public CharacterBuilder BuyGear(Equipment item, bool useStreetIndex = false)
         {
             var costm = item.Cost * (useStreetIndex ? item.StreetIndex : 1);

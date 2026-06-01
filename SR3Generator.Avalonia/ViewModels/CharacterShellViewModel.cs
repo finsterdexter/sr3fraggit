@@ -54,7 +54,7 @@ public partial class CharacterShellViewModel : ViewModelBase
     public VehiclesContainerViewModel VehiclesContainerVM { get; }
     public MatrixContainerViewModel MatrixContainerVM { get; }
     public AugmentationsContainerViewModel AugmentationsContainerVM { get; }
-    public ContactsViewModel ContactsVM { get; }
+    public LivingViewModel LivingVM { get; }
     public EdgesFlawsViewModel EdgesFlawsVM { get; }
     public SummaryViewModel SummaryVM { get; }
     public JournalViewModel JournalVM { get; }
@@ -137,7 +137,7 @@ public partial class CharacterShellViewModel : ViewModelBase
         VehiclesContainerViewModel vehiclesContainerVM,
         MatrixContainerViewModel matrixContainerVM,
         AugmentationsContainerViewModel augmentationsContainerVM,
-        ContactsViewModel contactsVM,
+        LivingViewModel livingVM,
         EdgesFlawsViewModel edgesFlawsVM,
         SummaryViewModel summaryVM,
         JournalViewModel journalVM)
@@ -157,7 +157,7 @@ public partial class CharacterShellViewModel : ViewModelBase
         VehiclesContainerVM = vehiclesContainerVM;
         MatrixContainerVM = matrixContainerVM;
         AugmentationsContainerVM = augmentationsContainerVM;
-        ContactsVM = contactsVM;
+        LivingVM = livingVM;
         EdgesFlawsVM = edgesFlawsVM;
         SummaryVM = summaryVM;
         JournalVM = journalVM;

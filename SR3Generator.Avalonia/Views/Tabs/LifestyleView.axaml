@@ -1,0 +1,108 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="600"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.LifestyleView"
+             x:DataType="vm:LifestyleViewModel">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,12">
+            <TextBlock Text="Lifestyle" Classes="page-title"/>
+            <TextBlock Classes="page-subtitle"
+                       Text="Monthly cost of living. 100 months buys a lifestyle permanently."/>
+        </StackPanel>
+
+        <!-- Resource bar -->
+        <Border Grid.Row="1" Classes="resource-bar" Margin="0,0,0,12">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="SPENT ON LIFESTYLE" Classes="micro-label" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1"
+                           Text="{Binding NuyenSpentOnLifestyle, StringFormat='{}{0:N0}¥'}"
+                           Classes="stat-value"
+                           Foreground="{StaticResource AccentNuyenBrush}"/>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="2" Spacing="12">
+            <!-- Buy panel -->
+            <Border Classes="panel">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="ADD LIFESTYLE" Classes="section-header"/>
+
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="10">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Tier" Classes="micro-label"
+                                   VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Tiers}"
+                                  SelectedItem="{Binding SelectedTier}"
+                                  HorizontalAlignment="Stretch"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Months" Classes="micro-label"
+                                   VerticalAlignment="Center"/>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                            <NumericUpDown Value="{Binding Months}" Minimum="1" Maximum="100"
+                                           Width="120" IsEnabled="{Binding !IsPermanent}"/>
+                            <CheckBox Content="Permanent (100 mo)" IsChecked="{Binding IsPermanent}"
+                                      VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Cost" Classes="micro-label"
+                                   VerticalAlignment="Center"/>
+                        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding MonthlyCost, StringFormat='{}{0:N0}¥/mo ×'}"
+                                       Classes="data" FontSize="11"
+                                       Foreground="{StaticResource InkSecondaryBrush}"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding EffectiveMonths}" Classes="data" FontSize="11"
+                                       Foreground="{StaticResource InkSecondaryBrush}"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding TotalCost, StringFormat='{}= {0:N0}¥'}"
+                                       Classes="stat-value"
+                                       Foreground="{StaticResource AccentNuyenBrush}"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Button Content="Buy Lifestyle" Classes="primary action"
+                            HorizontalAlignment="Right"
+                            Command="{Binding BuyCommand}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Owned list -->
+            <Border Classes="panel" Padding="0">
+                <DockPanel LastChildFill="True">
+                    <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="12,12,12,8">
+                        <TextBlock Text="YOUR LIFESTYLES" Classes="section-header"/>
+                        <Button Grid.Column="1" Content="Remove" Classes="compact"
+                                Command="{Binding RemoveCommand}"/>
+                    </Grid>
+                    <ListBox ItemsSource="{Binding Owned}"
+                             SelectedItem="{Binding SelectedLifestyle}"
+                             Background="Transparent" BorderThickness="0"
+                             Margin="8,0,8,8">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="vm:LifestyleItem">
+                                <Grid ColumnDefinitions="*,90,90">
+                                    <TextBlock Text="{Binding TierDisplay}" Classes="body"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding DurationDisplay}"
+                                               FontSize="10"
+                                               Foreground="{StaticResource InkSecondaryBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding CostDisplay}"
+                                               Classes="data" FontSize="10"
+                                               HorizontalAlignment="Right"
+                                               Foreground="{StaticResource AccentNuyenBrush}"
+                                               VerticalAlignment="Center"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -114,6 +114,10 @@ public interface ICharacterBuilderService
     void AddNuyen(long nuyen);
     void RemoveNuyen(long nuyen);
 
+    // Lifestyle methods
+    void BuyLifestyle(SR3Generator.Data.Character.LifestyleTier tier, int months);
+    void RemoveLifestyle(SR3Generator.Data.Character.Lifestyle lifestyle);
+
     // Play-mode (post-finalization) methods
     /// <summary>Lock the character into in-play mode (hides Priorities, enables karma advancement). </summary>
     void FinalizeCharacter();

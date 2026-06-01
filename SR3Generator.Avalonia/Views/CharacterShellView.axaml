@@ -198,8 +198,8 @@
                 <TabItem Header="{x:Static res:Strings.TabMatrix}">
                     <tabs:MatrixContainerView DataContext="{Binding MatrixContainerVM}"/>
                 </TabItem>
-                <TabItem Header="{x:Static res:Strings.TabContacts}">
-                    <tabs:ContactsView DataContext="{Binding ContactsVM}"/>
+                <TabItem Header="Living">
+                    <tabs:LivingView DataContext="{Binding LivingVM}"/>
                 </TabItem>
                 <TabItem Header="{x:Static res:Strings.TabSummary}">
                     <tabs:SummaryView DataContext="{Binding SummaryVM}"/>

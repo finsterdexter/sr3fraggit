@@ -418,6 +418,18 @@ public class CharacterBuilderService : ICharacterBuilderService
         OnCharacterChanged();
     }
 
+    public void BuyLifestyle(LifestyleTier tier, int months)
+    {
+        _builder.BuyLifestyle(tier, months);
+        OnCharacterChanged();
+    }
+
+    public void RemoveLifestyle(Lifestyle lifestyle)
+    {
+        _builder.RemoveLifestyle(lifestyle);
+        OnCharacterChanged();
+    }
+
     public void FinalizeCharacter()
     {
         _builder.FinalizeCharacter();

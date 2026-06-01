@@ -117,6 +117,8 @@ public partial class App : Application
         services.AddTransient<AugmentationsViewModel>();
         services.AddTransient<AugmentModsViewModel>();
         services.AddTransient<ContactsViewModel>();
+        services.AddTransient<LifestyleViewModel>();
+        services.AddTransient<LivingViewModel>();
         services.AddTransient<EdgesFlawsViewModel>();
         services.AddTransient<SummaryViewModel>();
         services.AddTransient<JournalViewModel>();
