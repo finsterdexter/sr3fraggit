@@ -45,6 +45,10 @@ public partial class AugmentModsViewModel : ViewModelBase
     [ObservableProperty] private string _filterText = string.Empty;
     [ObservableProperty] private bool _useStreetIndex;
 
+    // Play mode (finalized) defaults the street-index toggle on, set once so the user can still
+    // uncheck it without it snapping back on the next refresh.
+    private bool _streetIndexDefaulted;
+
     public bool HasSelection => SelectedHost is not null;
     public string HostName => SelectedHost?.Cyberware.Name ?? "";
     public string HostSubtitle => SelectedHost is { } h
@@ -165,6 +169,12 @@ public partial class AugmentModsViewModel : ViewModelBase
 
     private void Refresh()
     {
+        if (!_streetIndexDefaulted && _characterService.Builder.Character.IsFinalized)
+        {
+            UseStreetIndex = true;
+            _streetIndexDefaulted = true;
+        }
+
         var character = _characterService.Builder.Character;
         var prev = SelectedHost?.HostId;
         OwnedHosts.Clear();

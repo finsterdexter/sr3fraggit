@@ -42,6 +42,10 @@ public partial class GearViewModel : ViewModelBase
     [ObservableProperty]
     private bool _useStreetIndex;
 
+    // Play mode (finalized) defaults the street-index toggle on, set once so the user can still
+    // uncheck it without it snapping back on the next refresh.
+    private bool _streetIndexDefaulted;
+
     [ObservableProperty]
     private string _filterText = string.Empty;
 
@@ -197,6 +201,12 @@ public partial class GearViewModel : ViewModelBase
 
     private void RefreshFromBuilder()
     {
+        if (!_streetIndexDefaulted && _characterService.Builder.Character.IsFinalized)
+        {
+            UseStreetIndex = true;
+            _streetIndexDefaulted = true;
+        }
+
         var builder = _characterService.Builder;
         var character = builder.Character;
 

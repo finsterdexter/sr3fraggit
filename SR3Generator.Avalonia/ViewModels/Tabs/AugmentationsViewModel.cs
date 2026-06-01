@@ -94,6 +94,10 @@ public partial class AugmentationsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _useStreetIndex;
 
+    // Play mode (finalized) defaults the street-index toggle on, set once so the user can still
+    // uncheck it without it snapping back on the next refresh.
+    private bool _streetIndexDefaulted;
+
     // Cybermancy (M&M pp. 50–58). IsCyberzombie is the two-way checkbox state. Set programmatically
     // inside _suppressCybermancy to avoid a feedback loop back into the service when refreshing.
     [ObservableProperty]
@@ -515,6 +519,12 @@ public partial class AugmentationsViewModel : ViewModelBase
 
     private void RefreshFromBuilder()
     {
+        if (!_streetIndexDefaulted && _characterService.Builder.Character.IsFinalized)
+        {
+            UseStreetIndex = true;
+            _streetIndexDefaulted = true;
+        }
+
         var builder = _characterService.Builder;
         var character = builder.Character;
 

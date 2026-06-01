@@ -52,6 +52,10 @@ public partial class GearModsViewModel : ViewModelBase
     [ObservableProperty] private string _filterText = string.Empty;
     [ObservableProperty] private bool _useStreetIndex;
 
+    // Play mode (finalized) defaults the street-index toggle on, set once so the user can still
+    // uncheck it without it snapping back on the next refresh.
+    private bool _streetIndexDefaulted;
+
     public bool HasSelection => SelectedFirearm is not null;
     public bool IsMountMode => CatalogMode == FirearmCatalogMode.Mount;
     public bool IsModMode   => CatalogMode == FirearmCatalogMode.Modification;
@@ -171,6 +175,12 @@ public partial class GearModsViewModel : ViewModelBase
 
     private void Refresh()
     {
+        if (!_streetIndexDefaulted && _characterService.Builder.Character.IsFinalized)
+        {
+            UseStreetIndex = true;
+            _streetIndexDefaulted = true;
+        }
+
         var character = _characterService.Builder.Character;
         var prev = SelectedFirearm?.FirearmId;
         OwnedFirearms.Clear();

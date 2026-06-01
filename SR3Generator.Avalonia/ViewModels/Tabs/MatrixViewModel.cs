@@ -51,6 +51,10 @@ public partial class MatrixViewModel : ViewModelBase
     [ObservableProperty] private string _programFilterText = string.Empty;
     [ObservableProperty] private bool _useStreetIndex;
 
+    // Play mode (finalized) defaults the street-index toggle on, set once so the user can still
+    // uncheck it without it snapping back on the next refresh.
+    private bool _streetIndexDefaulted;
+
     [ObservableProperty] private long _nuyenRemaining;
     [ObservableProperty] private int _hackingDicePool;
 
@@ -138,6 +142,12 @@ public partial class MatrixViewModel : ViewModelBase
 
     private void RefreshFromBuilder()
     {
+        if (!_streetIndexDefaulted && _characterService.Builder.Character.IsFinalized)
+        {
+            UseStreetIndex = true;
+            _streetIndexDefaulted = true;
+        }
+
         var builder = _characterService.Builder;
         var character = builder.Character;
 

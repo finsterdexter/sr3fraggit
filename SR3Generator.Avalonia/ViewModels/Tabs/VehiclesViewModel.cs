@@ -45,6 +45,10 @@ public partial class VehiclesViewModel : ViewModelBase
     [ObservableProperty]
     private bool _useStreetIndex;
 
+    // Play mode (finalized) defaults the street-index toggle on, set once so the user can still
+    // uncheck it without it snapping back on the next refresh.
+    private bool _streetIndexDefaulted;
+
     [ObservableProperty]
     private long _nuyenRemaining;
 
@@ -110,6 +114,12 @@ public partial class VehiclesViewModel : ViewModelBase
 
     private void Refresh()
     {
+        if (!_streetIndexDefaulted && _characterService.Builder.Character.IsFinalized)
+        {
+            UseStreetIndex = true;
+            _streetIndexDefaulted = true;
+        }
+
         var owned = _characterService.Builder.Character.Gear
             .Where(kv => kv.Value is Vehicle)
             .Select(kv => new OwnedVehicleItem(kv.Key, (Vehicle)kv.Value))
