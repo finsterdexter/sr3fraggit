@@ -339,6 +339,7 @@
         <Setter Property="MinHeight" Value="24"/>
         <Setter Property="MinWidth" Value="48"/>
         <Setter Property="Padding" Value="4,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="ClipValueToMinMax" Value="True"/>
         <Setter Property="FormatString" Value="0"/>
         <Setter Property="Increment" Value="1"/>
@@ -348,20 +349,26 @@
         <Setter Property="BorderBrush" Value="{StaticResource AccentCyberBrush}"/>
     </Style>
 
-    <!-- Compact spinner buttons: 20px wide, on grid -->
+    <!-- Compact spinner buttons: 20px wide, on grid. Stretch to the full field height and centre
+         the chevron so the up/down buttons line up with the text box. -->
     <Style Selector="NumericUpDown /template/ RepeatButton">
         <Setter Property="MinWidth" Value="20"/>
         <Setter Property="Width" Value="20"/>
         <Setter Property="Padding" Value="0"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
     </Style>
 
     <Style Selector="NumericUpDown /template/ ButtonSpinner">
         <Setter Property="MinHeight" Value="24"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
     </Style>
 
     <Style Selector="NumericUpDown /template/ TextBox">
-        <Setter Property="MinHeight" Value="20"/>
         <Setter Property="Padding" Value="4,0"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 

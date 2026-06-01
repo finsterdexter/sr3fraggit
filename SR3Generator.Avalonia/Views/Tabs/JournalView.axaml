@@ -8,7 +8,7 @@
              x:DataType="vm:JournalViewModel">
 
     <ScrollViewer Padding="16">
-        <StackPanel Spacing="12" MaxWidth="960" HorizontalAlignment="Left">
+        <StackPanel Spacing="12" MaxWidth="1100" HorizontalAlignment="Stretch">
             <!-- Header -->
             <StackPanel Spacing="4">
                 <TextBlock Text="Journal" Classes="page-title"/>
