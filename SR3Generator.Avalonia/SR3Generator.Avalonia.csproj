@@ -34,8 +34,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\SR3Generator.Database\data\**\*" CopyToPublishDirectory="PreserveNewest" Link="data\%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- The SQLite data file is embedded into the assembly and extracted to the user's
+         app-data directory on first run (see App.axaml.cs). This keeps the published app
+         a single self-contained file per platform. -->
+    <EmbeddedResource Include="..\SR3Generator.Database\data\data_673c354f1.db">
+      <LogicalName>data_673c354f1.db</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
+
+  <!-- The .db is embedded (above) and extracted on first run, so drop the loose copy that
+       the Database project's CopyToOutputDirectory propagates here — keeps publish single-file. -->
+  <Target Name="DropTransitiveDataFolder" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="$([System.String]::new('%(ResolvedFileToPublish.RelativePath)').StartsWith('data'))" />
+    </ItemGroup>
+  </Target>
 
   <!-- AppImage packaging (only when publish dir contains 'appimage') -->
   <Target Name="CreateAppImage" AfterTargets="CopyFilesToPublishDirectory"
@@ -43,7 +57,8 @@
     <PropertyGroup>
       <AppDir>$(PublishDir)../AppDir</AppDir>
       <AppBinDir>$(AppDir)/usr/bin</AppBinDir>
-      <AppImageName>sr3fraggit-x86_64.AppImage</AppImageName>
+      <AppImageArch Condition="'$(AppImageArch)' == ''">x86_64</AppImageArch>
+      <AppImageName>sr3fraggit-$(AppImageArch).AppImage</AppImageName>
     </PropertyGroup>
 
     <!-- Create AppDir structure -->
@@ -59,7 +74,7 @@
     <Exec Command="chmod +x &quot;$(AppDir)/AppRun&quot;" />
 
     <!-- Run appimagetool -->
-    <Exec Command="ARCH=x86_64 appimagetool --no-appstream &quot;$(AppDir)&quot; &quot;$(PublishDir)../$(AppImageName)&quot;"
+    <Exec Command="ARCH=$(AppImageArch) appimagetool --no-appstream &quot;$(AppDir)&quot; &quot;$(PublishDir)../$(AppImageName)&quot;"
           IgnoreExitCode="true"
           ContinueOnError="true" />
 

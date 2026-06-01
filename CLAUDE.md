@@ -116,10 +116,15 @@ SR3Generator.Avalonia/
 
 SQLite database at `SR3Generator.Database/data/data_<sha9>.db`, where `<sha9>` is the first 9 chars of the upstream `sr3data` commit it was generated from. Copied to output during build. Propagates transitively to all dependent projects (Creation, Avalonia).
 
-Three places hardcode the filename and must move together when the .db is regenerated:
+Four places hardcode the filename and must move together when the .db is regenerated:
 - `SR3Generator.Database/SR3Generator.Database.csproj` — `<None Update="data\..." CopyToOutputDirectory="Always" />`
 - `SR3Generator.Database/Connection/DatabaseOptions.cs` — `DatabasePath` default
-- `SR3Generator.Avalonia/App.axaml.cs` — runtime `DatabasePath` setting
+- `SR3Generator.Avalonia/SR3Generator.Avalonia.csproj` — `<EmbeddedResource Include="..." />` + `<LogicalName>`
+- `SR3Generator.Avalonia/App.axaml.cs` — `dbFileName` const (extract-on-first-run)
+
+The Avalonia app embeds the .db as a resource and, on first run, extracts it to
+`%LOCALAPPDATA%/sr3fraggit` (Windows) or `~/.local/share/sr3fraggit` (Linux), opening it
+from there so the published app is a single self-contained file.
 
 ### Data regeneration
 
@@ -138,7 +143,8 @@ cd external/sr3data && uv run python export_sqlite.py && cd -
 NEW_SHA=$(git -C external/sr3data rev-parse HEAD | cut -c1-9)
 cp external/sr3data/output/data.db SR3Generator.Database/data/data_${NEW_SHA}.db
 rm SR3Generator.Database/data/data_<old_sha9>.db
-# then edit csproj, DatabaseOptions.cs, App.axaml.cs to point at the new filename
+# then update the four refs above (Database.csproj, DatabaseOptions.cs,
+# Avalonia.csproj EmbeddedResource/LogicalName, App.axaml.cs dbFileName) to the new name
 
 # 4. Verify
 dotnet build && dotnet test

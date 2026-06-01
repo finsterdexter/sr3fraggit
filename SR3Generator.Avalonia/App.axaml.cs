@@ -55,12 +55,29 @@ public partial class App : Application
             builder.SetMinimumLevel(LogLevel.Debug);
         });
 
-        // Database configuration
+        // Database configuration: the SQLite file is embedded in the assembly and
+        // extracted to a writable per-user app-data directory on first run. This keeps
+        // the published app a single file and avoids opening the db from a potentially
+        // read-only install location. The filename embeds the data version, so a data
+        // update lands as a new file and is re-extracted automatically.
         services.Configure<DatabaseOptions>(options =>
         {
-            options.DatabasePath = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "data", "data_673c354f1.db");
+            const string dbFileName = "data_673c354f1.db";
+            var appDataDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "sr3fraggit");
+            Directory.CreateDirectory(appDataDir);
+
+            var dbPath = Path.Combine(appDataDir, dbFileName);
+            if (!File.Exists(dbPath))
+            {
+                using var resource = typeof(App).Assembly.GetManifestResourceStream(dbFileName)
+                    ?? throw new InvalidOperationException($"Embedded database '{dbFileName}' not found.");
+                using var file = File.Create(dbPath);
+                resource.CopyTo(file);
+            }
+
+            options.DatabasePath = dbPath;
         });
 
         // Database services - uses the public constructor
