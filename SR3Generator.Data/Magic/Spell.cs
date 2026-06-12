@@ -21,6 +21,9 @@ namespace SR3Generator.Data.Magic
         public int Force { get; set; }
         public bool IsExclusive { get; set; }
         public bool IsFetishLimited { get; set; }
+        /// <summary>True when learned post-creation with karma (vs. chargen spell points), so
+        /// removal refunds the right currency.</summary>
+        public bool LearnedWithKarma { get; set; }
 
     }
 

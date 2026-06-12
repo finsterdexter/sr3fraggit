@@ -82,6 +82,11 @@ namespace SR3Generator.Creation.Validation
                 else if (remaining < 0)
                     Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = $"Adept power points spent ({builder.AdeptPowerPointsSpent:0.##}) exceeds allowance ({builder.AdeptPowerPointsAllowance:0.##})." });
             }
+            else if (builder.Character.AdeptPowers.Count > 0)
+            {
+                // Powers left over from a previous adept aspect (or an adept with Magic 0).
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Magic, Level = ValidationIssueLevel.Error, Message = "Character has adept powers but no adept power-point allowance (requires a physical adept aspect)." });
+            }
 
             return this;
         }

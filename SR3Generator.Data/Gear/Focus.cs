@@ -10,6 +10,9 @@ namespace SR3Generator.Data.Gear
     {
         public FocusType FocusType { get; set; }
         public bool IsBound { get; set; }
+        /// <summary>True when the bond was paid with chargen spell points (vs. karma), so
+        /// unbinding refunds the right currency.</summary>
+        public bool BoundWithSpellPoints { get; set; }
         public virtual int BindingKarmaCost { 
             get
             {

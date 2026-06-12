@@ -235,12 +235,22 @@ namespace SR3Generator.Creation
 
             // Enforce consistency: if the priority shift invalidates the current magic aspect,
             // drop it back to mundane state so downstream tabs (Spells / Adept / Foci) hide.
+            // Refund purchased spell points and unbind foci first (mirrors WithMagicAspect) so
+            // nothing paid-for leaks when the counters reset.
             if (Character.MagicAspect is not null &&
                 !MagicAspectsAllowed.Any(a => a.Name == Character.MagicAspect.Name))
             {
+                RefundPurchasedSpellPoints();
+                foreach (var (gearId, equipment) in Character.Gear.ToList())
+                {
+                    if (equipment is Focus { IsBound: true })
+                        UnbindFocus(gearId);
+                }
                 Character.MagicAspect = null;
                 SpellPointsAllowance = 0;
                 SpellPointsSpent = 0;
+                Character.Spells.Clear();
+                Character.AdeptPowers.Clear();
                 Character.Attributes[AttributeName.Magic].BaseValue = 0;
                 Character.Tradition = null;
                 Character.Totem = null;
@@ -289,13 +299,30 @@ namespace SR3Generator.Creation
                 _logger.LogWarning("WithMagicAspect: Magic aspect {AspectName} is not allowed with current priorities", magicAspect.Name);
                 return this;
             }
+            // Re-selecting the current aspect is a no-op so a UI re-fire can't wipe purchases.
+            if (Character.MagicAspect?.Name == magicAspect.Name)
+            {
+                return this;
+            }
+
+            // Refund nuyen spent on extra spell points before the allowance is overwritten.
+            RefundPurchasedSpellPoints();
+
+            // Switching aspect invalidates all prior magic purchases — spells, bound spirits,
+            // focus bonds, and adept powers are priced/gated by the (possibly different) aspect.
+            // Clear them along with the spent counters so nothing paid-for lingers for free.
+            foreach (var (gearId, equipment) in Character.Gear.ToList())
+            {
+                if (equipment is Focus { IsBound: true })
+                    UnbindFocus(gearId);
+            }
+            Character.Spells.Clear();
+            Character.AdeptPowers.Clear();
+            Character.BondedSpirits.Clear();
 
             Character.MagicAspect = magicAspect;
             SpellPointsAllowance = magicAspect.StartingSpellPoints;
             SpellPointsSpent = 0;
-            // Switching aspect invalidates any prior bound spirits since cost/availability
-            // are tied to the (possibly different) aspect.
-            Character.BondedSpirits.Clear();
 
             // Set Magic attribute to 6 for magical characters
             if (magicAspect.Name != AspectName.Mundane)
@@ -608,8 +635,36 @@ namespace SR3Generator.Creation
                 ? item.PaidCost
                 : (long)Math.Round(item.Cost * (useStreetIndex ? item.StreetIndex : 1), MidpointRounding.AwayFromZero);
 
+            // Embedded attachments (accessories, enhancements, vehicle mods) were paid for
+            // separately at attach time — refund them too or that nuyen vanishes with the host.
+            cost += SumEmbeddedRefunds(item);
+
             AddNuyen(cost).RemoveGear(equipmentId);
             return this;
+        }
+
+        /// <summary>Total paid for everything embedded in <paramref name="item"/>'s attachment
+        /// slots, recursively (a weapon mount holds a weapon, which can hold accessories).
+        /// Multi-bucket slots share one Embedded reference — dedup so each refunds once.</summary>
+        private static long SumEmbeddedRefunds(Equipment item)
+        {
+            long total = 0;
+            var seen = new HashSet<Equipment>(ReferenceEqualityComparer.Instance);
+
+            void Walk(Equipment equipment)
+            {
+                if (equipment is not IAttachmentHost host) return;
+                foreach (var slot in host.Attachments)
+                {
+                    if (slot.Embedded is null || !seen.Add(slot.Embedded)) continue;
+                    if (slot.Embedded.PaidCost > 0)
+                        total += slot.Embedded.PaidCost;
+                    Walk(slot.Embedded);
+                }
+            }
+
+            Walk(item);
+            return total;
         }
 
         public CharacterBuilder AttachFirearmAccessory(
@@ -885,35 +940,14 @@ namespace SR3Generator.Creation
         /// Weapons mounted on the vehicle's weapon mounts are also refunded.</summary>
         public CharacterBuilder SellVehicle(Guid vehicleId, bool useStreetIndex = false)
         {
-            if (!Character.Gear.TryGetValue(vehicleId, out var item) || item is not Vehicle vehicle)
+            if (!Character.Gear.TryGetValue(vehicleId, out var item) || item is not Vehicle)
             {
                 _logger.LogWarning("SellVehicle: Vehicle {VehicleId} not found", vehicleId);
                 return this;
             }
 
-            // Refund every embedded payload: vehicle mods + their mounted weapons (if any).
-            // Use ReferenceEqualityComparer because a multi-bucket mod has multiple slots
-            // sharing one Embedded — we'd double-refund without dedup.
-            var seen = new HashSet<Equipment>(ReferenceEqualityComparer.Instance);
-            foreach (var slot in vehicle.Attachments)
-            {
-                if (slot.Embedded is null) continue;
-                if (!seen.Add(slot.Embedded)) continue;
-                if (slot.Embedded.PaidCost > 0)
-                    AddNuyen(slot.Embedded.PaidCost);
-
-                // Weapon mounts also hold a weapon; refund that too.
-                if (slot.Embedded is WeaponMount mount)
-                {
-                    foreach (var weaponSlot in mount.Attachments)
-                    {
-                        if (weaponSlot.Embedded?.PaidCost > 0)
-                            AddNuyen(weaponSlot.Embedded.PaidCost);
-                    }
-                }
-            }
-
-            vehicle.Attachments.Clear();
+            // SellGear refunds every embedded payload (mods + their mounted weapons) via the
+            // shared recursive attachment walk.
             SellGear(vehicleId, useStreetIndex);
             return this;
         }
@@ -1158,10 +1192,12 @@ namespace SR3Generator.Creation
                 return this;
             }
 
-            // Refund exactly what was paid at install time.
+            // Refund exactly what was paid at install time, plus any enhancements installed in
+            // this host — they were paid for separately via InstallCyberwareEnhancement.
             var cost = cyberware.PaidCost > 0
                 ? cyberware.PaidCost
                 : (long)Math.Round(cyberware.ActualCost * (useStreetIndex ? cyberware.StreetIndex : 1), MidpointRounding.AwayFromZero);
+            cost += SumEmbeddedRefunds(cyberware);
 
             AddNuyen(cost).RemoveGear(cyberwareId);
             RecalculateEssenceAndMagic();
@@ -1426,6 +1462,7 @@ namespace SR3Generator.Creation
             Character.KarmaOperations.Add(karmaOp);
             Character.SpentKarma += karmaCost;
             focus.IsBound = true;
+            focus.BoundWithSpellPoints = false;
 
             return this;
         }
@@ -1448,7 +1485,28 @@ namespace SR3Generator.Creation
                 return this;
             }
 
+            // Mirror the bind-time charge: spell points back to the chargen pool, or karma
+            // (clamped so a legacy save without the flag can't push SpentKarma negative).
+            if (focus.BoundWithSpellPoints)
+            {
+                SpellPointsSpent -= focus.BindingKarmaCost;
+            }
+            else
+            {
+                var refund = Math.Min(focus.BindingKarmaCost, Character.SpentKarma);
+                if (refund > 0)
+                {
+                    Character.KarmaOperations.Add(new KarmaOperation
+                    {
+                        Type = KarmaOperationType.Gain,
+                        KarmaChangeValue = refund,
+                        Description = $"Unbind Focus: {focus.Name} (refund)"
+                    });
+                    Character.SpentKarma -= refund;
+                }
+            }
             focus.IsBound = false;
+            focus.BoundWithSpellPoints = false;
 
             return this;
         }
@@ -1502,13 +1560,32 @@ namespace SR3Generator.Creation
                 return this;
             }
 
+            Character.Spells.Remove(spellName);
+
+            // Mirror what was paid: karma for post-creation learning (LearnSpell), spell points
+            // otherwise (AddSpell). The karma refund is clamped so a stale flag can't push
+            // SpentKarma negative.
+            if (spell.LearnedWithKarma)
+            {
+                var refund = Math.Min(spell.Force, Character.SpentKarma);
+                if (refund > 0)
+                {
+                    Character.KarmaOperations.Add(new KarmaOperation
+                    {
+                        Type = KarmaOperationType.Gain,
+                        KarmaChangeValue = refund,
+                        Description = $"Remove Spell: {spell.Name} (refund)"
+                    });
+                    Character.SpentKarma -= refund;
+                }
+                return this;
+            }
+
             var spellPointCost = spell.Force;
             if (spell.IsExclusive)
             {
                 spellPointCost = Math.Max(1, spellPointCost - 2);
             }
-
-            Character.Spells.Remove(spellName);
             SpellPointsSpent -= spellPointCost;
 
             return this;
@@ -1536,9 +1613,12 @@ namespace SR3Generator.Creation
             }
 
             var cost = points * SpellPointCostPerNuyen;
-            if (Character.Nuyen < cost)
+            // Spendable cash = priority allowance + running delta (Character.Nuyen goes negative
+            // with chargen purchases).
+            var spendable = ResourcesAllowance + Character.Nuyen;
+            if (spendable < cost)
             {
-                _logger.LogWarning("BuySpellPoints: Insufficient nuyen. Need {Cost}, have {Nuyen}", cost, Character.Nuyen);
+                _logger.LogWarning("BuySpellPoints: Insufficient nuyen. Need {Cost}, have {Spendable}", cost, spendable);
                 return this;
             }
 
@@ -1546,6 +1626,19 @@ namespace SR3Generator.Creation
             SpellPointsAllowance += points;
 
             return this;
+        }
+
+        /// <summary>Refund the nuyen paid via <see cref="BuySpellPoints"/> for any allowance above
+        /// the current aspect's starting points. Called before an aspect change or priority reset
+        /// overwrites <see cref="SpellPointsAllowance"/>.</summary>
+        private void RefundPurchasedSpellPoints()
+        {
+            var starting = Character.MagicAspect?.StartingSpellPoints ?? 0;
+            var purchased = SpellPointsAllowance - starting;
+            if (purchased > 0)
+            {
+                AddNuyen((long)purchased * SpellPointCostPerNuyen);
+            }
         }
 
         public CharacterBuilder LearnSpell(Spell spell)
@@ -1577,6 +1670,7 @@ namespace SR3Generator.Creation
             };
             Character.KarmaOperations.Add(karmaOp);
             Character.SpentKarma += karmaCost;
+            spell.LearnedWithKarma = true;
             Character.Spells.Add(spell.Name, spell);
 
             return this;
@@ -1610,6 +1704,7 @@ namespace SR3Generator.Creation
 
             SpellPointsSpent += spellPointCost;
             focus.IsBound = true;
+            focus.BoundWithSpellPoints = true;
 
             return this;
         }
