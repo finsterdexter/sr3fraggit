@@ -1,0 +1,37 @@
+# Changelog
+
+All notable changes to this project are documented in this file. New entries go at the top.
+
+## [0.9.0] — 2026-06-01
+
+This release adds a full in-play mode, an item modification workbench, new character options from SR Companion, and — for the first time — downloadable cross-platform builds.
+
+### ✨ New Features
+- **Edges & Flaws** — character creation now supports Edges and Flaws from the Shadowrun Companion.
+- **Workbench** — a new UI for modifying and accessorizing owned gear, backed by a full accessory/modification system on the character model.
+- **Cybermancy & GM Mode** — added Cybermancy support and a GM mode for running characters.
+- **Lifestyle support** — the Living tab now handles Lifestyles.
+
+### 🎲 In-Play Mode
+- **Post-finalized play mode** with a **Journal** tab and **karma advancement** for improving characters after creation.
+- Street index now defaults to checked in play mode.
+
+### 📦 Distribution
+- **Single-file, self-contained downloads** for Windows (x64 / arm64) and Linux (x64 / arm64 AppImage) — no .NET install required, the database is embedded.
+- Automated release pipeline builds and attaches all four platform assets when a release is published.
+
+### 🗃️ Game Data
+- Vendored the `sr3data` pipeline as a submodule and regenerated the database.
+- Added a rules glossary, Improved Signature (Active Thermal Masking) costs, and parametric vehicle modification cost formulas.
+
+### 🐛 Fixes
+- Fixed Journal tab width and numeric field alignment.
+- Fixed owned-item list column widths and Mods buttons.
+- Closed a `CloneForPurchase` gap and routed purchases through the validator.
+
+## [0.8.0] — 2026-06-01
+
+Initial pre-release of the SR3 character generator (Avalonia desktop app).
+
+[0.9.0]: https://github.com/finsterdexter/sr3fraggit/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/finsterdexter/sr3fraggit/releases/tag/v0.8.0
