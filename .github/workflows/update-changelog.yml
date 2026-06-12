@@ -1,0 +1,78 @@
+name: Update Changelog
+
+# When a release is published (after the draft from cut-release.yml is reviewed and
+# published — or any release created by hand), prepend its final, as-published body to
+# CHANGELOG.md as a new "## [X.Y.Z] — date" section with a compare link, and commit
+# that to master. The release body is the source of truth; the changelog is derived
+# from it, so whatever was edited in the draft before publishing is exactly what
+# lands here.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master # the release event's default checkout is the tagged commit
+
+      - name: Prepend release notes to CHANGELOG.md
+        env:
+          BODY: ${{ github.event.release.body }}
+          TAG: ${{ github.event.release.tag_name }}
+          PUBLISHED_AT: ${{ github.event.release.published_at }}
+        run: |
+          VERSION="${TAG#v}"
+          DAY="${PUBLISHED_AT:0:10}"
+
+          if grep -q "^## \[$VERSION\]" CHANGELOG.md; then
+            echo "CHANGELOG already has a section for $VERSION — nothing to do"
+            exit 0
+          fi
+
+          # Previous topmost version, for the compare link.
+          PREV=$(grep -m1 -oP '^## \[\K[0-9][^]]*(?=\])' CHANGELOG.md || true)
+
+          # New section: heading + the release body as published (normalize CRLF, drop
+          # the Full Changelog line — the link-reference block below covers that).
+          {
+            echo "## [$VERSION] — $DAY"
+            echo
+            printf '%s\n' "$BODY" | tr -d '\r' | grep -v '^\*\*Full Changelog\*\*: ' || true
+            echo
+          } | cat -s > /tmp/section.md
+
+          # Insert the section above the first existing version heading (i.e. after the
+          # file header), or append if the changelog has no sections yet.
+          awk '
+            NR == FNR { sec = sec $0 ORS; next }
+            !done && /^## \[/ { printf "%s", sec; done = 1 }
+            { print }
+            END { if (!done) printf "%s", sec }
+          ' /tmp/section.md CHANGELOG.md > /tmp/changelog.md
+          mv /tmp/changelog.md CHANGELOG.md
+
+          # Maintain the link-reference block: newest compare link first.
+          if [ -n "$PREV" ]; then
+            LINK="[$VERSION]: https://github.com/$GITHUB_REPOSITORY/compare/v$PREV...v$VERSION"
+          else
+            LINK="[$VERSION]: https://github.com/$GITHUB_REPOSITORY/releases/tag/v$VERSION"
+          fi
+          FIRSTLINK=$(grep -n '^\[[0-9]' CHANGELOG.md | head -1 | cut -d: -f1)
+          if [ -n "$FIRSTLINK" ]; then
+            sed -i "${FIRSTLINK}i $LINK" CHANGELOG.md
+          else
+            printf '\n%s\n' "$LINK" >> CHANGELOG.md
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG for $TAG"
+          git push
