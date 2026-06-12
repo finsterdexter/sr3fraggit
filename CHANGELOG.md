@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file. New entries go at the top.
 
+## [0.9.1] — 2026-06-12
+
+### ✨ New Features
+- Add CHANGELOG.md
+- Add release automation: draft releases from commits, CHANGELOG from published releases
+
+### 🐛 Fixes
+- Fix racial attribute modifiers in skill costs, dice pools, and karma advancement
+- Fix resource accounting leaks in spell points, focus bonds, and embedded gear refunds
+- Fix karma skill costs, specialization cap, and shared catalog mutation in skill advancement
+- Fix validator precedence/cybermancy handling and duplicate-key crash paths
+- Fix data-loading parsers: costs, firearm classes, book refs, culture, fire modes
+- Fix edge/flaw data, duplicate skill names, mount rules, and grade essence math
+
 ## [0.9.0] — 2026-06-01
 
 This release adds a full in-play mode, an item modification workbench, new character options from SR Companion, and — for the first time — downloadable cross-platform builds.
@@ -33,5 +47,6 @@ This release adds a full in-play mode, an item modification workbench, new chara
 
 Initial pre-release of the SR3 character generator (Avalonia desktop app).
 
+[0.9.1]: https://github.com/finsterdexter/sr3fraggit/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/finsterdexter/sr3fraggit/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/finsterdexter/sr3fraggit/releases/tag/v0.8.0
