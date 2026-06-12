@@ -1933,24 +1933,27 @@ namespace SR3Generator.Creation
             }
             var attribute = Character.Attributes[skill.Attribute];
 
-            // A specialization rating may not be more than twice its base skill rating(with the exception of base skills of 1
-            // with specializations of 3); the base skills must be raised before the specialization can be raised further.
+            // A specialization rating may not be more than twice its base skill rating (with the exception of base skills of 1
+            // with specializations of 3); the base skill must be raised before the specialization can be raised further.
             if (skill.IsSpecialization)
             {
-                Skill? baseSkill;
-                if (!Character.ActiveSkills.TryGetValue(name, out baseSkill) && !Character.KnowledgeSkills.TryGetValue(name, out baseSkill))
+                Skill? baseSkill = null;
+                if (skill.BaseSkillName is null ||
+                    (!Character.ActiveSkills.TryGetValue(skill.BaseSkillName, out baseSkill) &&
+                     !Character.KnowledgeSkills.TryGetValue(skill.BaseSkillName, out baseSkill)))
                 {
                     _logger.LogWarning("ImproveExistingSkill: Base skill for specialization {SkillName} not found", name);
                     return this;
                 }
-                if (newValue > 2 * baseSkill.BaseValue && baseSkill.BaseValue > 1 || newValue > 3 && baseSkill.BaseValue == 1)
+                if ((newValue > 2 * baseSkill.BaseValue && baseSkill.BaseValue > 1) || (newValue > 3 && baseSkill.BaseValue == 1))
                 {
                     _logger.LogWarning("ImproveExistingSkill: Specialization {SkillName} value {NewValue} violates base skill constraint (base: {BaseValue})", name, newValue, baseSkill.BaseValue);
                     return this;
                 }
             }
 
-            var karmaCost = GetImproveSkillCost(newValue, attribute.BaseValue, skill.IsSpecialization, skill.Type);
+            // Cost thresholds compare against the actual attribute rating (racial mods included).
+            var karmaCost = GetImproveSkillCost(newValue, attribute.GetRacialModifiedValue(Character), skill.IsSpecialization, skill.Type);
             if (Character.RemainingKarma < karmaCost)
             {
                 _logger.LogWarning("ImproveExistingSkill: Insufficient karma for {SkillName}. Need {KarmaCost}, have {RemainingKarma}", name, karmaCost, Character.RemainingKarma);
@@ -2000,11 +2003,21 @@ namespace SR3Generator.Creation
         public CharacterBuilder ImproveNewSkill(string name)
         {
             // get skill from SkillDatabase by name (handles both base skills and specializations)
-            if (_skillDatabase.TryGetSkillByName(name, out var skill) == false || skill == null)
+            if (_skillDatabase.TryGetSkillByName(name, out var catalogSkill) == false || catalogSkill == null)
             {
                 _logger.LogWarning("ImproveNewSkill: Skill {SkillName} not found in database", name);
                 return this;
             }
+            if (Character.ActiveSkills.ContainsKey(catalogSkill.Name) || Character.KnowledgeSkills.ContainsKey(catalogSkill.Name))
+            {
+                _logger.LogWarning("ImproveNewSkill: Skill {SkillName} already on character", name);
+                return this;
+            }
+
+            // Clone — the catalog entry is shared by every consumer of the SkillDatabase
+            // singleton and must not carry per-character ratings.
+            var skill = catalogSkill.Clone();
+            var attribute = Character.Attributes[skill.Attribute];
 
             if (skill.IsSpecialization)
             {
@@ -2013,9 +2026,14 @@ namespace SR3Generator.Creation
                     _logger.LogWarning("ImproveNewSkill: Specialization {SkillName} has no base skill defined", name);
                     return this;
                 }
-                var baseSkill = skill.Type == SkillType.Active ? Character.ActiveSkills[skill.BaseSkillName] : Character.KnowledgeSkills[skill.BaseSkillName];
-                var attribute = Character.Attributes[skill.Attribute];
-                var karmaCost = GetImproveSkillCost(baseSkill.BaseValue + 1, attribute.BaseValue, skill.IsSpecialization, skill.Type);
+                Skill? baseSkill;
+                if (!Character.ActiveSkills.TryGetValue(skill.BaseSkillName, out baseSkill) &&
+                    !Character.KnowledgeSkills.TryGetValue(skill.BaseSkillName, out baseSkill))
+                {
+                    _logger.LogWarning("ImproveNewSkill: Base skill {BaseSkillName} for specialization {SkillName} not on character", skill.BaseSkillName, name);
+                    return this;
+                }
+                var karmaCost = GetImproveSkillCost(baseSkill.BaseValue + 1, attribute.GetRacialModifiedValue(Character), skill.IsSpecialization, skill.Type);
                 if (Character.RemainingKarma < karmaCost)
                 {
                     _logger.LogWarning("ImproveNewSkill: Insufficient karma for specialization {SkillName}. Need {KarmaCost}, have {RemainingKarma}", name, karmaCost, Character.RemainingKarma);
@@ -2030,42 +2048,50 @@ namespace SR3Generator.Creation
                 Character.KarmaOperations.Add(karmaOp);
                 Character.SpentKarma += karmaCost;
                 skill.BaseValue = baseSkill.BaseValue + 1;
-                if (skill.Type == SkillType.Active)
-                {
-                    Character.ActiveSkills.Add(skill.Name, skill);
-                }
-                else
-                {
-                    Character.KnowledgeSkills.Add(skill.Name, skill);
-                }
             }
             else
             {
-                if (Character.RemainingKarma < 1)
+                // SR3: a new skill costs New Rating × multiplier like any other improvement —
+                // 2 karma for an active skill at rating 1, 1 for knowledge/language.
+                var karmaCost = GetImproveSkillCost(1, attribute.GetRacialModifiedValue(Character), isSpecialization: false, skill.Type);
+                if (Character.RemainingKarma < karmaCost)
                 {
-                    _logger.LogWarning("ImproveNewSkill: Insufficient karma for new skill {SkillName}. Need 1, have {RemainingKarma}", name, Character.RemainingKarma);
+                    _logger.LogWarning("ImproveNewSkill: Insufficient karma for new skill {SkillName}. Need {KarmaCost}, have {RemainingKarma}", name, karmaCost, Character.RemainingKarma);
                     return this;
                 }
                 var karmaOp = new KarmaOperation()
                 {
                     Type = KarmaOperationType.Spend,
-                    KarmaChangeValue = 1,
+                    KarmaChangeValue = karmaCost,
                     Description = $"Add New Skill {name} to 1"
                 };
                 Character.KarmaOperations.Add(karmaOp);
-                Character.SpentKarma += 1;
+                Character.SpentKarma += karmaCost;
                 skill.BaseValue = 1;
-                if (skill.Type == SkillType.Active)
-                {
-                    Character.ActiveSkills.Add(name, skill);
-                }
-                else
-                {
-                    Character.KnowledgeSkills.Add(name, skill);
-                }
+            }
+
+            if (skill.Type == SkillType.Active)
+            {
+                Character.ActiveSkills.Add(skill.Name, skill);
+            }
+            else
+            {
+                Character.KnowledgeSkills.Add(skill.Name, skill);
             }
 
             return this;
+        }
+
+        /// <summary>Karma cost to add the named base skill at rating 1 (preview helper for the
+        /// advancement UI; mirrors <see cref="ImproveNewSkill"/>).</summary>
+        public int GetNewSkillCost(string name)
+        {
+            if (_skillDatabase.TryGetSkillByName(name, out var skill) == false || skill == null)
+                return 0;
+            var attrValue = Character.Attributes.TryGetValue(skill.Attribute, out var attr)
+                ? attr.GetRacialModifiedValue(Character)
+                : 0;
+            return GetImproveSkillCost(1, attrValue, skill.IsSpecialization, skill.Type);
         }
 
         /// <summary>

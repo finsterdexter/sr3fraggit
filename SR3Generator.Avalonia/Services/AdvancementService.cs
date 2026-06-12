@@ -54,7 +54,8 @@ public class AdvancementService : IAdvancementService
                 total += AttributeCost(name, target);
             foreach (var (name, target) in _skillTargets)
                 total += ExistingSkillCost(name, target);
-            total += _newSkills.Count; // new base skill = 1 karma each
+            foreach (var name in _newSkills)
+                total += _characterService.Builder.GetNewSkillCost(name);
             return total;
         }
     }
@@ -132,7 +133,7 @@ public class AdvancementService : IAdvancementService
         foreach (var (name, target) in _skillTargets)
             sb.AppendLine($"{name} {CommittedSkillBase(name)} → {target}  ({ExistingSkillCost(name, target)} karma)");
         foreach (var name in _newSkills)
-            sb.AppendLine($"New skill: {name} (1 karma)");
+            sb.AppendLine($"New skill: {name} ({_characterService.Builder.GetNewSkillCost(name)} karma)");
         return sb.ToString().TrimEnd();
     }
 
@@ -179,8 +180,9 @@ public class AdvancementService : IAdvancementService
         if (skill is null) return 0;
         var builder = _characterService.Builder;
         // Use the staged (committed + pending) linked-attribute value, since Apply raises attributes
-        // before skills.
-        var attrValue = GetAttributeTarget(skill.Attribute);
+        // before skills. Cost thresholds compare against the actual rating (racial mods included).
+        var attrValue = GetAttributeTarget(skill.Attribute)
+                        + Character.Attributes[skill.Attribute].GetRacialMod(Character);
         var total = 0;
         for (var v = CommittedSkillBase(skillName) + 1; v <= target; v++)
             total += builder.GetImproveSkillCost(v, attrValue, skill.IsSpecialization, skill.Type);

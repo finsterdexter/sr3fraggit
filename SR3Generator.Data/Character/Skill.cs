@@ -32,6 +32,10 @@ namespace SR3Generator.Data.Character
             SkillClass = "";
         }
 
+        /// <summary>Shallow copy for handing a catalog entry to a character — the shared
+        /// SkillDatabase instance must never carry per-character ratings.</summary>
+        public Skill Clone() => (Skill)MemberwiseClone();
+
         public int GetAugmentedValue(Character character)
         {
             int modValue = 0;
