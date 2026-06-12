@@ -1164,10 +1164,11 @@ namespace SR3Generator.Creation
             var costm = cyberware.ActualCost * (useStreetIndex ? cyberware.StreetIndex : 1);
             long cost = (long)Math.Round(costm, MidpointRounding.AwayFromZero);
 
-            // Check if character has enough Essence. Cyberzombies (cybermancy, M&M p.54)
-            // deliberately push Essence below 0, so the floor only applies to normal characters.
+            // Check if character has enough Essence — an Essence of exactly 0 means dead (SR3),
+            // so the result must stay above 0. Cyberzombies (cybermancy, M&M p.54) deliberately
+            // push Essence below 0, so the floor only applies to normal characters.
             var currentEssence = GetCurrentEssence();
-            if (!Character.IsCyberzombie && currentEssence - cyberware.ActualEssenceCost < 0)
+            if (!Character.IsCyberzombie && currentEssence - cyberware.ActualEssenceCost <= 0)
             {
                 _logger.LogWarning("InstallCyberware: Insufficient Essence. Have {Current}, need {Cost}", currentEssence, cyberware.ActualEssenceCost);
                 return this;
@@ -1532,6 +1533,11 @@ namespace SR3Generator.Creation
                 _logger.LogWarning("AddSpell: Spell force must be at least 1");
                 return this;
             }
+            if (Character.Spells.ContainsKey(spell.Name))
+            {
+                _logger.LogWarning("AddSpell: Spell {SpellName} already known", spell.Name);
+                return this;
+            }
 
             var spellPointCost = spell.Force;
             // Exclusive spells reduce cost by 2 (minimum 1)
@@ -1654,6 +1660,11 @@ namespace SR3Generator.Creation
                 _logger.LogWarning("LearnSpell: Spell force must be at least 1");
                 return this;
             }
+            if (Character.Spells.ContainsKey(spell.Name))
+            {
+                _logger.LogWarning("LearnSpell: Spell {SpellName} already known", spell.Name);
+                return this;
+            }
 
             var karmaCost = spell.Force;
             if (Character.RemainingKarma < karmaCost)
@@ -1728,15 +1739,16 @@ namespace SR3Generator.Creation
                 return this;
             }
 
-            // Use a key that includes level for leveled powers
-            var key = power.IsLeveled ? $"{power.Name}_{power.Level}" : power.Name;
-
-            if (Character.AdeptPowers.ContainsKey(key))
+            // A power exists at exactly one level — block a second copy at any level (the UI
+            // removes the old level before re-adding to change levels).
+            if (Character.AdeptPowers.Values.Any(p => p.Name == power.Name))
             {
-                _logger.LogWarning("AddAdeptPower: Power {PowerName} already purchased", key);
+                _logger.LogWarning("AddAdeptPower: Power {PowerName} already purchased", power.Name);
                 return this;
             }
 
+            // Use a key that includes level for leveled powers
+            var key = power.IsLeveled ? $"{power.Name}_{power.Level}" : power.Name;
             Character.AdeptPowers.Add(key, power);
             return this;
         }
@@ -1755,7 +1767,9 @@ namespace SR3Generator.Creation
 
         public CharacterBuilder AddNaturalAugmentation(Augmentation item)
         {
-            Character.NaturalAugmentations.Add(item.Name, item);
+            // Indexer, not Add: re-applying a race (e.g. re-selecting Troll) re-adds the same
+            // augmentation and must be idempotent rather than throw on the duplicate key.
+            Character.NaturalAugmentations[item.Name] = item;
             return this;
         }
         public CharacterBuilder RemoveNaturalAugmentation(string name)
@@ -1795,7 +1809,7 @@ namespace SR3Generator.Creation
         public CharacterBuilder AwardKarma(int karma)
         {
             // every twentieth (tenth for humans) karma point goes into the karma pool
-            var raceMod = Character.Race.Name == RaceName.Human ? 10 : 20;
+            var raceMod = Character.Race?.Name == RaceName.Human ? 10 : 20;
             int karmaPoolAdd = ((Character.TotalKarma + karma) / raceMod) - (Character.TotalKarma / raceMod);
             int karmaAdd = karma - karmaPoolAdd;
             var karmaOp = new KarmaOperation

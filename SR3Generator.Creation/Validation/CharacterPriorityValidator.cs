@@ -188,32 +188,43 @@ namespace SR3Generator.Creation.Validation
                 Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Attributes, Level = ValidationIssueLevel.Error, Message = "Character must have 10 attributes: Body, Quickness, Strength, Charisma, Intelligence, Willpower, Reaction, Magic, Initiative, and Essence." });
             }
 
-            var attributeTotal = 0;
             foreach (var (name, att) in character.Attributes)
             {
-
-                if (name == AttributeName.Magic && att.BaseValue < 0 || att.BaseValue > 6)
+                if (name == AttributeName.Magic && (att.BaseValue < 0 || att.BaseValue > 6))
                 {
                     Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Attributes, Level = ValidationIssueLevel.Error, Message = "Magic must have a base value between 0 and 6." });
                 }
-                else if (name == AttributeName.Essence && att.BaseValue < 0 || att.BaseValue > 6)
+                // Cyberzombies deliberately carry negative Essence (M&M cybermancy), so the
+                // floor only applies to normal characters.
+                else if (name == AttributeName.Essence && !character.IsCyberzombie
+                         && (att.BaseValue < 0 || att.BaseValue > 6))
                 {
                     Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Attributes, Level = ValidationIssueLevel.Error, Message = "Essence must have a base value between 0 and 6." });
                 }
 
                 if (att.Type == AttributeType.Physical || att.Type == AttributeType.Mental)
                 {
-                    attributeTotal += (int)att.BaseValue;
-                    if (att.BaseValue < 1 || att.BaseValue > 6)
+                    // Judge the bought value: a cyberzombie's Willpower is stored post-penalty,
+                    // but the points were spent on the pre-cybermancy value.
+                    var bought = name == AttributeName.Willpower && character.PreCybermancyWillpower is int preWil
+                        ? preWil
+                        : (int)att.BaseValue;
+                    if (bought < 1 || bought > 6)
                     {
                         Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Attributes, Level = ValidationIssueLevel.Error, Message = $"Attribute {name} must have a base value between 1 and 6." });
+                    }
+                    // SR3: no Physical/Mental attribute may end below 1 after racial modifiers.
+                    else if (bought + att.GetRacialMod(character) < 1)
+                    {
+                        Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Attributes, Level = ValidationIssueLevel.Error, Message = $"Attribute {name} must be at least 1 after racial modifiers." });
                     }
                 }
             }
 
-            if (attributeTotal > builder.AttributePointsAllowance)
+            // AttributePointsSpent counts the pre-cybermancy Willpower the player actually bought.
+            if (builder.AttributePointsSpent > builder.AttributePointsAllowance)
             {
-                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Attributes, Level = ValidationIssueLevel.Error, Message = $"Attribute points must not exceed atrtibute allowance: {builder.AttributePointsAllowance}." });
+                Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Attributes, Level = ValidationIssueLevel.Error, Message = $"Attribute points must not exceed attribute allowance: {builder.AttributePointsAllowance}." });
             }
 
             return this;
