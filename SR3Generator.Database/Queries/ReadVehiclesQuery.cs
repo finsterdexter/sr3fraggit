@@ -37,11 +37,7 @@ namespace SR3Generator.Database.Queries
             var results = new List<Vehicle>();
             foreach (var dto in dtos)
             {
-                // Some rows reference multiple books (e.g. "sr3.308, r3.158"); take the
-                // first ref as the canonical citation. Without this the BookPageParser
-                // returns garbage like ("sr3.308, r3", 158) and the book filter breaks.
-                var firstRef = (dto.BookPage ?? string.Empty).Split(',')[0].Trim();
-                var (book, page) = BookPageParser.Split(firstRef);
+                var (book, page) = BookPageParser.Split(dto.BookPage);
 
                 // The vehicles table carries two parallel stat blocks:
                 //   * SR2-era (Handling, Speed, Body, Armor, Sig, Apilot) — older rows
@@ -168,7 +164,7 @@ namespace SR3Generator.Database.Queries
         private static decimal ParseDecimal(string? s, decimal defaultValue)
         {
             if (string.IsNullOrWhiteSpace(s)) return defaultValue;
-            return decimal.TryParse(s, out var n) ? n : defaultValue;
+            return decimal.TryParse(s, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : defaultValue;
         }
 
         private static int ParseCost(string? cost)

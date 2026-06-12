@@ -20,7 +20,7 @@ namespace SR3Generator.Database
         internal CyberdeckDatabase(DbConnectionFactory dbConnectionFactory,
             ReadCyberdecksQueryHandler handler)
         {
-            var conn = dbConnectionFactory.CreateConnection();
+            using var conn = dbConnectionFactory.CreateConnection();
             var decks = handler.HandleAsync(new ReadCyberdecksQuery(), conn, null!).Result;
             AllCyberdecks = decks
                 .OrderBy(d => d.CategoryTree.LastOrDefault() ?? string.Empty)

@@ -26,7 +26,7 @@ namespace SR3Generator.Database
         internal AdeptPowerDatabase(DbConnectionFactory dbConnectionFactory,
             ReadAdeptPowersQueryHandler readAdeptPowersQueryHandler)
         {
-            var conn = dbConnectionFactory.CreateConnection();
+            using var conn = dbConnectionFactory.CreateConnection();
 
             var powers = readAdeptPowersQueryHandler.HandleAsync(new ReadAdeptPowersQuery(), conn, null!).Result;
             AllPowers = powers.OrderBy(p => p.Name).ToList();

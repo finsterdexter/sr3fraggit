@@ -92,14 +92,12 @@ namespace SR3Generator.Database.Queries
             if (string.IsNullOrWhiteSpace(name))
                 return null;
 
-            // Try to extract rating number from name like "Power Focus 3" or "Adept Focus 5"
-            var parts = name.Split(' ');
-            if (parts.Length > 0)
-            {
-                var lastPart = parts[^1];
-                if (int.TryParse(lastPart, out var rating))
-                    return rating;
-            }
+            // Extract the rating from names like "Power Focus 3" or "Adept Focus 5". The last
+            // NUMBER, not the last token: anchor foci end in "Lev 3->" where the arrow defeats
+            // a token parse.
+            var matches = System.Text.RegularExpressions.Regex.Matches(name, @"\d+");
+            if (matches.Count > 0 && int.TryParse(matches[^1].Value, out var rating))
+                return rating;
 
             return null;
         }
@@ -117,7 +115,7 @@ namespace SR3Generator.Database.Queries
             if (string.IsNullOrWhiteSpace(value))
                 return defaultValue;
 
-            if (decimal.TryParse(value, out var result))
+            if (decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var result))
                 return result;
             return defaultValue;
         }

@@ -21,6 +21,11 @@ namespace SR3Generator.Database.Test
         // Trailing junk after the page number (real rows from the gear table)
         [InlineData("cb3.101-Page", "cb3", 101)]
         [InlineData("cb2.49,SR2-???", "cb2", 49)]
+        // Multi-book references: first citation wins (last-dot splitting alone would
+        // produce book "sr3.283,fof")
+        [InlineData("sr3.283,fof.48", "sr3", 283)]
+        [InlineData("sr3.282,fof.60", "sr3", 282)]
+        [InlineData("sr3.308, r3.158", "sr3", 308)]
         // No dot at all: everything is the book, page is 0
         [InlineData("sr3", "sr3", 0)]
         // Empty / null / whitespace → empty book, zero page

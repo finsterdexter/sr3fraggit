@@ -36,7 +36,7 @@ namespace SR3Generator.Database
             EquipmentCapacityDatabase equipmentCapacity)
         {
             EquipmentCapacity = equipmentCapacity;
-            var conn = dbConnectionFactory.CreateConnection();
+            using var conn = dbConnectionFactory.CreateConnection();
 
             // Load cyberware
             var cyberware = readCyberwareQueryHandler.HandleAsync(new ReadCyberwareQuery(), conn, null!).Result;

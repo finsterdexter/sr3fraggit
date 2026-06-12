@@ -27,7 +27,7 @@ namespace SR3Generator.Database
         internal GearDatabase(DbConnectionFactory dbConnectionFactory,
             ReadGearQueryHandler readGearQueryHandler)
         {
-            var conn = dbConnectionFactory.CreateConnection();
+            using var conn = dbConnectionFactory.CreateConnection();
             var gear = readGearQueryHandler.HandleAsync(new ReadGearQuery(), conn, null!).Result;
 
             AllGear = gear.ToList();

@@ -76,7 +76,8 @@ namespace SR3Generator.Database.Queries
         private static SpellRange MapSpellRange(string? range)
         {
             if (string.IsNullOrEmpty(range)) return SpellRange.Touch;
-            return range.StartsWith("LOS") ? SpellRange.LineOfSight : SpellRange.Touch;
+            // "L" is the data's shorthand for LOS on a few MitS illusion spells.
+            return range.StartsWith("LOS") || range == "L" ? SpellRange.LineOfSight : SpellRange.Touch;
         }
 
         private static Duration MapDuration(string? duration) => duration switch

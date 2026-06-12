@@ -3,6 +3,7 @@ using SR3Generator.Data.Gear;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -128,15 +129,20 @@ namespace SR3Generator.Database.Queries
             return dict.TryGetValue(name, out var v) ? v?.ToString() : null;
         }
 
-        private static readonly Regex AmmoRegex = new(@"(?<rounds>\d+)\s*(?:\((?<type>[a-zA-Z]+)\))?", RegexOptions.Compiled);
+        private static readonly Regex AmmoRoundsRegex = new(@"\d+", RegexOptions.Compiled);
+        private static readonly Regex AmmoTypeRegex = new(@"\(([a-zA-Z]+)\)", RegexOptions.Compiled);
 
         private static AmmunitionLoad ParseAmmo(string? text)
         {
             if (string.IsNullOrWhiteSpace(text)) return new AmmunitionLoad { Rounds = 0, Type = ReloadType.None };
-            var m = AmmoRegex.Match(text);
-            if (!m.Success) return new AmmunitionLoad { Rounds = 0, Type = ReloadType.None };
-            int rounds = int.TryParse(m.Groups["rounds"].Value, out var r) ? r : 0;
-            var typeCode = m.Groups["type"].Value;
+            // Rounds = first number; reload type = first alphabetic parenthesized token. The two
+            // are matched independently because variant capacities sit between them in rows like
+            // "10(15)(c)" — base 10, extended-clip 15, clip reload.
+            var roundsMatch = AmmoRoundsRegex.Match(text);
+            if (!roundsMatch.Success) return new AmmunitionLoad { Rounds = 0, Type = ReloadType.None };
+            int rounds = int.TryParse(roundsMatch.Value, out var r) ? r : 0;
+            var typeMatch = AmmoTypeRegex.Match(text);
+            var typeCode = typeMatch.Success ? typeMatch.Groups[1].Value : string.Empty;
             return new AmmunitionLoad { Rounds = rounds, Type = MapReloadCode(typeCode) };
         }
 
@@ -155,20 +161,25 @@ namespace SR3Generator.Database.Queries
             _    => ReloadType.None,
         };
 
+        private static readonly Regex FireModeRegex = new(@"\b(SS|SA|BF|FA)\b", RegexOptions.Compiled);
+
         private static List<FireMode> ParseFireModes(string? text)
         {
+            // Token-match rather than split: real rows include "SA.BF/FA" (typo'd separator),
+            // "2x SS", "DAR(SA)", "SA[SS]" and "(SA/BF/FA)/(SA)" — any delimiter-based split
+            // silently drops modes.
             var modes = new List<FireMode>();
             if (string.IsNullOrWhiteSpace(text)) return modes;
-            foreach (var part in text.Split('/'))
+            foreach (Match m in FireModeRegex.Matches(text.ToUpperInvariant()))
             {
-                var p = part.Trim().TrimEnd('*');
-                switch (p.ToUpperInvariant())
+                var mode = m.Value switch
                 {
-                    case "SS": modes.Add(FireMode.SingleShot); break;
-                    case "SA": modes.Add(FireMode.SemiAutomatic); break;
-                    case "BF": modes.Add(FireMode.Burst); break;
-                    case "FA": modes.Add(FireMode.FullAutomatic); break;
-                }
+                    "SS" => FireMode.SingleShot,
+                    "SA" => FireMode.SemiAutomatic,
+                    "BF" => FireMode.Burst,
+                    _ => FireMode.FullAutomatic,
+                };
+                if (!modes.Contains(mode)) modes.Add(mode);
             }
             return modes;
         }
@@ -191,6 +202,14 @@ namespace SR3Generator.Database.Queries
             if (bucket == "sport rifles" || bucket == "sporting rifles") return FirearmClass.SportingRifle;
             if (bucket == "assault rifles") return FirearmClass.AssaultRifle;
             if (bucket == "sniper rifles") return FirearmClass.SniperRifle;
+            if (bucket == "tasers") return FirearmClass.TaserPistol;
+            if (bucket == "rifles")
+                // Data nests rifle kinds one level deeper: "Weapons > Firearms > Rifles >
+                // Sniper rifles / Sport rifles / Anti-Materiel Rifles / Multi-weapons".
+                return leaf.Contains("sniper") ? FirearmClass.SniperRifle
+                     : leaf.Contains("anti-materiel") ? FirearmClass.SniperRifle
+                     : leaf.Contains("assault") ? FirearmClass.AssaultRifle
+                     : FirearmClass.SportingRifle; // sport rifles + multi-weapons default
             if (bucket == "launch weapons")
                 return leaf.Contains("grenade")  ? FirearmClass.GrenadeLauncher
                      : leaf.Contains("missile")  ? FirearmClass.GrenadeLauncher
@@ -234,10 +253,12 @@ namespace SR3Generator.Database.Queries
             if (string.IsNullOrWhiteSpace(cost))
                 return 0;
 
-            // Remove currency symbols and commas, parse as int
+            // Remove currency symbols and thousands separators. Some rows carry fractional
+            // costs ("42.5", "7.5" for per-round ammo) — round to the nearest nuyen rather
+            // than failing an int parse and silently loading the item as free.
             var cleaned = cost.Replace(",", "").Replace("¥", "").Trim();
-            if (int.TryParse(cleaned, out var result))
-                return result;
+            if (decimal.TryParse(cleaned, NumberStyles.Number, CultureInfo.InvariantCulture, out var result))
+                return (int)Math.Round(result, MidpointRounding.AwayFromZero);
             return 0;
         }
 
@@ -246,7 +267,7 @@ namespace SR3Generator.Database.Queries
             if (string.IsNullOrWhiteSpace(streetIndex))
                 return 1.0m;
 
-            if (decimal.TryParse(streetIndex, out var result))
+            if (decimal.TryParse(streetIndex, NumberStyles.Number, CultureInfo.InvariantCulture, out var result))
                 return result;
             return 1.0m;
         }
@@ -277,7 +298,7 @@ namespace SR3Generator.Database.Queries
             if (string.IsNullOrWhiteSpace(weight))
                 return 0;
 
-            if (decimal.TryParse(weight, out var result))
+            if (decimal.TryParse(weight, NumberStyles.Number, CultureInfo.InvariantCulture, out var result))
                 return result;
             return 0;
         }

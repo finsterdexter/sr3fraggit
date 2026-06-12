@@ -41,10 +41,7 @@ namespace SR3Generator.Database.Queries
             var results = new List<VehicleModification>();
             foreach (var dto in dtos)
             {
-                // Multi-book refs (e.g. "sr3.308, r3.135") confuse the BookPageParser;
-                // take the first listed ref as canonical.
-                var firstRef = (dto.BookPage ?? string.Empty).Split(',')[0].Trim();
-                var (book, page) = BookPageParser.Split(firstRef);
+                var (book, page) = BookPageParser.Split(dto.BookPage);
                 var categoryTree = ParseCategoryTree(dto.category_tree);
                 var category = MapCategory(categoryTree);
                 var name = dto.name ?? string.Empty;
@@ -164,7 +161,7 @@ namespace SR3Generator.Database.Queries
         private static decimal ParseDecimal(string? s, decimal defaultValue)
         {
             if (string.IsNullOrWhiteSpace(s)) return defaultValue;
-            return decimal.TryParse(s, out var n) ? n : defaultValue;
+            return decimal.TryParse(s, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : defaultValue;
         }
 
         private static int ParseCost(string? cost)

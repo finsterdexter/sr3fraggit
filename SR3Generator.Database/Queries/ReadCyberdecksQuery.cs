@@ -88,7 +88,7 @@ namespace SR3Generator.Database.Queries
         private static decimal ParseDecimal(string? value, decimal defaultValue)
         {
             if (string.IsNullOrWhiteSpace(value)) return defaultValue;
-            return decimal.TryParse(value, out var n) ? n : defaultValue;
+            return decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : defaultValue;
         }
 
         private static int ParseCost(string? cost)

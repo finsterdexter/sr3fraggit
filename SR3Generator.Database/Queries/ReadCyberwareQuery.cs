@@ -158,7 +158,7 @@ namespace SR3Generator.Database.Queries
             if (string.IsNullOrWhiteSpace(value))
                 return defaultValue;
 
-            if (decimal.TryParse(value, out var result))
+            if (decimal.TryParse(value, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var result))
                 return result;
             return defaultValue;
         }

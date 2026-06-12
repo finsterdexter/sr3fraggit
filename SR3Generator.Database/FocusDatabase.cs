@@ -27,7 +27,7 @@ namespace SR3Generator.Database
         internal FocusDatabase(DbConnectionFactory dbConnectionFactory,
             ReadFociQueryHandler readFociQueryHandler)
         {
-            var conn = dbConnectionFactory.CreateConnection();
+            using var conn = dbConnectionFactory.CreateConnection();
 
             var foci = readFociQueryHandler.HandleAsync(new ReadFociQuery(), conn, null!).Result;
             AllFoci = foci.OrderBy(f => f.FocusType).ThenBy(f => f.Rating ?? 0).ThenBy(f => f.Name).ToList();

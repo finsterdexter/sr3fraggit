@@ -28,7 +28,7 @@ namespace SR3Generator.Database
         internal ProgramDatabase(DbConnectionFactory dbConnectionFactory,
             ReadProgramsQueryHandler handler)
         {
-            var conn = dbConnectionFactory.CreateConnection();
+            using var conn = dbConnectionFactory.CreateConnection();
             var programs = handler.HandleAsync(new ReadProgramsQuery(), conn, null!).Result;
             AllPrograms = programs
                 .OrderBy(p => p.ProgramType)
