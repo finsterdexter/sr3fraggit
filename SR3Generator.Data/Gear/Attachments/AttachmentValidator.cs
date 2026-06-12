@@ -102,7 +102,7 @@ namespace SR3Generator.Data.Gear.Attachments
                 if (FirearmClassRules.Fits(weapon.Class, mount.MountClass)) continue;
                 var allowed = mount.MountClass == VehicleMountClass.Firmpoint
                     ? "LMG and smaller"
-                    : "MMG and larger";
+                    : "any classified weapon";
                 failures.Add(new AttachmentValidationFailure(
                     mount, CapacityKind.VehicleWeaponSlot, 1m, 1m,
                     $"{HostLabel(mount)}: {weapon.Name} ({weapon.Class}) does not fit a "

@@ -86,6 +86,27 @@ public class DataParsingTests
     }
 
     [Fact]
+    public void DuplicateSkillNames_AreDisambiguatedByClass()
+    {
+        // The data has a Survival-class and a Vehicle-class "Riding"; keying by bare name
+        // used to silently drop one.
+        var skills = new SkillDatabase(Options());
+        Assert.True(skills.ActiveSkills.ContainsKey("Riding (Survival skills)"));
+        Assert.True(skills.ActiveSkills.ContainsKey("Riding (Vehicle skills)"));
+        Assert.False(skills.ActiveSkills.ContainsKey("Riding"));
+    }
+
+    [Fact]
+    public void Amnesia_MatchesCanonicalPointValue()
+    {
+        // Canonical edges_flaws table: Amnesia Lev 1 = -2 (the lone cost mismatch found
+        // when diffing the static table against the database).
+        var amnesia = EdgeFlawDatabase.AllEdgesFlaws.First(e => e.Name == "Amnesia");
+        Assert.Equal(-2, amnesia.PointValue);
+        Assert.True(amnesia.IsLeveled);
+    }
+
+    [Fact]
     public void DecimalParsing_IsCultureInvariant()
     {
         // On comma-decimal locales (de-DE) "0.25" parses as 25 with culture-sensitive

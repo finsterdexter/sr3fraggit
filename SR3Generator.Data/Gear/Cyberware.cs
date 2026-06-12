@@ -39,16 +39,28 @@ namespace SR3Generator.Data.Gear
         }
 
         /// <summary>
-        /// Gets the actual Essence cost after applying grade modifier.
+        /// Actual Essence cost after the grade modifier. M&M p.44: reduce the base cost by the
+        /// grade percentage and round all numbers UP; the cost may never be reduced below 0.01
+        /// "in this manner" — i.e. the floor applies to reductions only, so a zero-Essence item
+        /// stays free at every grade.
         /// </summary>
-        public decimal ActualEssenceCost => Grade switch
+        public decimal ActualEssenceCost
         {
-            CyberwareGrade.Alpha => Math.Max(0.01m, EssenceCost * 0.8m),
-            CyberwareGrade.Beta => Math.Max(0.01m, EssenceCost * 0.6m),
-            CyberwareGrade.Delta => Math.Max(0.01m, EssenceCost * 0.5m),
-            CyberwareGrade.Used => EssenceCost, // Same Essence as base grade
-            _ => EssenceCost
-        };
+            get
+            {
+                var multiplier = Grade switch
+                {
+                    CyberwareGrade.Alpha => 0.8m,
+                    CyberwareGrade.Beta => 0.6m,
+                    CyberwareGrade.Delta => 0.5m,
+                    _ => 1m, // Standard and Used: unchanged
+                };
+                if (multiplier == 1m || EssenceCost <= 0m)
+                    return EssenceCost;
+                var reduced = Math.Ceiling(EssenceCost * multiplier * 100m) / 100m;
+                return Math.Max(0.01m, reduced);
+            }
+        }
 
         /// <summary>
         /// Gets the cost multiplier for this grade.

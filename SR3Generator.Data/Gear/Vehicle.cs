@@ -101,14 +101,19 @@ namespace SR3Generator.Data.Gear
         }
 
         /// <summary>
-        /// Sum of installed engine customization levels whose track is
-        /// <see cref="EngineCustomizationTrack.Load"/>. Each Engine-category
-        /// slot represents one level; multi-level mods take multiple slots.
+        /// Number of installed Load-track engine customizations. Counted per
+        /// distinct embedded mod, not per slot — the builder creates one slot
+        /// per non-zero capacity bucket (CF + Load) all sharing one Embedded,
+        /// so counting slots would double-count a single installed level.
         /// </summary>
         private int SumEngineLoadLevels()
-            => Attachments.Count(s =>
-                s.VehicleCategory == VehicleModCategory.Engine
-                && s.EngineTrack == EngineCustomizationTrack.Load);
+            => Attachments
+                .Where(s => s.VehicleCategory == VehicleModCategory.Engine
+                         && s.EngineTrack == EngineCustomizationTrack.Load
+                         && s.Embedded is not null)
+                .Select(s => s.Embedded!)
+                .Distinct(ReferenceEqualityComparer.Instance)
+                .Count();
 
         /// <summary>Modifications that ship pre-installed on this vehicle
         /// (Turbocharging, EnviroSeal, Thermal Baffles, etc.). The vehicle's
@@ -140,8 +145,8 @@ namespace SR3Generator.Data.Gear
     }
 
     /// <summary>R3 vehicle mount kind. Firmpoints cost 1 mount point and
-    /// accept LMG and smaller; hardpoints cost 2 and accept MMG and larger
-    /// (R3 p.135).</summary>
+    /// accept LMG and smaller; hardpoints cost 2 and accept any classified
+    /// weapon — heavy weapons (MMG+) require them (R3 p.135).</summary>
     public enum VehicleMountClass
     {
         Firmpoint,

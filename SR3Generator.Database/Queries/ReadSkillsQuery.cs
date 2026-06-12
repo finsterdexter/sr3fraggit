@@ -24,6 +24,20 @@ namespace SR3Generator.Database.Queries
             var skills = await dbConnection.QueryAsync<SkillDto>(skillSql, query, dbTransaction);
             var specs = await dbConnection.QueryAsync<SpecializationDto>(specSql, query, dbTransaction);
 
+            // Two skills can share a bare name (the data carries a Survival-class and a
+            // Vehicle-class "Riding"). Name is the identity key everywhere downstream, so
+            // disambiguate duplicates with their skill class instead of silently dropping one.
+            var duplicateNames = skills
+                .Where(s => s.name is not null)
+                .GroupBy(s => s.name)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key!)
+                .ToHashSet();
+            string FinalName(SkillDto dto) =>
+                dto.name is not null && duplicateNames.Contains(dto.name)
+                    ? $"{dto.name} ({dto.skill_class})"
+                    : dto.name ?? "";
+
             var skillResults = new List<Skill>();
             foreach (var skill in skills)
             {
@@ -31,15 +45,15 @@ namespace SR3Generator.Database.Queries
                 switch (skill.atr)
                 {
                     case "KNO":
-                        newSkill = new Skill(skill.name ?? "", Attribute.AttributeName.Intelligence);
+                        newSkill = new Skill(FinalName(skill), Attribute.AttributeName.Intelligence);
                         newSkill.Type = SkillType.Knowledge;
                         break;
                     case "LAN":
-                        newSkill = new Skill(skill.name ?? "", Attribute.AttributeName.Intelligence);
+                        newSkill = new Skill(FinalName(skill), Attribute.AttributeName.Intelligence);
                         newSkill.Type = SkillType.Language;
                         break;
                     case null or "" when skill.id == 393: // IN:Roleplaying Games of 20th Cen - missing atr in db
-                        newSkill = new Skill(skill.name ?? "", Attribute.AttributeName.Intelligence);
+                        newSkill = new Skill(FinalName(skill), Attribute.AttributeName.Intelligence);
                         newSkill.Type = SkillType.Knowledge;
                         break;
                     case " Lewis" when skill.id == 408: // AK:Ft Lewis - corrupt atr in db (name got split)
@@ -48,7 +62,7 @@ namespace SR3Generator.Database.Queries
                         break;
                     default:
                         var atr = (Attribute.AttributeAbbr)Enum.Parse(typeof(Attribute.AttributeAbbr), skill.atr!);
-                        newSkill = new Skill(skill.name ?? "", Attribute.GetName(atr));
+                        newSkill = new Skill(FinalName(skill), Attribute.GetName(atr));
                         newSkill.Type = SkillType.Active;
                         break;
                 }
@@ -84,7 +98,7 @@ namespace SR3Generator.Database.Queries
                 newSpec.Book = spec.book ?? null!;
                 newSpec.Page = spec.page ?? null!;
                 newSpec.Notes = spec.notes ?? "";
-                newSpec.BaseSkillName = skill.name;
+                newSpec.BaseSkillName = FinalName(skill);
                 newSpec.SkillClass = skill.skill_class ?? "";
                 specResults.Add(newSpec);
             }

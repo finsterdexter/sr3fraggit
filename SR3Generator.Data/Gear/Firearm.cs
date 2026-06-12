@@ -94,7 +94,10 @@ namespace SR3Generator.Data.Gear
             => cls != FirearmClass.Unknown && cls <= FirearmClass.LMG;
 
         public static bool FitsHardpoint(FirearmClass cls)
-            => cls >= FirearmClass.MMG;
+            // R3 p.135 is one-directional: heavy weapons (MMG+) MUST use hardpoints; smaller
+            // weapons CAN use firmpoints. Nothing forbids mounting a smaller weapon on the
+            // strictly-more-capable hardpoint.
+            => cls != FirearmClass.Unknown;
 
         public static bool Fits(FirearmClass cls, VehicleMountClass mount) => mount switch
         {

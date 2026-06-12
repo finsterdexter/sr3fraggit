@@ -50,7 +50,7 @@ public static class EdgeFlawDatabase
             PointValue = 4,
             Category = EdgeFlawCategory.Skill,
             Book = "src",
-            Page = 17
+            Page = 18
         };
         yield return new EdgeFlaw
         {
@@ -68,7 +68,7 @@ public static class EdgeFlawDatabase
             PointValue = -3,
             Category = EdgeFlawCategory.Skill,
             Book = "src",
-            Page = 17
+            Page = 18
         };
         yield return new EdgeFlaw
         {
@@ -77,7 +77,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Skill,
             Book = "src",
-            Page = 17
+            Page = 18
         };
     }
 
@@ -158,7 +158,7 @@ public static class EdgeFlawDatabase
             PointValue = 2,
             Category = EdgeFlawCategory.Physical,
             Book = "src",
-            Page = 31
+            Page = 21
         };
         yield return new EdgeFlaw
         {
@@ -167,7 +167,7 @@ public static class EdgeFlawDatabase
             PointValue = 1,
             Category = EdgeFlawCategory.Physical,
             Book = "src",
-            Page = 31
+            Page = 21
         };
         yield return new EdgeFlaw
         {
@@ -176,7 +176,7 @@ public static class EdgeFlawDatabase
             PointValue = 1,
             Category = EdgeFlawCategory.Physical,
             Book = "src",
-            Page = 31
+            Page = 21
         };
         yield return new EdgeFlaw
         {
@@ -185,7 +185,7 @@ public static class EdgeFlawDatabase
             PointValue = 3,
             Category = EdgeFlawCategory.Physical,
             Book = "src",
-            Page = 31
+            Page = 21
         };
         yield return new EdgeFlaw
         {
@@ -194,7 +194,7 @@ public static class EdgeFlawDatabase
             PointValue = 1,
             Category = EdgeFlawCategory.Physical,
             Book = "src",
-            Page = 31
+            Page = 21
         };
         yield return new EdgeFlaw
         {
@@ -320,7 +320,7 @@ public static class EdgeFlawDatabase
             PointValue = -3,
             Category = EdgeFlawCategory.Physical,
             Book = "src",
-            Page = 20,
+            Page = 19,
             Restrictions = "-1 point if does not affect rigging/Matrix actions"
         };
         yield return new EdgeFlaw
@@ -369,7 +369,7 @@ public static class EdgeFlawDatabase
             PointValue = -6,
             Category = EdgeFlawCategory.Physical,
             Book = "src",
-            Page = 31
+            Page = 21
         };
         yield return new EdgeFlaw
         {
@@ -378,7 +378,7 @@ public static class EdgeFlawDatabase
             PointValue = -3,
             Category = EdgeFlawCategory.Physical,
             Book = "src",
-            Page = 31,
+            Page = 21,
             Restrictions = "-2 points for magically active characters"
         };
         yield return new EdgeFlaw
@@ -388,7 +388,7 @@ public static class EdgeFlawDatabase
             PointValue = -1,
             Category = EdgeFlawCategory.Physical,
             Book = "src",
-            Page = 31
+            Page = 21
         };
     }
 
@@ -401,7 +401,7 @@ public static class EdgeFlawDatabase
             PointValue = 1,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 31
+            Page = 22
         };
         yield return new EdgeFlaw
         {
@@ -410,7 +410,7 @@ public static class EdgeFlawDatabase
             PointValue = 1,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 31
+            Page = 22
         };
         yield return new EdgeFlaw
         {
@@ -419,7 +419,7 @@ public static class EdgeFlawDatabase
             PointValue = 2,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 31
+            Page = 22
         };
         yield return new EdgeFlaw
         {
@@ -428,7 +428,7 @@ public static class EdgeFlawDatabase
             PointValue = 3,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 22
+            Page = 23
         };
         yield return new EdgeFlaw
         {
@@ -437,7 +437,7 @@ public static class EdgeFlawDatabase
             PointValue = 1,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 22
+            Page = 23
         };
         yield return new EdgeFlaw
         {
@@ -446,7 +446,7 @@ public static class EdgeFlawDatabase
             PointValue = 3,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 23
+            Page = 24
         };
         yield return new EdgeFlaw
         {
@@ -464,7 +464,7 @@ public static class EdgeFlawDatabase
             PointValue = 2,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 24,
+            Page = 25,
             IsLeveled = true,
             Level = 1,
             Restrictions = "Only riggers or deckers"
@@ -476,7 +476,7 @@ public static class EdgeFlawDatabase
             PointValue = 1,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 24
+            Page = 25
         };
 
         // Mental Flaws
@@ -484,10 +484,12 @@ public static class EdgeFlawDatabase
         {
             Name = "Amnesia",
             Description = "Character has lost some or all memories. GM controls what the character remembers.",
-            PointValue = -3,
+            PointValue = -2, // canonical edges_flaws: Lev 1 = -2 (levels run -2 to -5)
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 31
+            Page = 22,
+            IsLeveled = true,
+            Level = 1
         };
         yield return new EdgeFlaw
         {
@@ -496,7 +498,7 @@ public static class EdgeFlawDatabase
             PointValue = -1,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 31
+            Page = 22
         };
         yield return new EdgeFlaw
         {
@@ -505,7 +507,7 @@ public static class EdgeFlawDatabase
             PointValue = -4,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 31
+            Page = 22
         };
         yield return new EdgeFlaw
         {
@@ -514,7 +516,7 @@ public static class EdgeFlawDatabase
             PointValue = -1,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 31,
+            Page = 22,
             IsLeveled = true,
             Level = 1
         };
@@ -525,7 +527,7 @@ public static class EdgeFlawDatabase
             PointValue = -4,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 31
+            Page = 22
         };
         yield return new EdgeFlaw
         {
@@ -534,7 +536,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 31
+            Page = 23
         };
         yield return new EdgeFlaw
         {
@@ -543,7 +545,7 @@ public static class EdgeFlawDatabase
             PointValue = -3,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 22
+            Page = 23
         };
         yield return new EdgeFlaw
         {
@@ -552,7 +554,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 22
+            Page = 23
         };
         yield return new EdgeFlaw
         {
@@ -561,7 +563,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 22
+            Page = 23
         };
         yield return new EdgeFlaw
         {
@@ -665,7 +667,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 24,
+            Page = 25,
             Restrictions = "-4 points for riggers or deckers"
         };
         yield return new EdgeFlaw
@@ -675,7 +677,7 @@ public static class EdgeFlawDatabase
             PointValue = -5,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 24
+            Page = 25
         };
         yield return new EdgeFlaw
         {
@@ -684,7 +686,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 24
+            Page = 25
         };
         yield return new EdgeFlaw
         {
@@ -693,7 +695,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Mental,
             Book = "src",
-            Page = 24
+            Page = 25
         };
     }
 
@@ -724,7 +726,7 @@ public static class EdgeFlawDatabase
             PointValue = 3,
             Category = EdgeFlawCategory.Social,
             Book = "src",
-            Page = 25,
+            Page = 26,
             IsLeveled = true,
             Level = 1
         };
@@ -753,7 +755,7 @@ public static class EdgeFlawDatabase
             PointValue = 3,
             Category = EdgeFlawCategory.Social,
             Book = "src",
-            Page = 26
+            Page = 27
         };
         yield return new EdgeFlaw
         {
@@ -762,7 +764,7 @@ public static class EdgeFlawDatabase
             PointValue = 2,
             Category = EdgeFlawCategory.Social,
             Book = "src",
-            Page = 26
+            Page = 27
         };
         yield return new EdgeFlaw
         {
@@ -771,7 +773,7 @@ public static class EdgeFlawDatabase
             PointValue = 1,
             Category = EdgeFlawCategory.Social,
             Book = "src",
-            Page = 31
+            Page = 27
         };
         yield return new EdgeFlaw
         {
@@ -790,7 +792,7 @@ public static class EdgeFlawDatabase
             PointValue = 1,
             Category = EdgeFlawCategory.Social,
             Book = "src",
-            Page = 26,
+            Page = 27,
             IsLeveled = true,
             Level = 1
         };
@@ -823,7 +825,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Social,
             Book = "src",
-            Page = 25
+            Page = 26
         };
         yield return new EdgeFlaw
         {
@@ -832,7 +834,7 @@ public static class EdgeFlawDatabase
             PointValue = -1,
             Category = EdgeFlawCategory.Social,
             Book = "src",
-            Page = 25,
+            Page = 26,
             IsLeveled = true,
             Level = 1
         };
@@ -891,7 +893,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Social,
             Book = "src",
-            Page = 26
+            Page = 27
         };
         yield return new EdgeFlaw
         {
@@ -900,7 +902,7 @@ public static class EdgeFlawDatabase
             PointValue = -1,
             Category = EdgeFlawCategory.Social,
             Book = "src",
-            Page = 31
+            Page = 27
         };
         yield return new EdgeFlaw
         {
@@ -909,7 +911,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Social,
             Book = "src",
-            Page = 26
+            Page = 27
         };
     }
 
@@ -922,7 +924,7 @@ public static class EdgeFlawDatabase
             PointValue = 2,
             Category = EdgeFlawCategory.Magical,
             Book = "src",
-            Page = 27,
+            Page = 28,
             Restrictions = "Only Awakened characters"
         };
         yield return new EdgeFlaw
@@ -932,7 +934,7 @@ public static class EdgeFlawDatabase
             PointValue = 2,
             Category = EdgeFlawCategory.Magical,
             Book = "src",
-            Page = 27,
+            Page = 28,
             Restrictions = "Only Awakened characters"
         };
         yield return new EdgeFlaw
@@ -954,7 +956,7 @@ public static class EdgeFlawDatabase
             PointValue = 2,
             Category = EdgeFlawCategory.Magical,
             Book = "src",
-            Page = 27
+            Page = 28
         };
         yield return new EdgeFlaw
         {
@@ -963,7 +965,7 @@ public static class EdgeFlawDatabase
             PointValue = 2,
             Category = EdgeFlawCategory.Magical,
             Book = "src",
-            Page = 27
+            Page = 28
         };
 
         // Magical Flaws
@@ -974,7 +976,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Magical,
             Book = "src",
-            Page = 27,
+            Page = 28,
             Restrictions = "Only Awakened characters"
         };
         yield return new EdgeFlaw
@@ -984,7 +986,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Magical,
             Book = "src",
-            Page = 27
+            Page = 28
         };
     }
 
@@ -1017,7 +1019,7 @@ public static class EdgeFlawDatabase
             PointValue = 4,
             Category = EdgeFlawCategory.Matrix,
             Book = "src",
-            Page = 28
+            Page = 29
         };
 
         // Matrix Flaws
@@ -1057,7 +1059,7 @@ public static class EdgeFlawDatabase
             PointValue = -1,
             Category = EdgeFlawCategory.Matrix,
             Book = "src",
-            Page = 28
+            Page = 29
         };
     }
 
@@ -1137,7 +1139,7 @@ public static class EdgeFlawDatabase
             PointValue = -2,
             Category = EdgeFlawCategory.Miscellaneous,
             Book = "src",
-            Page = 29,
+            Page = 30,
             IsLeveled = true,
             Level = 1
         };
@@ -1148,7 +1150,7 @@ public static class EdgeFlawDatabase
             PointValue = -3,
             Category = EdgeFlawCategory.Miscellaneous,
             Book = "src",
-            Page = 29
+            Page = 30
         };
         yield return new EdgeFlaw
         {

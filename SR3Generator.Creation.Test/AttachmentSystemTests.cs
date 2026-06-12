@@ -176,21 +176,25 @@ public class AttachmentSystemTests
         v.Attachments.Add(new AttachmentSlot { Kind = CapacityKind.VehicleLoadKg, CapacityCost = 250 });
         Assert.NotEmpty(AttachmentValidator.Validate(v));
 
-        // Two Load-track engine levels add Body × 50 × 2 = 400 kg → total 500 kg.
-        v.Attachments.Insert(0, new AttachmentSlot
+        // Two installed Load-track engine mods add Body × 50 × 2 = 400 kg → total 500 kg.
+        // Levels are counted per distinct embedded mod (the builder creates one slot per
+        // capacity bucket, all sharing the mod), so each level carries its own Embedded.
+        for (var i = 0; i < 2; i++)
         {
-            Kind = CapacityKind.VehicleLoadKg,
-            CapacityCost = 0,
-            VehicleCategory = VehicleModCategory.Engine,
-            EngineTrack = EngineCustomizationTrack.Load,
-        });
-        v.Attachments.Insert(0, new AttachmentSlot
-        {
-            Kind = CapacityKind.VehicleLoadKg,
-            CapacityCost = 0,
-            VehicleCategory = VehicleModCategory.Engine,
-            EngineTrack = EngineCustomizationTrack.Load,
-        });
+            v.Attachments.Insert(0, new AttachmentSlot
+            {
+                Kind = CapacityKind.VehicleLoadKg,
+                CapacityCost = 0,
+                VehicleCategory = VehicleModCategory.Engine,
+                EngineTrack = EngineCustomizationTrack.Load,
+                Embedded = new VehicleModification
+                {
+                    Name = $"Engine Customization [{i + 1}]",
+                    Availability = new Availability { TargetNumber = 0, Interval = "Always" },
+                    Book = "r3",
+                },
+            });
+        }
         Assert.Empty(AttachmentValidator.Validate(v));
     }
 
