@@ -32,16 +32,25 @@ namespace SR3Generator.Data.Character
             return BaseValue + modValue;
         }
 
+        /// <summary>Racial attribute modifier (e.g. troll Body +5); 0 when no race is set.</summary>
+        public int GetRacialMod(Character character)
+        {
+            return character.Race?.AttributeMods
+                .Where(m => m.AttributeName == Name)
+                .Sum(m => m.ModValue) ?? 0;
+        }
+
+        /// <summary>Natural attribute rating: bought points (BaseValue) plus the racial modifier.</summary>
+        public int GetRacialModifiedValue(Character character)
+        {
+            return BaseValue + GetRacialMod(character);
+        }
+
         public int GetRacialModifiedLimit(Character character)
         {
-            // get natural mod if there is one
-            int modValue = 0;
-            foreach (var mod in character.NaturalAugmentations.Values.Where(g => g.Mods != null).SelectMany(g => g.Mods.Where(m => m is AttributeMod a && a.AttributeName == Name)))
-            {
-                modValue += mod.ModValue;
-            }
-
-            return 6 + modValue;
+            // SR3 Racial Modified Limit table (p. 245) = 6 + racial modifier. Natural augmentations
+            // (troll dermal armor) are damage-resistance bonuses, not part of the limit table.
+            return 6 + GetRacialMod(character);
         }
 
         public int GetRacialAttributeMaximum(Character character)

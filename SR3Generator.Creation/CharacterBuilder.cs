@@ -116,9 +116,10 @@ namespace SR3Generator.Creation
             ComputeSkillPoints(Character.KnowledgeSkills.Values);
 
         /// <summary>
-        /// SR3 core p. 54: ranks at or below the linked-attribute rating cost 1 skill point each;
-        /// ranks above the attribute cost 2 each. Specialization is free — the "original" rating
-        /// used for cost is the spec rating minus 1 (the base drops by one when specializing).
+        /// SR3 core p. 54: ranks at or below the linked-attribute rating (racially modified) cost
+        /// 1 skill point each; ranks above the attribute cost 2 each. Specialization is free — the
+        /// "original" rating used for cost is the spec rating minus 1 (the base drops by one when
+        /// specializing).
         /// </summary>
         private int ComputeSkillPoints(IEnumerable<Skill> skills)
         {
@@ -130,7 +131,7 @@ namespace SR3Generator.Creation
                 var originalRating = spec is not null ? spec.BaseValue - 1 : baseSkill.BaseValue;
 
                 var attrRating = Character.Attributes.TryGetValue(baseSkill.Attribute, out var attr)
-                    ? (int)attr.BaseValue
+                    ? attr.GetRacialModifiedValue(Character)
                     : 0;
                 var cheap = System.Math.Min(originalRating, attrRating);
                 var expensive = System.Math.Max(0, originalRating - attrRating);
@@ -1780,20 +1781,26 @@ namespace SR3Generator.Creation
 
         /// <summary>Karma cost to raise <paramref name="name"/> to <paramref name="newValue"/>
         /// (rating×2 at/under the Racial Modified Limit, rating×3 above it). Preview helper for the
-        /// advancement UI; mirrors the cost logic in <see cref="ImproveAttribute"/>. </summary>
+        /// advancement UI; mirrors the cost logic in <see cref="ImproveAttribute"/>.
+        /// <paramref name="newValue"/> is in bought-points space (BaseValue); the rating the cost
+        /// keys off includes the racial modifier. </summary>
         public int GetAttributeImproveCost(AttributeName name, int newValue)
         {
-            var limit = Character.Attributes[name].GetRacialModifiedLimit(Character);
-            return newValue <= limit ? newValue * 2 : newValue * 3;
+            var attribute = Character.Attributes[name];
+            var limit = attribute.GetRacialModifiedLimit(Character);
+            var newRating = newValue + attribute.GetRacialMod(Character);
+            return newRating <= limit ? newRating * 2 : newRating * 3;
         }
 
         public CharacterBuilder ImproveAttribute(AttributeName name, int newValue)
         {
-            // calculate karma needed to improve attribute
-            var maximum = Character.Attributes[name].GetRacialAttributeMaximum(Character);
-            if (newValue > maximum)
+            // The racial maximum is in final-rating space; newValue is bought points (BaseValue).
+            var attribute = Character.Attributes[name];
+            var maximum = attribute.GetRacialAttributeMaximum(Character);
+            var newRating = newValue + attribute.GetRacialMod(Character);
+            if (newRating > maximum)
             {
-                _logger.LogWarning("ImproveAttribute: {Attribute} value {NewValue} exceeds maximum {Maximum}", name, newValue, maximum);
+                _logger.LogWarning("ImproveAttribute: {Attribute} rating {NewRating} exceeds racial maximum {Maximum}", name, newRating, maximum);
                 return this;
             }
             if (newValue > Character.Attributes[name].BaseValue + 1)
@@ -1979,28 +1986,28 @@ namespace SR3Generator.Creation
             // and pool calcs so they see the post-cybermancy attribute values.
             RecalculateEssenceAndMagic();
 
+            // Reaction and pools derive from natural attribute ratings — bought points plus racial
+            // modifiers (mechanics.md troll Combat Mage: Reaction/pools use Quickness 5, Int 4,
+            // i.e. post-racial values). BaseValue alone excludes the racial mod.
+            var quickness = Character.Attributes[AttributeName.Quickness].GetRacialModifiedValue(Character);
+            var intelligence = Character.Attributes[AttributeName.Intelligence].GetRacialModifiedValue(Character);
+            var willpower = Character.Attributes[AttributeName.Willpower].GetRacialModifiedValue(Character);
+            var charisma = Character.Attributes[AttributeName.Charisma].GetRacialModifiedValue(Character);
+
             // Base reaction = (Quickness + Intelligence) / 2 (SR3 core p. 52).
-            Character.Attributes[AttributeName.Reaction].BaseValue =
-                (Character.Attributes[AttributeName.Intelligence].BaseValue + Character.Attributes[AttributeName.Quickness].BaseValue) / 2;
+            Character.Attributes[AttributeName.Reaction].BaseValue = (intelligence + quickness) / 2;
 
             // Combat Pool = (Quickness + Intelligence + Willpower) / 2 (SR3 core p. 40).
-            Character.DicePools[DicePoolType.Combat].Value =
-                (Character.Attributes[AttributeName.Quickness].BaseValue
-                 + Character.Attributes[AttributeName.Intelligence].BaseValue
-                 + Character.Attributes[AttributeName.Willpower].BaseValue) / 2;
+            Character.DicePools[DicePoolType.Combat].Value = (quickness + intelligence + willpower) / 2;
 
             // Magic-only pools. Zero out for mundane so stale values don't linger after
             // a priority shift drops magic.
             if (Character.MagicAspect?.HasSorcery == true)
             {
                 Character.DicePools[DicePoolType.Spell].Value =
-                    (Character.Attributes[AttributeName.Intelligence].BaseValue
-                     + Character.Attributes[AttributeName.Willpower].BaseValue
-                     + Character.Attributes[AttributeName.Magic].BaseValue) / 3;
+                    (intelligence + willpower + Character.Attributes[AttributeName.Magic].BaseValue) / 3;
                 Character.DicePools[DicePoolType.AstralCombat].Value =
-                    (Character.Attributes[AttributeName.Intelligence].BaseValue
-                     + Character.Attributes[AttributeName.Willpower].BaseValue
-                     + Character.Attributes[AttributeName.Charisma].BaseValue) / 2;
+                    (intelligence + willpower + charisma) / 2;
             }
             else
             {
@@ -2012,7 +2019,7 @@ namespace SR3Generator.Creation
             var deck = Character.Gear.Values.FirstOrDefault(g => g is Cyberdeck && g.IsEquipped) as Cyberdeck;
             Character.DicePools[DicePoolType.Hacking].Value = deck is null
                 ? 0
-                : (Character.Attributes[AttributeName.Intelligence].BaseValue + deck.MPCP) / 3;
+                : (intelligence + deck.MPCP) / 3;
 
             var vcr = Character.Gear.Values.FirstOrDefault(g => g is VehicleControlRig && g.IsEquipped) as VehicleControlRig;
             Character.DicePools[DicePoolType.Control].Value = vcr?.Rating is null

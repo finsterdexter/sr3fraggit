@@ -78,7 +78,9 @@ public class AdvancementService : IAdvancementService
     public void IncrementAttribute(AttributeName name)
     {
         var current = GetAttributeTarget(name);
-        var max = Character.Attributes[name].GetRacialAttributeMaximum(Character);
+        // The racial maximum is in final-rating space; targets are bought points (BaseValue).
+        var attr = Character.Attributes[name];
+        var max = attr.GetRacialAttributeMaximum(Character) - attr.GetRacialMod(Character);
         if (current >= max) return;
         SetAttrTarget(name, current + 1);
         PendingChanged?.Invoke(this, EventArgs.Empty);
