@@ -10,7 +10,7 @@ SR3Generator is a cross-platform desktop application that guides players through
 
 If you liked this app and want to throw a tip my way:
 
-<script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script><script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#ff8000', 'D8U221CM6F');kofiwidget2.draw();</script> 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D8U221CM6F)
 
 ## Architecture Overview
 
