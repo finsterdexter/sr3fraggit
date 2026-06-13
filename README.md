@@ -6,6 +6,12 @@ A desktop character creation tool for **Shadowrun 3rd Edition**, built with Aval
 
 SR3Generator is a cross-platform desktop application that guides players through the Shadowrun 3rd Edition character creation process. It covers the full priority-based creation system including attributes, skills, magic, gear, contacts, and more, with real-time validation and a reactive UI.
 
+## Support
+
+If you liked this app and want to throw a tip my way:
+
+<script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script><script type='text/javascript'>kofiwidget2.init('Support me on Ko-fi', '#ff8000', 'D8U221CM6F');kofiwidget2.draw();</script> 
+
 ## Architecture Overview
 
 The solution is organized into 4 core projects plus test projects, with dependencies flowing inward from the UI to the data layer.
