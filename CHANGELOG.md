@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file. New entries go at the top.
 
+## [0.9.2] — 2026-07-09
+
+### ✨ New Features
+- Add support section to README
+- Add funding configuration for Ko-fi
+- Add custom knowledge skills (creation points and play-mode karma)
+
+### 🔧 Changes
+- Update Ko-fi support link in README
+- Override transitive SQLitePCLRaw to patch e_sqlite3 CVE (GHSA-2m69-gcr7-jv3q)
+
 ## [0.9.1] — 2026-06-12
 
 ### ✨ New Features
@@ -47,6 +58,7 @@ This release adds a full in-play mode, an item modification workbench, new chara
 
 Initial pre-release of the SR3 character generator (Avalonia desktop app).
 
+[0.9.2]: https://github.com/finsterdexter/sr3fraggit/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/finsterdexter/sr3fraggit/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/finsterdexter/sr3fraggit/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/finsterdexter/sr3fraggit/releases/tag/v0.8.0
