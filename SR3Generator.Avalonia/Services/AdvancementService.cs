@@ -15,6 +15,7 @@ public class AdvancementService : IAdvancementService
     private readonly Dictionary<AttributeName, int> _attrTargets = new();
     private readonly Dictionary<string, int> _skillTargets = new();
     private readonly HashSet<string> _newSkills = new();
+    private readonly HashSet<string> _newCustomKnowledge = new();
 
     private DataCharacter _lastCharacter;
 
@@ -42,8 +43,10 @@ public class AdvancementService : IAdvancementService
     public IReadOnlyDictionary<AttributeName, int> PendingAttributeTargets => _attrTargets;
     public IReadOnlyDictionary<string, int> PendingSkillTargets => _skillTargets;
     public IReadOnlyCollection<string> PendingNewSkills => _newSkills;
+    public IReadOnlyCollection<string> PendingNewCustomKnowledgeSkills => _newCustomKnowledge;
 
-    public bool HasPending => _attrTargets.Count > 0 || _skillTargets.Count > 0 || _newSkills.Count > 0;
+    public bool HasPending => _attrTargets.Count > 0 || _skillTargets.Count > 0
+        || _newSkills.Count > 0 || _newCustomKnowledge.Count > 0;
 
     public int TotalPendingKarma
     {
@@ -56,6 +59,7 @@ public class AdvancementService : IAdvancementService
                 total += ExistingSkillCost(name, target);
             foreach (var name in _newSkills)
                 total += _characterService.Builder.GetNewSkillCost(name);
+            total += _newCustomKnowledge.Count * _characterService.Builder.GetNewCustomKnowledgeSkillCost();
             return total;
         }
     }
@@ -125,6 +129,21 @@ public class AdvancementService : IAdvancementService
             PendingChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    public void AddNewCustomKnowledgeSkill(string skillName)
+    {
+        skillName = skillName?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(skillName)) return;
+        if (FindSkill(skillName) is not null) return; // already owned
+        if (_newCustomKnowledge.Add(skillName))
+            PendingChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RemoveNewCustomKnowledgeSkill(string skillName)
+    {
+        if (_newCustomKnowledge.Remove(skillName))
+            PendingChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     public string BuildSummary()
     {
         var sb = new StringBuilder();
@@ -134,6 +153,8 @@ public class AdvancementService : IAdvancementService
             sb.AppendLine($"{name} {CommittedSkillBase(name)} → {target}  ({ExistingSkillCost(name, target)} karma)");
         foreach (var name in _newSkills)
             sb.AppendLine($"New skill: {name} ({_characterService.Builder.GetNewSkillCost(name)} karma)");
+        foreach (var name in _newCustomKnowledge)
+            sb.AppendLine($"New knowledge skill: {name} ({_characterService.Builder.GetNewCustomKnowledgeSkillCost()} karma)");
         return sb.ToString().TrimEnd();
     }
 
@@ -156,6 +177,7 @@ public class AdvancementService : IAdvancementService
         foreach (var (name, target) in _attrTargets) plan.AttributeTargets[name] = target;
         foreach (var (name, target) in _skillTargets) plan.SkillTargets[name] = target;
         foreach (var name in _newSkills) plan.NewSkills.Add(name);
+        foreach (var name in _newCustomKnowledge) plan.NewCustomKnowledgeSkills.Add(name);
 
         // Clear staged state before committing so the CharacterChanged refresh sees no pending double-count.
         ClearInternal();
@@ -217,5 +239,6 @@ public class AdvancementService : IAdvancementService
         _attrTargets.Clear();
         _skillTargets.Clear();
         _newSkills.Clear();
+        _newCustomKnowledge.Clear();
     }
 }

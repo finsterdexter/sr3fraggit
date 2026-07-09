@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SR3Generator.Avalonia.Services;
+using SR3Generator.Creation;
 using SR3Generator.Data.Character;
 using SR3Generator.Database;
 using System;
@@ -99,6 +100,16 @@ public partial class SkillsViewModel : ViewModelBase
     [ObservableProperty]
     private string _customSpecName = string.Empty;
 
+    // Free-text entry for a player-invented Knowledge Skill (SR3 p. 58: a Knowledge Skill can be
+    // anything). Creation mode adds it immediately (spends knowledge points); play mode stages a
+    // karma buy shown in PendingCustomSkills until Apply.
+    [ObservableProperty]
+    private string _customSkillName = string.Empty;
+
+    // Play-mode: custom Knowledge Skills staged but not yet committed, so they can be removed
+    // before the karma is spent.
+    public ObservableCollection<string> PendingCustomSkills { get; } = new();
+
     private bool _syncingSelection;
 
     partial void OnSelectedAvailableSkillChanged(AvailableSkillItem? value)
@@ -166,7 +177,7 @@ public partial class SkillsViewModel : ViewModelBase
         _advancement = advancement;
         SpecializationRule = rulesGlossary.Get("skill.specialization");
         _characterService.CharacterChanged += OnCharacterChanged;
-        _advancement.PendingChanged += (_, _) => RefreshDetailPlay();
+        _advancement.PendingChanged += (_, _) => { RefreshDetailPlay(); RefreshPendingCustomSkills(); };
         LoadSkills();
         RefreshFromBuilder();
     }
@@ -200,6 +211,13 @@ public partial class SkillsViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(DetailPlayRating));
         OnPropertyChanged(nameof(DetailPendingCost));
+    }
+
+    private void RefreshPendingCustomSkills()
+    {
+        PendingCustomSkills.Clear();
+        foreach (var name in _advancement.PendingNewCustomKnowledgeSkills)
+            PendingCustomSkills.Add(name);
     }
 
     private void OnCharacterChanged(object? sender, EventArgs e)
@@ -448,6 +466,41 @@ public partial class SkillsViewModel : ViewModelBase
         {
             _characterService.AddKnowledgeSkill(skill);
         }
+    }
+
+    // Add a player-invented Knowledge Skill from the free-text box. Creation mode adds it at
+    // rating 1 immediately (knowledge points); play mode stages a 1-karma buy (SR3 p. 245).
+    [RelayCommand]
+    private void AddCustomKnowledgeSkill()
+    {
+        var name = CustomSkillName?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(name)) return;
+
+        // Name is the skill's identity key; block duplicates (case-insensitively) to avoid a
+        // dictionary collision and confusion with an existing skill.
+        var character = _characterService.Builder.Character;
+        var owned = character.ActiveSkills.Keys.Concat(character.KnowledgeSkills.Keys)
+            .Any(k => string.Equals(k, name, StringComparison.OrdinalIgnoreCase));
+        if (owned) { CustomSkillName = string.Empty; return; }
+
+        if (IsPlayMode)
+        {
+            var alreadyStaged = _advancement.PendingNewCustomKnowledgeSkills
+                .Any(k => string.Equals(k, name, StringComparison.OrdinalIgnoreCase));
+            if (!alreadyStaged) _advancement.AddNewCustomKnowledgeSkill(name);
+        }
+        else
+        {
+            _characterService.AddKnowledgeSkill(CharacterBuilder.CreateCustomKnowledgeSkill(name));
+        }
+        CustomSkillName = string.Empty;
+    }
+
+    [RelayCommand]
+    private void RemovePendingCustomSkill(string? name)
+    {
+        if (string.IsNullOrEmpty(name)) return;
+        _advancement.RemoveNewCustomKnowledgeSkill(name);
     }
 
     // Detail-panel commands operate on whatever skill the Detail is currently showing.

@@ -2108,6 +2108,66 @@ namespace SR3Generator.Creation
             return GetImproveSkillCost(1, attrValue, skill.IsSpecialization, skill.Type);
         }
 
+        /// <summary>SkillClass label for player-invented Knowledge Skills that have no catalog
+        /// entry. Per SR3 (p. 58, 90) a Knowledge Skill can be anything the player imagines; the
+        /// five categories are a creative guide, not a mechanical requirement.</summary>
+        public const string CustomKnowledgeSkillClass = "Knowledge (Custom)";
+
+        /// <summary>Builds a custom (non-catalog) Knowledge Skill. Intelligence is the linked
+        /// Attribute for all Knowledge Skills (SR3 p. 58).</summary>
+        public static Skill CreateCustomKnowledgeSkill(string name, int rating = 1) =>
+            new Skill(name.Trim(), AttributeName.Intelligence)
+            {
+                Type = SkillType.Knowledge,
+                BaseValue = rating,
+                SkillClass = CustomKnowledgeSkillClass,
+            };
+
+        /// <summary>Karma to learn a brand-new Knowledge Skill at rating 1 (SR3 p. 245: new skills
+        /// cost 1 Good Karma). Uses the Knowledge cost tier against Intelligence.</summary>
+        public int GetNewCustomKnowledgeSkillCost()
+        {
+            var intel = Character.Attributes.TryGetValue(AttributeName.Intelligence, out var attr)
+                ? attr.GetRacialModifiedValue(Character)
+                : 0;
+            return GetImproveSkillCost(1, intel, isSpecialization: false, SkillType.Knowledge);
+        }
+
+        /// <summary>Play-mode: learn a new player-invented Knowledge Skill at rating 1, paying Good
+        /// Karma (SR3 p. 245, "Learning New Skills"). Mirrors <see cref="ImproveNewSkill"/> but needs
+        /// no catalog entry — the skill is synthesised as Intelligence-linked Knowledge.</summary>
+        public CharacterBuilder LearnNewCustomKnowledgeSkill(string name)
+        {
+            name = name?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(name))
+            {
+                _logger.LogWarning("LearnNewCustomKnowledgeSkill: empty skill name");
+                return this;
+            }
+            if (Character.ActiveSkills.ContainsKey(name) || Character.KnowledgeSkills.ContainsKey(name))
+            {
+                _logger.LogWarning("LearnNewCustomKnowledgeSkill: Skill {SkillName} already on character", name);
+                return this;
+            }
+
+            var karmaCost = GetNewCustomKnowledgeSkillCost();
+            if (Character.RemainingKarma < karmaCost)
+            {
+                _logger.LogWarning("LearnNewCustomKnowledgeSkill: Insufficient karma for {SkillName}. Need {KarmaCost}, have {RemainingKarma}", name, karmaCost, Character.RemainingKarma);
+                return this;
+            }
+
+            Character.KarmaOperations.Add(new KarmaOperation()
+            {
+                Type = KarmaOperationType.Spend,
+                KarmaChangeValue = karmaCost,
+                Description = $"Add New Knowledge Skill {name} to 1"
+            });
+            Character.SpentKarma += karmaCost;
+            Character.KnowledgeSkills.Add(name, CreateCustomKnowledgeSkill(name, 1));
+            return this;
+        }
+
         /// <summary>
         /// Recomputes all derived character state (reaction, dice pools) and runs validators.
         /// Intended to be called after every mutation during character creation so the UI,

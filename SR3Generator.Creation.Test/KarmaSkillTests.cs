@@ -83,6 +83,65 @@ namespace SR3Generator.Creation.Test
             Assert.Equal(2, builder.Character.SpentKarma);
         }
 
+        // ----- Custom (non-catalog) knowledge skills ---------------------------------------------
+
+        [Fact]
+        public void LearnNewCustomKnowledgeSkill_CostsOneKarma_AndIsIntelligenceLinked()
+        {
+            var (builder, _) = NewBuilder();
+            builder.Character.TotalKarma = 10;
+            builder.Character.Attributes[AttributeName.Intelligence].BaseValue = 4;
+
+            builder.LearnNewCustomKnowledgeSkill("Corporate Politics");
+
+            var skill = builder.Character.KnowledgeSkills["Corporate Politics"];
+            Assert.Equal(1, skill.BaseValue);
+            Assert.Equal(SkillType.Knowledge, skill.Type);
+            Assert.Equal(AttributeName.Intelligence, skill.Attribute);
+            Assert.Equal(CharacterBuilder.CustomKnowledgeSkillClass, skill.SkillClass);
+            Assert.Equal(1, builder.Character.SpentKarma); // SR3 p.245: new skill = 1 karma
+        }
+
+        [Fact]
+        public void LearnNewCustomKnowledgeSkill_TrimsNameAndBlocksDuplicate()
+        {
+            var (builder, _) = NewBuilder();
+            builder.Character.TotalKarma = 10;
+            builder.Character.Attributes[AttributeName.Intelligence].BaseValue = 4;
+
+            builder.LearnNewCustomKnowledgeSkill("  Seattle Gangs  ");
+            builder.LearnNewCustomKnowledgeSkill("Seattle Gangs"); // duplicate: no throw, no double-charge
+
+            Assert.True(builder.Character.KnowledgeSkills.ContainsKey("Seattle Gangs"));
+            Assert.Single(builder.Character.KnowledgeSkills);
+            Assert.Equal(1, builder.Character.SpentKarma);
+        }
+
+        [Fact]
+        public void LearnNewCustomKnowledgeSkill_InsufficientKarmaIsNoOp()
+        {
+            var (builder, _) = NewBuilder();
+            builder.Character.TotalKarma = 0;
+            builder.Character.Attributes[AttributeName.Intelligence].BaseValue = 4;
+
+            builder.LearnNewCustomKnowledgeSkill("Elven Wine");
+
+            Assert.Empty(builder.Character.KnowledgeSkills);
+            Assert.Equal(0, builder.Character.SpentKarma);
+        }
+
+        [Fact]
+        public void CustomKnowledgeSkill_SpendsKnowledgePointsInCreation()
+        {
+            var (builder, _) = NewBuilder();
+            builder.Character.Attributes[AttributeName.Intelligence].BaseValue = 5; // allowance 25
+
+            builder.AddKnowledgeSkill(CharacterBuilder.CreateCustomKnowledgeSkill("Trid Shows", 3));
+
+            // 3 ≤ Int 5 → 3 knowledge points; identical accounting to a catalog knowledge skill.
+            Assert.Equal(3, builder.KnowledgeSkillPointsSpent);
+        }
+
         // ----- Catalog isolation -----------------------------------------------------------------
 
         [Fact]

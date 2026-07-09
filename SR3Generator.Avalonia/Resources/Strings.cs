@@ -70,6 +70,7 @@ public static class Strings
     // Section headers
     public static string SectionAvailable => Get(nameof(SectionAvailable));
     public static string SectionPurchased => Get(nameof(SectionPurchased));
+    public static string SectionAddCustomKnowledge => Get(nameof(SectionAddCustomKnowledge));
     public static string SectionOwned => Get(nameof(SectionOwned));
     public static string SectionInstalled => Get(nameof(SectionInstalled));
     public static string SectionCategories => Get(nameof(SectionCategories));
@@ -126,10 +127,12 @@ public static class Strings
     public static string ButtonAddFree => Get(nameof(ButtonAddFree));
     public static string ButtonBuildCharacter => Get(nameof(ButtonBuildCharacter));
     public static string ButtonAddPower => Get(nameof(ButtonAddPower));
+    public static string ButtonAddCustom => Get(nameof(ButtonAddCustom));
 
     // Watermarks
     public static string WatermarkSearch => Get(nameof(WatermarkSearch));
     public static string WatermarkSearchSkills => Get(nameof(WatermarkSearchSkills));
+    public static string WatermarkCustomKnowledge => Get(nameof(WatermarkCustomKnowledge));
     public static string WatermarkSearchPowers => Get(nameof(WatermarkSearchPowers));
     public static string WatermarkSearchFoci => Get(nameof(WatermarkSearchFoci));
     public static string WatermarkSearchSpells => Get(nameof(WatermarkSearchSpells));

@@ -68,6 +68,7 @@
   <!-- Section headers -->
   <data name="SectionAvailable" xml:space="preserve"><value>AVAILABLE</value></data>
   <data name="SectionPurchased" xml:space="preserve"><value>PURCHASED</value></data>
+  <data name="SectionAddCustomKnowledge" xml:space="preserve"><value>ADD CUSTOM KNOWLEDGE</value></data>
   <data name="SectionOwned" xml:space="preserve"><value>OWNED</value></data>
   <data name="SectionInstalled" xml:space="preserve"><value>INSTALLED</value></data>
   <data name="SectionCategories" xml:space="preserve"><value>CATEGORIES</value></data>
@@ -124,10 +125,12 @@
   <data name="ButtonAddFree" xml:space="preserve"><value>Add Free</value></data>
   <data name="ButtonBuildCharacter" xml:space="preserve"><value>Build Character</value></data>
   <data name="ButtonAddPower" xml:space="preserve"><value>Add Power</value></data>
+  <data name="ButtonAddCustom" xml:space="preserve"><value>Add</value></data>
 
   <!-- Watermarks -->
   <data name="WatermarkSearch" xml:space="preserve"><value>Search...</value></data>
   <data name="WatermarkSearchSkills" xml:space="preserve"><value>Search skills...</value></data>
+  <data name="WatermarkCustomKnowledge" xml:space="preserve"><value>New knowledge skill name...</value></data>
   <data name="WatermarkSearchPowers" xml:space="preserve"><value>Search powers...</value></data>
   <data name="WatermarkSearchFoci" xml:space="preserve"><value>Search foci...</value></data>
   <data name="WatermarkSearchSpells" xml:space="preserve"><value>Search spells...</value></data>

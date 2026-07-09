@@ -485,6 +485,10 @@ public class CharacterBuilderService : ICharacterBuilderService
         {
             _builder.ImproveNewSkill(skillName);
         }
+        foreach (var skillName in plan.NewCustomKnowledgeSkills)
+        {
+            _builder.LearnNewCustomKnowledgeSkill(skillName);
+        }
 
         if (!string.IsNullOrEmpty(plan.Summary) || plan.TotalKarma > 0)
         {

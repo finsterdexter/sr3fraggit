@@ -20,6 +20,9 @@ public interface IAdvancementService
     /// <summary>Names of brand-new skills staged to be learned at rating 1. </summary>
     IReadOnlyCollection<string> PendingNewSkills { get; }
 
+    /// <summary>Names of brand-new player-invented Knowledge Skills staged to be learned at rating 1. </summary>
+    IReadOnlyCollection<string> PendingNewCustomKnowledgeSkills { get; }
+
     /// <summary>Total karma the staged changes will cost. </summary>
     int TotalPendingKarma { get; }
 
@@ -46,6 +49,8 @@ public interface IAdvancementService
     void DecrementSkill(string skillName);
     void AddNewSkill(string skillName);
     void RemoveNewSkill(string skillName);
+    void AddNewCustomKnowledgeSkill(string skillName);
+    void RemoveNewCustomKnowledgeSkill(string skillName);
 
     /// <summary>Human-readable, itemized summary of the staged changes (for the confirm dialog). </summary>
     string BuildSummary();

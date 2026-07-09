@@ -251,6 +251,53 @@
                 <DockPanel LastChildFill="True">
                     <TextBlock DockPanel.Dock="Top" Text="{x:Static res:Strings.SectionAvailable}"
                                Classes="section-header" Margin="12,12,12,8"/>
+
+                    <!-- Add a player-invented Knowledge Skill (SR3 p. 58: anything can be one).
+                         Creation mode adds it immediately; play mode stages a 1-karma buy. -->
+                    <Border DockPanel.Dock="Bottom" Margin="12,8,12,12" Padding="0,8,0,0"
+                            BorderBrush="{StaticResource BorderSubtleBrush}" BorderThickness="0,1,0,0">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{x:Static res:Strings.SectionAddCustomKnowledge}"
+                                       Classes="micro-label"/>
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                                <TextBox Text="{Binding CustomSkillName}"
+                                         Watermark="{x:Static res:Strings.WatermarkCustomKnowledge}">
+                                    <TextBox.KeyBindings>
+                                        <KeyBinding Gesture="Enter"
+                                                    Command="{Binding AddCustomKnowledgeSkillCommand}"/>
+                                    </TextBox.KeyBindings>
+                                </TextBox>
+                                <Button Grid.Column="1"
+                                        Content="{x:Static res:Strings.ButtonAddCustom}"
+                                        Classes="action"
+                                        Command="{Binding AddCustomKnowledgeSkillCommand}"/>
+                            </Grid>
+
+                            <!-- Play-mode: staged custom skills, removable before Apply -->
+                            <ItemsControl ItemsSource="{Binding PendingCustomSkills}"
+                                          IsVisible="{Binding IsPlayMode}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="x:String">
+                                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6"
+                                              Margin="0,2,0,0">
+                                            <TextBlock Text="{Binding}" Classes="body"
+                                                       Foreground="{StaticResource AccentManaBrush}"
+                                                       VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="1" Text="+1 K" FontSize="10"
+                                                       Foreground="{StaticResource AccentKarmaBrush}"
+                                                       VerticalAlignment="Center"/>
+                                            <Button Grid.Column="2" Classes="icon danger" Content="×"
+                                                    FontSize="12" Width="20" Height="20"
+                                                    Command="{Binding $parent[ItemsControl].((vm:SkillsViewModel)DataContext).RemovePendingCustomSkillCommand}"
+                                                    CommandParameter="{Binding}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
                     <ListBox Name="AvailableList"
                              ItemsSource="{Binding FilteredSkills}"
                              SelectedItem="{Binding SelectedAvailableSkill}"

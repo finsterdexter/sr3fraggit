@@ -18,6 +18,9 @@ public class AdvancementPlan
     /// <summary>New skills to learn at rating 1. </summary>
     public List<string> NewSkills { get; } = new();
 
+    /// <summary>New player-invented Knowledge Skills to learn at rating 1 (no catalog entry). </summary>
+    public List<string> NewCustomKnowledgeSkills { get; } = new();
+
     /// <summary>Total karma the batch costs (for the Journal entry). </summary>
     public int TotalKarma { get; set; }
 
