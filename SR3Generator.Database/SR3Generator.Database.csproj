@@ -9,6 +9,9 @@
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0" />
+    <!-- Override the vulnerable native SQLite pinned transitively by Microsoft.Data.Sqlite
+         (SQLitePCLRaw 2.1.11, GHSA-2m69-gcr7-jv3q). 3.0.3 bundles patched e_sqlite3. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0" />
   </ItemGroup>
 
