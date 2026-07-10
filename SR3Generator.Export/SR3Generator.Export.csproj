@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="QuestPDF" Version="2026.7.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SR3Generator.Creation\SR3Generator.Creation.csproj" />
+		<ProjectReference Include="..\SR3Generator.Data\SR3Generator.Data.csproj" />
+	</ItemGroup>
+
+	<!-- Fonts embedded so the generated PDF renders identically regardless of the fonts
+	     installed on the machine running the export (Inter + JetBrains Mono, both OFL). -->
+	<ItemGroup>
+		<EmbeddedResource Include="Fonts\Inter-Regular.ttf" />
+		<EmbeddedResource Include="Fonts\Inter-SemiBold.ttf" />
+		<EmbeddedResource Include="Fonts\Inter-Bold.ttf" />
+		<EmbeddedResource Include="Fonts\JetBrainsMono-Regular.ttf" />
+		<EmbeddedResource Include="Fonts\JetBrainsMono-Bold.ttf" />
+	</ItemGroup>
+
+</Project>

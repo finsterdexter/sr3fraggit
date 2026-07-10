@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using SR3Generator.Avalonia.Services;
 using SR3Generator.Creation.Validation;
+using SR3Generator.Export;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,11 +14,14 @@ public partial class MainWindowViewModel : ViewModelBase
 {
     private const string FileExtension = ".sr3char";
     private const string FileMimeType = "application/json";
+    private const string PdfExtension = ".pdf";
+    private const string PdfMimeType = "application/pdf";
 
     private readonly ICharacterBuilderService _characterService;
     private readonly ICharacterFileService _fileService;
     private readonly IDialogService _dialogService;
     private readonly IUserSettingsService _settings;
+    private readonly ICharacterSheetExporter _sheetExporter;
     private readonly IServiceProvider _serviceProvider;
 
     [ObservableProperty]
@@ -35,12 +39,14 @@ public partial class MainWindowViewModel : ViewModelBase
         ICharacterFileService fileService,
         IDialogService dialogService,
         IUserSettingsService settings,
+        ICharacterSheetExporter sheetExporter,
         IServiceProvider serviceProvider)
     {
         _characterService = characterService;
         _fileService = fileService;
         _dialogService = dialogService;
         _settings = settings;
+        _sheetExporter = sheetExporter;
         _serviceProvider = serviceProvider;
         _gmMode = settings.GmMode; // direct field set: doesn't trigger OnGmModeChanged/persist
         _characterShell = _serviceProvider.GetRequiredService<CharacterShellViewModel>();
@@ -81,6 +87,26 @@ public partial class MainWindowViewModel : ViewModelBase
             "Save Character", suggested, FileExtension, FileMimeType);
         if (path is null) return;
         await SaveToPathAsync(path);
+    }
+
+    [RelayCommand]
+    private async Task ExportPdf()
+    {
+        var suggested = SuggestedFileName(PdfExtension);
+        var path = await _dialogService.PickSaveFileAsync(
+            "Export Character Sheet", suggested, PdfExtension, PdfMimeType, "PDF Document");
+        if (path is null) return;
+
+        try
+        {
+            // QuestPDF generation is CPU-bound; run off the UI thread so the window stays responsive.
+            var builder = _characterService.Builder;
+            await Task.Run(() => _sheetExporter.Generate(builder, path));
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowErrorAsync("Export Failed", ex.Message);
+        }
     }
 
     [RelayCommand]
@@ -152,13 +178,13 @@ public partial class MainWindowViewModel : ViewModelBase
             "The current character has unsaved changes. Continue anyway?");
     }
 
-    private string SuggestedFileName()
+    private string SuggestedFileName(string extension = FileExtension)
     {
         if (_fileService.CurrentFilePath is { } current)
-            return System.IO.Path.GetFileName(current);
+            return System.IO.Path.GetFileNameWithoutExtension(current) + extension;
         var name = _characterService.Builder.Character.PlayerName;
-        if (string.IsNullOrWhiteSpace(name)) return "character" + FileExtension;
-        return SanitizeFileName(name) + FileExtension;
+        if (string.IsNullOrWhiteSpace(name)) return "character" + extension;
+        return SanitizeFileName(name) + extension;
     }
 
     private static string SanitizeFileName(string input)

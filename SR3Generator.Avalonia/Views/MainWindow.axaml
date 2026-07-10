@@ -19,6 +19,7 @@
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCharacterCommand}"/>
         <KeyBinding Gesture="Ctrl+Shift+S" Command="{Binding SaveCharacterAsCommand}"/>
         <KeyBinding Gesture="Ctrl+O" Command="{Binding LoadCharacterCommand}"/>
+        <KeyBinding Gesture="Ctrl+P" Command="{Binding ExportPdfCommand}"/>
     </Window.KeyBindings>
 
     <DockPanel>
@@ -33,6 +34,8 @@
                     <MenuItem Header="_Save Character" Command="{Binding SaveCharacterCommand}" InputGesture="Ctrl+S"/>
                     <MenuItem Header="Save Character _As..." Command="{Binding SaveCharacterAsCommand}" InputGesture="Ctrl+Shift+S"/>
                     <MenuItem Header="_Load Character..." Command="{Binding LoadCharacterCommand}" InputGesture="Ctrl+O"/>
+                    <Separator/>
+                    <MenuItem Header="_Export Character Sheet (PDF)..." Command="{Binding ExportPdfCommand}" InputGesture="Ctrl+P"/>
                     <Separator/>
                     <MenuItem Header="E_xit" />
                 </MenuItem>

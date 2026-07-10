@@ -10,6 +10,7 @@ using SR3Generator.Avalonia.ViewModels.Tabs;
 using SR3Generator.Avalonia.Views;
 using SR3Generator.Database;
 using SR3Generator.Database.Connection;
+using SR3Generator.Export;
 using System;
 using System.IO;
 
@@ -109,6 +110,9 @@ public partial class App : Application
         services.AddSingleton<DialogService>();
         services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
         services.AddSingleton<ICharacterFileService, CharacterFileService>();
+
+        // PDF character-sheet export.
+        services.AddSingleton<ICharacterSheetExporter, CharacterSheetExporter>();
 
         // Dialog viewmodels
         services.AddTransient<OptionsDialogViewModel>();

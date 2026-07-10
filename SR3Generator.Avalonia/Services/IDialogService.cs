@@ -4,8 +4,10 @@ public interface IDialogService
 {
     /// <summary>
     /// Present a save-file picker. Returns the chosen path, or null if the user cancelled.
+    /// <paramref name="fileTypeName"/> sets the file-type label shown in the picker (defaults to
+    /// the SR3 character label when null).
     /// </summary>
-    Task<string?> PickSaveFileAsync(string title, string suggestedFileName, string extension, string mimeType);
+    Task<string?> PickSaveFileAsync(string title, string suggestedFileName, string extension, string mimeType, string? fileTypeName = null);
 
     /// <summary>
     /// Present an open-file picker. Returns the chosen path, or null if the user cancelled.

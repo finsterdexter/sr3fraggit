@@ -18,7 +18,7 @@ public class DialogService : IDialogService
 
     public void SetOwner(Window owner) => _owner = owner;
 
-    public async Task<string?> PickSaveFileAsync(string title, string suggestedFileName, string extension, string mimeType)
+    public async Task<string?> PickSaveFileAsync(string title, string suggestedFileName, string extension, string mimeType, string? fileTypeName = null)
     {
         if (_owner is null) return null;
         var file = await _owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
@@ -26,7 +26,7 @@ public class DialogService : IDialogService
             Title = title,
             SuggestedFileName = suggestedFileName,
             DefaultExtension = extension,
-            FileTypeChoices = new[] { BuildFileType(extension, mimeType) },
+            FileTypeChoices = new[] { BuildFileType(extension, mimeType, fileTypeName) },
         });
         return file?.TryGetLocalPath();
     }
@@ -81,8 +81,8 @@ public class DialogService : IDialogService
         return await dialog.ShowDialog<bool>(_owner);
     }
 
-    private static FilePickerFileType BuildFileType(string extension, string mimeType) =>
-        new($"SR3 Character (*{extension})")
+    private static FilePickerFileType BuildFileType(string extension, string mimeType, string? fileTypeName = null) =>
+        new($"{fileTypeName ?? "SR3 Character"} (*{extension})")
         {
             Patterns = new[] { $"*{extension}" },
             MimeTypes = new[] { mimeType },

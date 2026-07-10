@@ -31,6 +31,7 @@
     <ProjectReference Include="..\SR3Generator.Creation\SR3Generator.Creation.csproj" />
     <ProjectReference Include="..\SR3Generator.Database\SR3Generator.Database.csproj" />
     <ProjectReference Include="..\SR3Generator.Data\SR3Generator.Data.csproj" />
+    <ProjectReference Include="..\SR3Generator.Export\SR3Generator.Export.csproj" />
   </ItemGroup>
 
   <ItemGroup>
