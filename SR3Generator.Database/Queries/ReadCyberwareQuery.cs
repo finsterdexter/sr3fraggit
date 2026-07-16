@@ -29,21 +29,31 @@ namespace SR3Generator.Database.Queries
             foreach (var dto in dtos)
             {
                 var (book, page) = BookPageParser.Split(dto.BookPage);
-                var cyberware = new Cyberware
+                var categoryTree = ParseCategoryTree(dto.category_tree);
+
+                // Vehicle Control Rigs (RIGGERS › "VCR - Vehicle Control Rig") load as the typed
+                // VehicleControlRig so the rigger's Control dice pool can be derived from them; the
+                // VCR level (1–3) lives in the name "[N]" and becomes the item's Rating.
+                var isVcr = categoryTree.Any(s => s.Equals("VCR - Vehicle Control Rig", System.StringComparison.OrdinalIgnoreCase));
+                var name = dto.name ?? string.Empty;
+                var availability = ParseAvailability(dto.Availability);
+                Cyberware cyberware = isVcr
+                    ? new VehicleControlRig { Name = name, Availability = availability, Book = book }
+                    : new Cyberware { Name = name, Availability = availability, Book = book };
+                cyberware.Id = dto.id;
+                cyberware.Notes = dto.Notes;
+                cyberware.CategoryTree = categoryTree;
+                cyberware.EssenceCost = ParseDecimal(dto.EssCost);
+                cyberware.Cost = ParseCost(dto.Cost);
+                cyberware.Legality = dto.LegalCode;
+                cyberware.Capacity = ParseDecimal(dto.Capacity);
+                cyberware.StreetIndex = ParseDecimal(dto.StreetIndex, 1.0m);
+                cyberware.Page = page;
+                if (isVcr)
                 {
-                    Id = dto.id,
-                    Name = dto.name ?? string.Empty,
-                    Notes = dto.Notes,
-                    CategoryTree = ParseCategoryTree(dto.category_tree),
-                    Availability = ParseAvailability(dto.Availability),
-                    EssenceCost = ParseDecimal(dto.EssCost),
-                    Cost = ParseCost(dto.Cost),
-                    Legality = dto.LegalCode,
-                    Capacity = ParseDecimal(dto.Capacity),
-                    StreetIndex = ParseDecimal(dto.StreetIndex, 1.0m),
-                    Book = book,
-                    Page = page
-                };
+                    var vcrRating = ParseRatingFromName(cyberware.Name);
+                    if (vcrRating > 0) cyberware.Rating = vcrRating;
+                }
 
                 // Parse attribute mods from the Mods string
                 if (!string.IsNullOrWhiteSpace(dto.Mods))

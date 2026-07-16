@@ -1,37 +1,34 @@
 namespace SR3Generator.Export;
 
 /// <summary>
-/// Print-adapted design tokens for the character sheet. Derived from the app's design system
-/// (.interface-design/system.md) but inverted for paper: light surfaces, dark ink, thin borders,
-/// accents used only for section rules and key numbers so the sheet is ink-light when printed.
+/// Grayscale design tokens for the character sheet, modelled on the official SR3 Character
+/// Record Sheet (core rulebook pp. 337–338): black header bars with white text, boxed sections,
+/// ruled data rows. Pure black / white / gray so the sheet prints cleanly on monochrome and
+/// black-and-white printers.
 /// </summary>
 internal static class SheetTheme
 {
-    // Registered font families (see CharacterSheetExporter — embedded, so output is portable).
-    public const string SansFont = "Inter";        // labels, headers, prose
-    public const string MonoFont = "JetBrains Mono"; // numeric data, stat blocks
+    // Registered font families (embedded — see CharacterSheetExporter — so output is portable).
+    public const string SansFont = "Inter";          // labels, headers, prose
+    public const string MonoFont = "JetBrains Mono";  // numeric data, stat blocks
 
-    // Ink
-    public const string InkPrimary = "#1a1a1d";
-    public const string InkSecondary = "#52525b";
-    public const string InkMuted = "#8a8a93";
+    // Ink (grayscale)
+    public const string InkPrimary = "#111114";
+    public const string InkSecondary = "#3f3f46";
+    public const string InkMuted = "#71717a";
 
     // Surfaces
     public const string Paper = "#ffffff";
-    public const string SurfaceTint = "#f4f4f6";  // zebra rows, header fills
-    public const string Border = "#d4d4d8";
-    public const string BorderStrong = "#a1a1aa";
-
-    // Accents (from the design system) — used sparingly on paper.
-    public const string Cyber = "#0891b2";  // tech (darkened from #00d4ff for contrast on white)
-    public const string Mana = "#9333ea";   // magic
-    public const string Nuyen = "#b45309";  // money
-    public const string Karma = "#15803d";  // karma
+    public const string HeaderBarBg = "#111114";   // black section bars
+    public const string HeaderBarText = "#ffffff";  // white text on the bars
+    public const string SubtleTint = "#ececed";     // column-label rows
+    public const string BoxBorder = "#2a2a2e";      // section box outlines
+    public const string HairLine = "#c4c4c8";       // row separators
 
     // Sizes (points)
     public const float TitleSize = 22f;
     public const float SubtitleSize = 10f;
-    public const float SectionHeaderSize = 10f;
+    public const float SectionHeaderSize = 9.5f;
     public const float BodySize = 8.5f;
     public const float DataSize = 8.5f;
     public const float SmallSize = 7.5f;

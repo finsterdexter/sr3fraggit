@@ -451,25 +451,11 @@ public partial class AugmentationsViewModel : ViewModelBase
     {
         if (SelectedCyberwareItem == null) return;
 
-        // Create a copy with the selected grade
-        var cyberware = SelectedCyberwareItem.Cyberware;
-        var toInstall = new Cyberware
-        {
-            Id = cyberware.Id,
-            Name = cyberware.Name,
-            Notes = cyberware.Notes,
-            CategoryTree = cyberware.CategoryTree,
-            Availability = cyberware.Availability,
-            EssenceCost = cyberware.EssenceCost,
-            Cost = cyberware.Cost,
-            Legality = cyberware.Legality,
-            Capacity = cyberware.Capacity,
-            StreetIndex = cyberware.StreetIndex,
-            Book = cyberware.Book,
-            Page = cyberware.Page,
-            Mods = cyberware.Mods.ToList(),
-            Grade = SelectedCyberwareGrade
-        };
+        // Clone the catalog entry so the purchase preserves the runtime subtype (e.g. a
+        // VehicleControlRig stays a VCR) and every field — including Rating — not just the
+        // handful a manual copy would list. Then apply the chosen grade.
+        var toInstall = (Cyberware)SelectedCyberwareItem.Cyberware.CloneForPurchase();
+        toInstall.Grade = SelectedCyberwareGrade;
 
         _characterService.InstallCyberware(toInstall, UseStreetIndex);
     }

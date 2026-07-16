@@ -2,6 +2,7 @@ using System.Globalization;
 using SR3Generator.Creation;
 using SR3Generator.Data.Character;
 using SR3Generator.Data.Gear;
+using SR3Generator.Data.Gear.Attachments;
 using DataAttribute = SR3Generator.Data.Character.Attribute;
 using AttributeName = SR3Generator.Data.Character.Attribute.AttributeName;
 
@@ -49,6 +50,14 @@ public static class CharacterSheetModelFactory
         var essence = builder.GetCurrentEssence();
         var magic = c.Attributes[AttributeName.Magic].BaseValue;
 
+        // Rigging initiative: SR3 p.301 — a VCR adds +2 Reaction and +1D6 per level while jumped in.
+        // Uses natural Reaction (wired reflexes don't apply to rigging). Detects VCRs by category so
+        // legacy plain-Cyberware VCRs still resolve.
+        var vcrRating = c.Gear.Values.FindVcrRating() ?? 0;
+        var riggingInitiative = vcrRating > 0
+            ? $"{reactionBase + 2 * vcrRating} + {1 + vcrRating}D6"
+            : null;
+
         var pools = new List<PoolLine> { new("Combat", c.DicePools[DicePoolType.Combat].Value) };
         AddPoolIfPositive(pools, "Spell", c.DicePools[DicePoolType.Spell].Value);
         AddPoolIfPositive(pools, "Astral", c.DicePools[DicePoolType.AstralCombat].Value);
@@ -88,6 +97,7 @@ public static class CharacterSheetModelFactory
             KnowledgeSkills = BuildSkills(c.KnowledgeSkills.Values),
 
             Tradition = isAwakened ? BuildTradition(c) : null,
+            MagicNotes = isAwakened ? BuildMagicNotes(c) : [],
             Spells = c.Spells.Values
                 .OrderBy(s => s.Class).ThenBy(s => s.Name)
                 .Select(s => new SpellLine(
@@ -124,10 +134,16 @@ public static class CharacterSheetModelFactory
                     w.ActualBioIndexCost.ToString("0.##", CultureInfo.InvariantCulture), w.Rating))
                 .ToList(),
             Gear = BuildMundaneGear(c),
+            MatrixDecks = BuildMatrixDecks(c),
+            CarriedPrograms = BuildCarriedPrograms(c),
+            MatrixIntelligence = Aug(AttributeName.Intelligence),
+            MatrixPhysicalReaction = reactionAug,
             Vehicles = c.Gear.Values.OfType<Vehicle>()
                 .OrderBy(v => v.Name)
-                .Select(v => new VehicleLine(v.Name, v.Handling.ToString(), v.Speed.ToString(), v.Body, v.Armor.ToString()))
+                .Select(BuildVehicle)
                 .ToList(),
+            RiggingInitiative = riggingInitiative,
+            VcrRating = vcrRating,
             Contacts = c.Contacts.Values
                 .OrderByDescending(ct => (int)ct.Level).ThenBy(ct => ct.Name)
                 .Select(ct => new ContactLine(ct.Name, PrettyEnum(ct.Level.ToString())))
@@ -155,15 +171,36 @@ public static class CharacterSheetModelFactory
         if (value > 0) pools.Add(new PoolLine(name, value));
     }
 
-    private static List<SkillLine> BuildSkills(IEnumerable<Skill> skills) =>
-        skills
+    private static List<SkillLine> BuildSkills(IEnumerable<Skill> skills)
+    {
+        var all = skills.ToList();
+        // Specializations are stored as separate skills (IsSpecialization, BaseSkillName) — attach
+        // each to its base skill so it renders as a sub-row, mirroring the app's Skills tab.
+        var specsByBase = all
+            .Where(s => s.IsSpecialization && !string.IsNullOrEmpty(s.BaseSkillName))
+            .ToLookup(s => s.BaseSkillName!);
+        var baseNames = all.Where(s => !s.IsSpecialization).Select(s => s.Name).ToHashSet();
+
+        var lines = all
+            .Where(s => !s.IsSpecialization)
             .OrderByDescending(s => s.BaseValue).ThenBy(s => s.Name)
-            .Select(s => new SkillLine(
-                s.Name,
-                DataAttribute.GetAbbr(s.Attribute).ToString(),
-                s.BaseValue,
-                s.IsSpecialization ? s.BaseSkillName : null))
+            .Select(s =>
+            {
+                var spec = specsByBase[s.Name].FirstOrDefault();
+                return new SkillLine(
+                    s.Name, DataAttribute.GetAbbr(s.Attribute).ToString(), s.BaseValue,
+                    spec?.Name, spec?.BaseValue);
+            })
             .ToList();
+
+        // Orphan specializations (base skill not present) — list them standalone so nothing is lost.
+        lines.AddRange(all
+            .Where(s => s.IsSpecialization && (string.IsNullOrEmpty(s.BaseSkillName) || !baseNames.Contains(s.BaseSkillName!)))
+            .OrderByDescending(s => s.BaseValue).ThenBy(s => s.Name)
+            .Select(s => new SkillLine(s.Name, DataAttribute.GetAbbr(s.Attribute).ToString(), s.BaseValue)));
+
+        return lines;
+    }
 
     private static WeaponLine BuildWeapon(Weapon w)
     {
@@ -186,23 +223,120 @@ public static class CharacterSheetModelFactory
         {
             switch (item)
             {
-                // Rendered in their own dedicated sections.
-                case Weapon or Armor or Augmentation or Focus or Vehicle:
+                // Rendered in their own dedicated sections (Matrix handles decks + programs).
+                case Weapon or Armor or Augmentation or Focus or Vehicle or Cyberdeck or Program:
                 // Attachment children / sub-components — shown via their host, not as loose gear.
-                case FirearmAccessory or VehicleModification or WeaponMount or VehicleControlRig:
+                case FirearmAccessory or VehicleModification or WeaponMount:
                     continue;
-                case Cyberdeck deck:
-                    lines.Add(new GearLine(deck.Name, deck.Rating, $"Cyberdeck · MPCP {deck.MPCP}"));
-                    break;
-                case Program prog:
-                    lines.Add(new GearLine(prog.Name, prog.Rating, $"Program · {PrettyEnum(prog.ProgramType.ToString())}"));
-                    break;
                 default:
                     lines.Add(new GearLine(item.Name, item.Rating, Blank(item.Notes)));
                     break;
             }
         }
         return lines;
+    }
+
+    private static List<MatrixDeckModel> BuildMatrixDecks(Character c) =>
+        c.Gear.Values.OfType<Cyberdeck>()
+            .OrderBy(d => d.Name)
+            .Select(d => new MatrixDeckModel(
+                d.Name, d.MPCP, d.Bod, d.Evasion, d.Masking, d.Sensor,
+                d.Hardening, d.IOSpeed, d.ResponseIncrease,
+                d.ActiveMemory, MemoryUsed(d, CapacityKind.ProgramActiveMemory),
+                d.StorageMemory, MemoryUsed(d, CapacityKind.ProgramStorageMemory),
+                BuildDeckUtilities(d, c)))
+            .ToList();
+
+    private static int MemoryUsed(Cyberdeck deck, CapacityKind kind) =>
+        (int)deck.Attachments.Where(s => s.Kind == kind).Sum(s => s.CapacityCost);
+
+    /// <summary>Programs loaded on this deck, active-memory first, so the sheet shows what runs vs. stores.</summary>
+    private static List<MatrixUtilityLine> BuildDeckUtilities(Cyberdeck deck, Character c)
+    {
+        var utils = new List<MatrixUtilityLine>();
+        foreach (var slot in deck.Attachments)
+        {
+            if (slot.GearReferenceId is not { } pid) continue;
+            if (!c.Gear.TryGetValue(pid, out var g) || g is not Program p) continue;
+            utils.Add(ToUtility(p, slot.Kind == CapacityKind.ProgramActiveMemory));
+        }
+        return utils.OrderByDescending(u => u.IsActive).ThenBy(u => u.Name).ToList();
+    }
+
+    private static List<MatrixUtilityLine> BuildCarriedPrograms(Character c)
+    {
+        var loaded = c.Gear.Values.OfType<Cyberdeck>()
+            .SelectMany(d => d.Attachments)
+            .Where(s => s.GearReferenceId is not null)
+            .Select(s => s.GearReferenceId!.Value)
+            .ToHashSet();
+        return c.Gear
+            .Where(kv => kv.Value is Program && !loaded.Contains(kv.Key))
+            .Select(kv => ToUtility((Program)kv.Value, isActive: false))
+            .OrderBy(u => u.Name)
+            .ToList();
+    }
+
+    private static MatrixUtilityLine ToUtility(Program p, bool isActive) => new(
+        p.Name, p.Rating ?? 0, PrettyEnum(p.ProgramType.ToString().Replace("Utility", "")), p.Size, isActive);
+
+    private static VehicleModel BuildVehicle(Vehicle v)
+    {
+        var stats = new List<VehicleStat>();
+        void Stat(string label, string? value)
+        {
+            if (!string.IsNullOrWhiteSpace(value) && value != "0") stats.Add(new VehicleStat(label, value!));
+        }
+        Stat("Handling", Blank(v.HandlingRaw) ?? v.Handling.ToString());
+        Stat("Speed", v.Speed.ToString());
+        Stat("Accel", v.Acceleration.ToString());
+        Stat("Body", v.Hull is { } hull ? $"{v.Body} (Hull {hull})" : v.Body.ToString());
+        Stat("Armor", v.Bulwark is { } bw ? $"{v.Armor} (Bulwark {bw})" : v.Armor.ToString());
+        Stat("Signature", v.Signature.ToString());
+        Stat("Sonar Sig", v.SignatureSonar.ToString());
+        Stat("Autonav", v.AutoNav.ToString());
+        Stat("Pilot", v.Pilot?.ToString());
+        Stat("Sensor", v.Sensor.ToString());
+        Stat("Cargo", v.Cargo.ToString());
+        Stat("Load", v.Load.ToString());
+        Stat("Seating", Blank(v.Seating));
+        Stat("Entry", Blank(v.Entry));
+        Stat("Fuel", Blank(v.Fuel));
+        Stat("Economy", Blank(v.Economy));
+        Stat("Setup/Breakdown", Blank(v.SetupBreakdownTime));
+
+        var type = Blank(v.ChassisType) ?? Blank(v.CategoryTree.LastOrDefault());
+        return new VehicleModel(v.Name, type, stats, BuildVehicleWeapons(v), BuildVehicleMods(v));
+    }
+
+    /// <summary>Weapons mounted on the vehicle's weapon mounts (Rigger 3 VEHICLE WEAPONS).</summary>
+    private static List<VehicleWeaponLine> BuildVehicleWeapons(Vehicle v)
+    {
+        var weapons = new List<VehicleWeaponLine>();
+        var seen = new HashSet<Equipment>(ReferenceEqualityComparer.Instance);
+        foreach (var slot in v.Attachments)
+        {
+            if (slot.Embedded is not WeaponMount mount || !seen.Add(mount)) continue;
+            var w = mount.Attachments.Select(s => s.Embedded).OfType<Weapon>().FirstOrDefault();
+            if (w is null) continue;
+            var modes = w is Firearm f ? string.Join(" ", f.FireModes.Select(FireModeAbbr)) : "";
+            var ammo = w is Firearm fa ? $"{fa.Ammo.Rounds}({PrettyEnum(fa.Ammo.Type.ToString())})" : "";
+            weapons.Add(new VehicleWeaponLine(mount.Name, w.Name, w.Damage, modes, ammo));
+        }
+        return weapons;
+    }
+
+    /// <summary>Non-weapon modifications installed on the vehicle.</summary>
+    private static List<string> BuildVehicleMods(Vehicle v)
+    {
+        var mods = new List<string>();
+        var seen = new HashSet<Equipment>(ReferenceEqualityComparer.Instance);
+        foreach (var slot in v.Attachments)
+        {
+            if (slot.Embedded is not { } e || e is WeaponMount || !seen.Add(e)) continue;
+            mods.Add(e.Name);
+        }
+        return mods;
     }
 
     private static List<string> BuildSpirits(Character c)
@@ -224,6 +358,27 @@ public static class CharacterSheetModelFactory
         if (c.Totem is { } totem) parts.Add($"Totem: {totem.Name}");
         if (c.HermeticElement is { } el) parts.Add($"Element: {el}");
         return string.Join(" · ", parts);
+    }
+
+    /// <summary>Descriptive detail for the tradition box — totem advantages/disadvantages and flavour.</summary>
+    private static List<string> BuildMagicNotes(Character c)
+    {
+        var notes = new List<string>();
+        if (c.Totem is { } totem)
+        {
+            AddNote(notes, "Advantages", totem.Advantages);
+            AddNote(notes, "Disadvantages", totem.Disadvantages);
+            AddNote(notes, "Environment", totem.Environment);
+            AddNote(notes, null, totem.Description);
+        }
+        return notes;
+    }
+
+    private static void AddNote(List<string> notes, string? label, string? value)
+    {
+        var v = Blank(value);
+        if (v is null) return;
+        notes.Add(label is null ? v : $"{label}: {v}");
     }
 
     private static string? SpellFlags(Data.Magic.Spell s)

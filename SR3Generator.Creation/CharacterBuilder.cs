@@ -2216,10 +2216,12 @@ namespace SR3Generator.Creation
                 ? 0
                 : (intelligence + deck.MPCP) / 3;
 
-            var vcr = Character.Gear.Values.FirstOrDefault(g => g is VehicleControlRig && g.IsEquipped) as VehicleControlRig;
-            Character.DicePools[DicePoolType.Control].Value = vcr?.Rating is null
-                ? 0
-                : Character.Attributes[AttributeName.Reaction].BaseValue + (vcr.Rating.Value * 2);
+            // VCR is cyberware (always installed, no "equip" step). Detect by category so legacy
+            // plain-Cyberware VCRs (older saves) still count. Control Pool = Reaction + VCR rating × 2.
+            var vcrRating = Character.Gear.Values.FindVcrRating();
+            Character.DicePools[DicePoolType.Control].Value = vcrRating is int rating
+                ? Character.Attributes[AttributeName.Reaction].BaseValue + (rating * 2)
+                : 0;
 
             // Apply DicePoolMods from installed cyberware + bioware. Always-on by SR3 convention
             // (cyberware/bioware doesn't "equip"). Runs after base pool calcs so bonuses stack on

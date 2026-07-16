@@ -41,6 +41,8 @@ public sealed class CharacterSheetModel
 
     // Magic (only populated / rendered when IsAwakened).
     public string? Tradition { get; init; }
+    // Totem advantages/disadvantages/description (shaman) or element note (hermetic), one entry per line.
+    public IReadOnlyList<string> MagicNotes { get; init; } = [];
     public IReadOnlyList<SpellLine> Spells { get; init; } = [];
     public IReadOnlyList<AdeptPowerLine> AdeptPowers { get; init; } = [];
     public IReadOnlyList<FocusLine> Foci { get; init; } = [];
@@ -51,7 +53,21 @@ public sealed class CharacterSheetModel
     public IReadOnlyList<AugmentationLine> Cyberware { get; init; } = [];
     public IReadOnlyList<AugmentationLine> Bioware { get; init; } = [];
     public IReadOnlyList<GearLine> Gear { get; init; } = [];
-    public IReadOnlyList<VehicleLine> Vehicles { get; init; } = [];
+
+    // Matrix (Matrix Data Sheet): one full persona/deck block per cyberdeck.
+    public IReadOnlyList<MatrixDeckModel> MatrixDecks { get; init; } = [];
+    // Programs owned but not loaded on any deck.
+    public IReadOnlyList<MatrixUtilityLine> CarriedPrograms { get; init; } = [];
+    // Feeds the per-deck Matrix Initiative Calculation box (augmented values).
+    public int MatrixIntelligence { get; init; }
+    public int MatrixPhysicalReaction { get; init; }
+    public bool HasMatrix => MatrixDecks.Count > 0 || CarriedPrograms.Count > 0;
+
+    public IReadOnlyList<VehicleModel> Vehicles { get; init; } = [];
+    // Rigger's initiative when jumped into a rigger-adapted vehicle via VCR (SR3 p.301:
+    // +2 Reaction & +1D6 per VCR level). Null when the character has no VCR.
+    public string? RiggingInitiative { get; init; }
+    public int VcrRating { get; init; }
     public IReadOnlyList<ContactLine> Contacts { get; init; } = [];
     public IReadOnlyList<EdgeFlawLine> EdgesFlaws { get; init; } = [];
     public IReadOnlyList<LifestyleLine> Lifestyles { get; init; } = [];
@@ -74,7 +90,9 @@ public sealed record AttributeLine(string Name, string Abbr, int Base, int Augme
 
 public sealed record PoolLine(string Name, int Value);
 
-public sealed record SkillLine(string Name, string Attribute, int Rating, string? Specialization);
+public sealed record SkillLine(
+    string Name, string Attribute, int Rating,
+    string? SpecializationName = null, int? SpecializationRating = null);
 
 public sealed record SpellLine(string Name, string Category, int Force, string Type, string Drain, string? Flags);
 
@@ -91,7 +109,27 @@ public sealed record AugmentationLine(string Name, string Grade, string Cost, in
 
 public sealed record GearLine(string Name, int? Rating, string? Detail);
 
-public sealed record VehicleLine(string Name, string? Handling, string? Speed, int? Body, string? Armor);
+/// <summary>A cyberdeck's persona + hardware stats and loaded utilities for the Matrix Data Sheet.</summary>
+public sealed record MatrixDeckModel(
+    string Name, int MPCP, int Bod, int Evasion, int Masking, int Sensor,
+    int Hardening, int IOSpeed, int ResponseIncrease,
+    int ActiveMemoryTotal, int ActiveMemoryUsed, int StorageMemoryTotal, int StorageMemoryUsed,
+    IReadOnlyList<MatrixUtilityLine> Utilities);
+
+/// <param name="IsActive">True when loaded in active memory (the Utilities "Active?" checkbox); false = storage / carried.</param>
+public sealed record MatrixUtilityLine(string Name, int Rating, string Type, int Size, bool IsActive);
+
+public sealed record VehicleStat(string Label, string Value);
+
+/// <summary>A weapon mounted on a vehicle (Rigger 3 VEHICLE WEAPONS row).</summary>
+public sealed record VehicleWeaponLine(string Mount, string Weapon, string Damage, string Modes, string Ammo);
+
+/// <summary>A vehicle/drone for the Rigger 3 Vehicle Record Sheet layout.</summary>
+public sealed record VehicleModel(
+    string Name, string? Type,
+    IReadOnlyList<VehicleStat> Stats,
+    IReadOnlyList<VehicleWeaponLine> Weapons,
+    IReadOnlyList<string> Mods);
 
 public sealed record ContactLine(string Name, string Level);
 
