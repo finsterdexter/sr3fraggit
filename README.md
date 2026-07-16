@@ -6,6 +6,10 @@ A desktop character creation tool for **Shadowrun 3rd Edition**, built with Aval
 
 SR3Generator is a cross-platform desktop application that guides players through the Shadowrun 3rd Edition character creation process. It covers the full priority-based creation system including attributes, skills, magic, gear, contacts, and more, with real-time validation and a reactive UI.
 
+## How does it work?
+
+Just download one of the AppImage (for Linux) or EXE files (for most versions of Winders) and run it! No installer or wizards involved, it just runs.
+
 ## Support
 
 If you liked this app and want to throw a tip my way:
