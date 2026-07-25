@@ -120,6 +120,18 @@ public partial class AugmentationsViewModel : ViewModelBase
     [ObservableProperty]
     private BiowareGrade _selectedBiowareGrade = BiowareGrade.Standard;
 
+    // Changing the grade re-prices the whole catalog: each item recomputes its
+    // essence/bio-index and nuyen displays for the selected grade.
+    partial void OnSelectedCyberwareGradeChanged(CyberwareGrade value)
+    {
+        foreach (var item in _allCyberware) item.Grade = value;
+    }
+
+    partial void OnSelectedBiowareGradeChanged(BiowareGrade value)
+    {
+        foreach (var item in _allBioware) item.Grade = value;
+    }
+
     // Enum value arrays for ComboBox binding
     public CyberwareGrade[] CyberwareGrades { get; } = Enum.GetValues<CyberwareGrade>();
     public BiowareGrade[] BiowareGrades { get; } = Enum.GetValues<BiowareGrade>();
@@ -289,11 +301,11 @@ public partial class AugmentationsViewModel : ViewModelBase
     {
         _allCyberware = _augmentationDatabase.AllCyberware
             .Where(c => _settings.IsBookEnabled(c.Book))
-            .Select(c => new CyberwareItem(c))
+            .Select(c => new CyberwareItem(c, SelectedCyberwareGrade))
             .ToList();
         _allBioware = _augmentationDatabase.AllBioware
             .Where(b => _settings.IsBookEnabled(b.Book))
-            .Select(b => new BiowareItem(b))
+            .Select(b => new BiowareItem(b, SelectedBiowareGrade))
             .ToList();
     }
 
@@ -609,12 +621,31 @@ public partial class BreadcrumbStep : ObservableObject
     }
 }
 
-public class CyberwareItem
+public class CyberwareItem : ObservableObject
 {
+    private CyberwareGrade _grade = CyberwareGrade.Standard;
+
+    /// <summary>Grade currently selected in the catalog toolbar. Setting it re-notifies the
+    /// grade-dependent essence/cost displays so the list and detail pane update in place.</summary>
+    public CyberwareGrade Grade
+    {
+        get => _grade;
+        set
+        {
+            if (SetProperty(ref _grade, value))
+            {
+                OnPropertyChanged(nameof(EssenceCost));
+                OnPropertyChanged(nameof(EssenceDisplay));
+                OnPropertyChanged(nameof(Cost));
+                OnPropertyChanged(nameof(CostDisplay));
+            }
+        }
+    }
+
     public string Name { get; }
-    public decimal EssenceCost { get; }
+    public decimal EssenceCost => Data.Gear.Cyberware.GetActualEssenceCost(Cyberware.EssenceCost, Grade);
     public string EssenceDisplay => EssenceCost.ToString("F2");
-    public int Cost { get; }
+    public int Cost => (int)(Cyberware.Cost * Data.Gear.Cyberware.GetCostMultiplier(Grade));
     public string CostDisplay => $"{Cost:N0}¥";
     public string Availability { get; }
     public string[] CategoryPath { get; }
@@ -638,12 +669,11 @@ public class CyberwareItem
     }
     public Cyberware Cyberware { get; }
 
-    public CyberwareItem(Cyberware cyberware)
+    public CyberwareItem(Cyberware cyberware, CyberwareGrade grade)
     {
         Cyberware = cyberware;
+        _grade = grade;
         Name = cyberware.Name;
-        EssenceCost = cyberware.EssenceCost;
-        Cost = cyberware.Cost;
         Availability = FormatAvailability(cyberware.Availability);
         CategoryPath = cyberware.CategoryTree?.ToArray() ?? Array.Empty<string>();
         CategoryDisplay = CategoryPath.Length > 0 ? string.Join(" > ", CategoryPath) : "Uncategorized";
@@ -663,12 +693,31 @@ public class CyberwareItem
     }
 }
 
-public class BiowareItem
+public class BiowareItem : ObservableObject
 {
+    private BiowareGrade _grade = BiowareGrade.Standard;
+
+    /// <summary>Grade currently selected in the catalog toolbar. Setting it re-notifies the
+    /// grade-dependent bio-index/cost displays so the list and detail pane update in place.</summary>
+    public BiowareGrade Grade
+    {
+        get => _grade;
+        set
+        {
+            if (SetProperty(ref _grade, value))
+            {
+                OnPropertyChanged(nameof(BioIndexCost));
+                OnPropertyChanged(nameof(BioIndexDisplay));
+                OnPropertyChanged(nameof(Cost));
+                OnPropertyChanged(nameof(CostDisplay));
+            }
+        }
+    }
+
     public string Name { get; }
-    public decimal BioIndexCost { get; }
+    public decimal BioIndexCost => Data.Gear.Bioware.GetActualBioIndexCost(Bioware.BioIndexCost, Grade);
     public string BioIndexDisplay => BioIndexCost.ToString("F2");
-    public int Cost { get; }
+    public int Cost => (int)(Bioware.Cost * Data.Gear.Bioware.GetCostMultiplier(Grade));
     public string CostDisplay => $"{Cost:N0}¥";
     public string Availability { get; }
     public string[] CategoryPath { get; }
@@ -690,12 +739,11 @@ public class BiowareItem
     }
     public Bioware Bioware { get; }
 
-    public BiowareItem(Bioware bioware)
+    public BiowareItem(Bioware bioware, BiowareGrade grade)
     {
         Bioware = bioware;
+        _grade = grade;
         Name = bioware.Name;
-        BioIndexCost = bioware.BioIndexCost;
-        Cost = bioware.Cost;
         Availability = FormatAvailability(bioware.Availability);
         CategoryPath = bioware.CategoryTree?.ToArray() ?? Array.Empty<string>();
         CategoryDisplay = CategoryPath.Length > 0 ? string.Join(" > ", CategoryPath) : "Uncategorized";

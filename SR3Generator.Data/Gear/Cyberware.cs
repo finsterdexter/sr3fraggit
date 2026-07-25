@@ -44,28 +44,29 @@ namespace SR3Generator.Data.Gear
         /// "in this manner" — i.e. the floor applies to reductions only, so a zero-Essence item
         /// stays free at every grade.
         /// </summary>
-        public decimal ActualEssenceCost
+        public decimal ActualEssenceCost => GetActualEssenceCost(EssenceCost, Grade);
+
+        public static decimal GetActualEssenceCost(decimal essenceCost, CyberwareGrade grade)
         {
-            get
+            var multiplier = grade switch
             {
-                var multiplier = Grade switch
-                {
-                    CyberwareGrade.Alpha => 0.8m,
-                    CyberwareGrade.Beta => 0.6m,
-                    CyberwareGrade.Delta => 0.5m,
-                    _ => 1m, // Standard and Used: unchanged
-                };
-                if (multiplier == 1m || EssenceCost <= 0m)
-                    return EssenceCost;
-                var reduced = Math.Ceiling(EssenceCost * multiplier * 100m) / 100m;
-                return Math.Max(0.01m, reduced);
-            }
+                CyberwareGrade.Alpha => 0.8m,
+                CyberwareGrade.Beta => 0.6m,
+                CyberwareGrade.Delta => 0.5m,
+                _ => 1m, // Standard and Used: unchanged
+            };
+            if (multiplier == 1m || essenceCost <= 0m)
+                return essenceCost;
+            var reduced = Math.Ceiling(essenceCost * multiplier * 100m) / 100m;
+            return Math.Max(0.01m, reduced);
         }
 
         /// <summary>
         /// Gets the cost multiplier for this grade.
         /// </summary>
-        public decimal CostMultiplier => Grade switch
+        public decimal CostMultiplier => GetCostMultiplier(Grade);
+
+        public static decimal GetCostMultiplier(CyberwareGrade grade) => grade switch
         {
             CyberwareGrade.Alpha => 2m,
             CyberwareGrade.Beta => 4m,
