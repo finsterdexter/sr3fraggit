@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file. New entries go at the top.
 
+## [0.10.1] — 2026-07-25
+
+### ✨ New Features
+- Add usage instructions to README
+
+### 🔧 Changes
+- Adjust catalog price/essence cost when grades selected
+
 ## [0.10.0] — 2026-07-16
 
 ### ✨ New Features
@@ -66,6 +74,7 @@ This release adds a full in-play mode, an item modification workbench, new chara
 
 Initial pre-release of the SR3 character generator (Avalonia desktop app).
 
+[0.10.1]: https://github.com/finsterdexter/sr3fraggit/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/finsterdexter/sr3fraggit/compare/v0.9.2...v0.10.0
 [0.9.2]: https://github.com/finsterdexter/sr3fraggit/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/finsterdexter/sr3fraggit/compare/v0.9.0...v0.9.1
