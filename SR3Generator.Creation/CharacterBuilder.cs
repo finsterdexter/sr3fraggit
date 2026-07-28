@@ -140,10 +140,11 @@ namespace SR3Generator.Creation
             return total;
         }
 
-        /// <summary>Adept power-point allowance — the Magic attribute for adepts; 0 otherwise.</summary>
+        /// <summary>Adept power-point allowance — the Magic attribute (which carries the initiate
+        /// Magic bonus) plus karma-purchased points (SR3 p. 168) for adepts; 0 otherwise.</summary>
         public decimal AdeptPowerPointsAllowance =>
             Character.MagicAspect?.HasPhysicalAdept == true && Character.Attributes.TryGetValue(AttributeName.Magic, out var magic)
-                ? magic.BaseValue
+                ? magic.BaseValue + Character.PurchasedPowerPoints
                 : 0m;
 
         public decimal AdeptPowerPointsSpent =>
@@ -319,6 +320,12 @@ namespace SR3Generator.Creation
             Character.Spells.Clear();
             Character.AdeptPowers.Clear();
             Character.BondedSpirits.Clear();
+
+            // Initiation state is aspect-specific too (metamagic eligibility, adept power
+            // points). Voluntary geasa survive; ordeal-earned ones go with their grades.
+            Character.Initiations.Clear();
+            Character.PurchasedPowerPoints = 0;
+            Character.Geasa.RemoveAll(g => g.Source == GeasSource.InitiationOrdeal);
 
             Character.MagicAspect = magicAspect;
             SpellPointsAllowance = magicAspect.StartingSpellPoints;
@@ -1421,11 +1428,12 @@ namespace SR3Generator.Creation
                 return;
             }
 
-            // For Awakened characters, Magic = floor(Essence - BioIndex/2)
+            // For Awakened characters, Magic = floor(Essence - BioIndex/2), plus 1 per initiate
+            // grade whose advantage raised Magic (MitS p. 58) — this is how Magic exceeds 6.
             if (Character.MagicAspect != null && Character.MagicAspect.Name != AspectName.Mundane)
             {
                 var magicValue = essence - (bioIndex / 2);
-                var newMagic = Math.Max(0, (int)Math.Floor(magicValue));
+                var newMagic = Math.Max(0, (int)Math.Floor(magicValue)) + Character.InitiateMagicBonus;
                 Character.Attributes[AttributeName.Magic].BaseValue = newMagic;
             }
         }
@@ -1729,13 +1737,10 @@ namespace SR3Generator.Creation
                 return this;
             }
 
-            var magicRating = Character.Attributes[Attribute.AttributeName.Magic].BaseValue;
-            var currentPowerPoints = Character.AdeptPowers.Values.Sum(p => p.TotalCost);
-
-            if (currentPowerPoints + power.TotalCost > magicRating)
+            if (power.TotalCost > AdeptPowerPointsRemaining)
             {
                 _logger.LogWarning("AddAdeptPower: Insufficient power points. Need {Cost}, have {Remaining}",
-                    power.TotalCost, magicRating - currentPowerPoints);
+                    power.TotalCost, AdeptPowerPointsRemaining);
                 return this;
             }
 
@@ -1885,6 +1890,202 @@ namespace SR3Generator.Creation
                 KarmaChange = karma,
                 NuyenChange = -nuyen
             });
+            return this;
+        }
+
+        /// <summary>Karma cost to buy one extra adept power point in play (SR3 p. 168). </summary>
+        public const int PowerPointKarmaCost = 20;
+
+        /// <summary>Karma cost of the character's next initiation: (5 + desired grade) × a
+        /// multiplier for how it's undertaken, round down (MitS p. 58). Preview helper; mirrors
+        /// the charge in <see cref="Initiate"/>. </summary>
+        public int GetInitiationCost(bool isGroup, bool withOrdeal)
+        {
+            var grade = Character.Initiations.Count + 1;
+            var multiplier = (isGroup, withOrdeal) switch
+            {
+                (false, false) => 3.0m,
+                (false, true) => 2.5m,
+                (true, false) => 2.0m,
+                (true, true) => 1.5m,
+            };
+            return (int)Math.Floor((5 + grade) * multiplier);
+        }
+
+        /// <summary>Initiate to the next grade (MitS pp. 57–61). The chosen advantage either
+        /// raises Magic by 1 (with a metamagic technique or an altered astral signature) or sheds
+        /// a geas. The Magic increase itself is applied by <see cref="RecalculateEssenceAndMagic"/>
+        /// via <see cref="Character.InitiateMagicBonus"/>, so it survives every rebuild. </summary>
+        public CharacterBuilder Initiate(InitiationRequest request)
+        {
+            if (!Character.IsFinalized)
+            {
+                _logger.LogWarning("Initiate: Character is not finalized");
+                return this;
+            }
+            if (Character.MagicAspect == null || Character.MagicAspect.Name == AspectName.Mundane)
+            {
+                _logger.LogWarning("Initiate: Only Awakened characters can initiate");
+                return this;
+            }
+            if (Character.IsCyberzombie)
+            {
+                _logger.LogWarning("Initiate: Cyberzombies cannot use magic");
+                return this;
+            }
+
+            Metamagic? metamagic = null;
+            if (request.Advantage == InitiationAdvantage.MetamagicTechnique)
+            {
+                metamagic = MetamagicDatabase.Techniques.FirstOrDefault(m => m.Name == request.MetamagicName);
+                if (metamagic == null)
+                {
+                    _logger.LogWarning("Initiate: Unknown metamagic technique {Name}", request.MetamagicName);
+                    return this;
+                }
+                if (!MetamagicDatabase.IsEligible(metamagic, Character.MagicAspect))
+                {
+                    _logger.LogWarning("Initiate: {Name} is not available to a {Aspect}", metamagic.Name, Character.MagicAspect.Name);
+                    return this;
+                }
+                // A technique is learned once — except adept Centering, which extends to a new
+                // skill area per grade (MitS p. 73).
+                var repeatable = metamagic.AdeptRepeatable && Character.MagicAspect.HasPhysicalAdept;
+                if (!repeatable && Character.Initiations.Any(i => i.MetamagicName == metamagic.Name))
+                {
+                    _logger.LogWarning("Initiate: Metamagic technique {Name} already known", metamagic.Name);
+                    return this;
+                }
+            }
+
+            Geas? geasToShed = null;
+            if (request.Advantage == InitiationAdvantage.ShedGeas)
+            {
+                geasToShed = Character.Geasa.FirstOrDefault(g => g.Id == request.GeasIdToShed);
+                if (geasToShed == null)
+                {
+                    _logger.LogWarning("Initiate: Geas to shed not found");
+                    return this;
+                }
+            }
+
+            var withOrdeal = request.Ordeal != InitiationOrdealType.None;
+            var karmaCost = GetInitiationCost(request.IsGroupInitiation, withOrdeal);
+            if (Character.RemainingKarma < karmaCost)
+            {
+                _logger.LogWarning("Initiate: Insufficient karma. Need {Cost}, have {Remaining}", karmaCost, Character.RemainingKarma);
+                return this;
+            }
+
+            var grade = Character.Initiations.Count + 1;
+            Character.KarmaOperations.Add(new KarmaOperation
+            {
+                Type = KarmaOperationType.Spend,
+                KarmaChangeValue = karmaCost,
+                Description = $"Initiation to Grade {grade}"
+            });
+            Character.SpentKarma += karmaCost;
+
+            Character.Initiations.Add(new Initiation
+            {
+                Grade = grade,
+                Advantage = request.Advantage,
+                MetamagicName = metamagic?.Name,
+                MetamagicNote = request.MetamagicNote,
+                IsGroupInitiation = request.IsGroupInitiation,
+                Ordeal = request.Ordeal,
+                OrdealNote = request.OrdealNote,
+                ShedGeasDescription = geasToShed?.Description,
+                KarmaCost = karmaCost
+            });
+
+            if (geasToShed != null)
+            {
+                Character.Geasa.Remove(geasToShed);
+            }
+            if (request.Ordeal == InitiationOrdealType.Geas)
+            {
+                Character.Geasa.Add(new Geas
+                {
+                    Description = request.GeasOrdealDescription ?? $"Geas ordeal (Grade {grade})",
+                    Source = GeasSource.InitiationOrdeal
+                });
+            }
+
+            var advantageSummary = request.Advantage switch
+            {
+                InitiationAdvantage.MetamagicTechnique => $"Magic +1, learned {metamagic!.Name}",
+                InitiationAdvantage.AstralSignature => "Magic +1, altered astral signature",
+                _ => $"Shed geas: {geasToShed!.Description}",
+            };
+            Character.JournalEntries.Add(new JournalEntry
+            {
+                Type = JournalEntryType.Initiation,
+                Title = $"Initiation: Grade {grade}",
+                Note = withOrdeal ? $"{advantageSummary}. Ordeal: {request.Ordeal}." : advantageSummary,
+                KarmaChange = -karmaCost
+            });
+            return this;
+        }
+
+        /// <summary>Buy one extra adept power point for 20 Good Karma (SR3 p. 168). No total cap —
+        /// only the per-power level limit constrains what the points buy. </summary>
+        public CharacterBuilder BuyPowerPoint()
+        {
+            if (!Character.IsFinalized)
+            {
+                _logger.LogWarning("BuyPowerPoint: Character is not finalized");
+                return this;
+            }
+            if (Character.MagicAspect?.HasPhysicalAdept != true)
+            {
+                _logger.LogWarning("BuyPowerPoint: Character is not a physical adept");
+                return this;
+            }
+            if (Character.RemainingKarma < PowerPointKarmaCost)
+            {
+                _logger.LogWarning("BuyPowerPoint: Insufficient karma. Need {Cost}, have {Remaining}", PowerPointKarmaCost, Character.RemainingKarma);
+                return this;
+            }
+
+            Character.KarmaOperations.Add(new KarmaOperation
+            {
+                Type = KarmaOperationType.Spend,
+                KarmaChangeValue = PowerPointKarmaCost,
+                Description = "Buy Power Point"
+            });
+            Character.SpentKarma += PowerPointKarmaCost;
+            Character.PurchasedPowerPoints++;
+            Character.JournalEntries.Add(new JournalEntry
+            {
+                Type = JournalEntryType.Advancement,
+                Title = "Buy Power Point",
+                KarmaChange = -PowerPointKarmaCost
+            });
+            return this;
+        }
+
+        /// <summary>Record a geas (no karma — bookkeeping so the shed-geas advantage has targets). </summary>
+        public CharacterBuilder AddGeas(string description, GeasSource source, string? note = null)
+        {
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                _logger.LogWarning("AddGeas: Description is required");
+                return this;
+            }
+            Character.Geasa.Add(new Geas { Description = description.Trim(), Source = source, Note = note });
+            return this;
+        }
+
+        public CharacterBuilder RemoveGeas(Guid id)
+        {
+            var geas = Character.Geasa.FirstOrDefault(g => g.Id == id);
+            if (geas == null)
+            {
+                _logger.LogWarning("RemoveGeas: Geas not found");
+                return this;
+            }
+            Character.Geasa.Remove(geas);
             return this;
         }
 

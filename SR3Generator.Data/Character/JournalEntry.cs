@@ -22,6 +22,7 @@ namespace SR3Generator.Data.Character
         Gain,
         KarmaToNuyen,
         NuyenToKarma,
-        Advancement
+        Advancement,
+        Initiation
     }
 }

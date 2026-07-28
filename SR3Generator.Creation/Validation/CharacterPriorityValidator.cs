@@ -190,9 +190,10 @@ namespace SR3Generator.Creation.Validation
 
             foreach (var (name, att) in character.Attributes)
             {
-                if (name == AttributeName.Magic && (att.BaseValue < 0 || att.BaseValue > 6))
+                // Initiation raises Magic above 6, one point per Magic-raising grade (MitS p. 58).
+                if (name == AttributeName.Magic && (att.BaseValue < 0 || att.BaseValue > 6 + character.InitiateMagicBonus))
                 {
-                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Attributes, Level = ValidationIssueLevel.Error, Message = "Magic must have a base value between 0 and 6." });
+                    Issues.Add(new ValidationIssue { Category = ValidationIssueCategory.Attributes, Level = ValidationIssueLevel.Error, Message = "Magic must have a base value between 0 and 6 (plus initiate grades)." });
                 }
                 // Cyberzombies deliberately carry negative Essence (M&M cybermancy), so the
                 // floor only applies to normal characters.

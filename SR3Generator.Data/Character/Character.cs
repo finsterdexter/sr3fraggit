@@ -63,6 +63,20 @@ namespace SR3Generator.Data.Character
         public HermeticElement? HermeticElement { get; set; } = null;
         public Dictionary<string, Spell> Spells { get; set; } = new Dictionary<string, Spell>();
         public Dictionary<string, AdeptPower> AdeptPowers { get; set; } = new Dictionary<string, AdeptPower>();
+
+        // Post-creation initiation state (MitS pp. 57–61). Oldest-first; persists with the file.
+        public List<Initiation> Initiations { get; set; } = new List<Initiation>();
+        public List<Geas> Geasa { get; set; } = new List<Geas>();
+
+        /// <summary>Extra adept power points bought with karma at 20 apiece (SR3 p. 168). </summary>
+        public int PurchasedPowerPoints { get; set; }
+
+        public int InitiateGrade => Initiations.Count;
+
+        /// <summary>Magic bonus from initiation: +1 per grade whose advantage raised Magic
+        /// (shed-geas grades don't). Applied as an additive term when Magic is recomputed. </summary>
+        public int InitiateMagicBonus => Initiations.Count(i => i.Advantage != InitiationAdvantage.ShedGeas);
+
         public Dictionary<Guid, BondedSpirit> BondedSpirits { get; set; } = new Dictionary<Guid, BondedSpirit>();
         public int WatcherSpirits { get; set; }
         public AllySpirit? AllySpirit { get; set; } = null;
