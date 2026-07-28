@@ -26,6 +26,7 @@
                                Classes="section-header" Margin="12,12,12,8"/>
                     <ListBox ItemsSource="{Binding AvailableAspects}"
                              SelectedItem="{Binding SelectedAspect}"
+                             IsEnabled="{Binding !IsPlayMode}"
                              Background="Transparent" BorderThickness="0"
                              Margin="8,0,8,8">
                         <ListBox.ItemTemplate>

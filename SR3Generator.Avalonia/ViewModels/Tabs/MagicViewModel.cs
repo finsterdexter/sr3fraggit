@@ -13,6 +13,7 @@ public partial class MagicViewModel : ViewModelBase
 {
     private readonly ICharacterBuilderService _characterService;
     private readonly TotemDatabase _totemDatabase;
+    private bool _suppressAspectPushback;
     private bool _suppressTraditionPushback;
     private bool _suppressTotemPushback;
     private bool _suppressElementPushback;
@@ -40,6 +41,11 @@ public partial class MagicViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _isMagical;
+
+    // True once finalized: aspect switching is locked, since WithMagicAspect wipes spells,
+    // adept powers, purchased power points, and initiations.
+    [ObservableProperty]
+    private bool _isPlayMode;
 
     // Tradition / Totem / Element selection
     [ObservableProperty]
@@ -96,11 +102,6 @@ public partial class MagicViewModel : ViewModelBase
     {
         var newAspects = _characterService.Builder.MagicAspectsAllowed.ToList();
 
-        var previousNames = AvailableAspects.Select(a => a.Name).ToHashSet();
-        var newNames = newAspects.Select(a => a.Name).ToHashSet();
-        var allowedSetChanged = !previousNames.SetEquals(newNames);
-
-        var currentSelection = SelectedAspect;
         AvailableAspects.Clear();
         foreach (var aspect in newAspects)
         {
@@ -113,14 +114,26 @@ public partial class MagicViewModel : ViewModelBase
             return;
         }
 
-        if (allowedSetChanged || currentSelection is null ||
-            !AvailableAspects.Any(a => a.Name == currentSelection.Name))
+        // The character is the source of truth: sync the selection to its aspect without
+        // pushing back through SetMagicAspect — a pushback here re-fires WithMagicAspect,
+        // which wipes adept powers / purchased power points / initiations. This used to
+        // restore the UI's own stale selection after a file load, silently overwriting the
+        // loaded character's aspect with AvailableAspects[0].
+        var characterAspect = _characterService.Builder.Character.MagicAspect;
+        var match = characterAspect is null
+            ? null
+            : AvailableAspects.FirstOrDefault(a => a.Name == characterAspect.Name);
+        if (match is not null)
         {
-            SelectedAspect = AvailableAspects[0];
+            _suppressAspectPushback = true;
+            SelectedAspect = match;
+            _suppressAspectPushback = false;
         }
         else
         {
-            SelectedAspect = AvailableAspects.First(a => a.Name == currentSelection.Name);
+            // No aspect chosen yet (new character, or priorities invalidated the old one):
+            // default to the first allowed aspect and push it into the builder.
+            SelectedAspect = AvailableAspects[0];
         }
     }
 
@@ -131,6 +144,8 @@ public partial class MagicViewModel : ViewModelBase
     private void SyncFromCharacter()
     {
         var character = _characterService.Builder.Character;
+
+        IsPlayMode = character.IsFinalized;
 
         _suppressTraditionPushback = true;
         SelectedTradition = character.Tradition;
@@ -156,7 +171,10 @@ public partial class MagicViewModel : ViewModelBase
     {
         if (value != null)
         {
-            _characterService.SetMagicAspect(value);
+            if (!_suppressAspectPushback)
+            {
+                _characterService.SetMagicAspect(value);
+            }
             UpdateAspectDisplay(value);
         }
 
