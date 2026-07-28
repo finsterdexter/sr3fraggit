@@ -19,6 +19,7 @@ public partial class MagicContainerViewModel : ViewModelBase
     public AdeptPowersViewModel AdeptPowersVM { get; }
     public SpiritsViewModel SpiritsVM { get; }
     public FociViewModel FociVM { get; }
+    public InitiationViewModel InitiationVM { get; }
 
     [ObservableProperty]
     private int _selectedSubtabIndex;
@@ -35,13 +36,18 @@ public partial class MagicContainerViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isAdept;
 
+    // Initiation (MitS) is a play-mode activity: awakened + finalized.
+    [ObservableProperty]
+    private bool _showInitiation;
+
     public MagicContainerViewModel(
         ICharacterBuilderService characterService,
         MagicViewModel overviewVM,
         SpellsViewModel spellsVM,
         AdeptPowersViewModel adeptPowersVM,
         SpiritsViewModel spiritsVM,
-        FociViewModel fociVM)
+        FociViewModel fociVM,
+        InitiationViewModel initiationVM)
     {
         _characterService = characterService;
         OverviewVM = overviewVM;
@@ -49,6 +55,7 @@ public partial class MagicContainerViewModel : ViewModelBase
         AdeptPowersVM = adeptPowersVM;
         SpiritsVM = spiritsVM;
         FociVM = fociVM;
+        InitiationVM = initiationVM;
 
         _characterService.CharacterChanged += OnCharacterChanged;
         RefreshFlags();
@@ -63,6 +70,7 @@ public partial class MagicContainerViewModel : ViewModelBase
         HasSorcery = aspect?.HasSorcery ?? false;
         HasConjuring = aspect?.HasConjuring ?? false;
         IsAdept = aspect?.HasPhysicalAdept ?? false;
+        ShowInitiation = HasMagic && _characterService.Builder.Character.IsFinalized;
 
         // If the currently-selected subtab disappeared (e.g. user switched from
         // Full Magician to Adept and Spells went away), bounce back to Overview.
@@ -79,6 +87,7 @@ public partial class MagicContainerViewModel : ViewModelBase
         2 => IsAdept,                 // Adept Powers
         3 => HasConjuring,            // Spirits
         4 => HasMagic,                // Foci
+        5 => ShowInitiation,          // Initiation
         _ => true,
     };
 }

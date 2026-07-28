@@ -29,5 +29,9 @@
                  IsVisible="{Binding HasMagic}">
             <tabs:FociView DataContext="{Binding FociVM}"/>
         </TabItem>
+        <TabItem Header="{x:Static res:Strings.MagicSubtabInitiation}"
+                 IsVisible="{Binding ShowInitiation}">
+            <tabs:InitiationView DataContext="{Binding InitiationVM}"/>
+        </TabItem>
     </TabControl>
 </UserControl>

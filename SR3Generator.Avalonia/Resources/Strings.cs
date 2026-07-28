@@ -261,6 +261,7 @@ public static class Strings
     public static string MagicSubtabAdept => Get(nameof(MagicSubtabAdept));
     public static string MagicSubtabSpirits => Get(nameof(MagicSubtabSpirits));
     public static string MagicSubtabFoci => Get(nameof(MagicSubtabFoci));
+    public static string MagicSubtabInitiation => Get(nameof(MagicSubtabInitiation));
 
     // Magic overview pickers
     public static string SectionTradition => Get(nameof(SectionTradition));

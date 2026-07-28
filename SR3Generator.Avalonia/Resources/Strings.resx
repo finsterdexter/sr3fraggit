@@ -259,6 +259,7 @@
   <data name="MagicSubtabAdept" xml:space="preserve"><value>Adept Powers</value></data>
   <data name="MagicSubtabSpirits" xml:space="preserve"><value>Spirits</value></data>
   <data name="MagicSubtabFoci" xml:space="preserve"><value>Foci</value></data>
+  <data name="MagicSubtabInitiation" xml:space="preserve"><value>Initiation</value></data>
 
   <!-- Magic overview pickers -->
   <data name="SectionTradition" xml:space="preserve"><value>TRADITION</value></data>

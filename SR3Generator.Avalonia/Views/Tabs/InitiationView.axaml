@@ -1,0 +1,210 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SR3Generator.Avalonia.ViewModels.Tabs"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="800"
+             x:Class="SR3Generator.Avalonia.Views.Tabs.InitiationView"
+             x:DataType="vm:InitiationViewModel">
+
+    <ScrollViewer Padding="16">
+        <StackPanel Spacing="12" MaxWidth="1100" HorizontalAlignment="Stretch">
+            <!-- Header -->
+            <StackPanel Spacing="4">
+                <TextBlock Text="Initiation" Classes="page-title"/>
+                <TextBlock Classes="page-subtitle"
+                           Text="Initiate to higher grades for Magic, metamagic techniques, and shed geasa (MitS p. 57)."/>
+            </StackPanel>
+
+            <!-- Resource bar -->
+            <Border Classes="resource-bar">
+                <StackPanel Orientation="Horizontal" Spacing="24">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="GRADE" Classes="micro-label"/>
+                        <TextBlock Text="{Binding InitiateGrade}" Classes="stat-value-lg"
+                                   Foreground="{StaticResource AccentManaBrush}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="MAGIC" Classes="micro-label"/>
+                        <TextBlock Text="{Binding MagicRating}" Classes="stat-value-lg"
+                                   Foreground="{StaticResource AccentManaBrush}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="NEXT GRADE" Classes="micro-label"/>
+                        <TextBlock Text="{Binding NextGradeCost, StringFormat='{}{0} K'}" Classes="stat-value-lg"
+                                   Foreground="{StaticResource AccentKarmaBrush}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="KARMA" Classes="micro-label"/>
+                        <TextBlock Text="{Binding RemainingKarma}" Classes="stat-value-lg"
+                                   Foreground="{StaticResource AccentKarmaBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Grid ColumnDefinitions="3*,12,2*">
+                <!-- New initiation form (play mode) -->
+                <Border Grid.Column="0" Classes="panel" IsVisible="{Binding IsPlayMode}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="NEW INITIATION" Classes="section-header"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <CheckBox IsChecked="{Binding IsGroupInitiation}" Content="Group initiation"/>
+                            <CheckBox IsChecked="{Binding HasOrdeal}" Content="Undertake an ordeal"/>
+                        </StackPanel>
+
+                        <StackPanel Spacing="4" IsVisible="{Binding HasOrdeal}">
+                            <TextBlock Text="Ordeal" Classes="micro-label"/>
+                            <ComboBox ItemsSource="{Binding Ordeals}"
+                                      SelectedItem="{Binding SelectedOrdeal}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate DataType="vm:OrdealItem">
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBox Text="{Binding OrdealNote}" Watermark="Optional ordeal details"/>
+                            <StackPanel Spacing="4" IsVisible="{Binding IsGeasOrdeal}">
+                                <TextBlock Text="New geas (taken as the ordeal)" Classes="micro-label"/>
+                                <TextBox Text="{Binding GeasOrdealDescription}"
+                                         Watermark="e.g. Only use powers while barefoot"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}"/>
+
+                        <TextBlock Text="ADVANTAGE" Classes="micro-label"/>
+                        <StackPanel Spacing="6">
+                            <RadioButton GroupName="advantage" IsChecked="{Binding AdvantageMetamagic}"
+                                         Content="Magic +1 and learn a metamagic technique"/>
+                            <StackPanel Spacing="4" Margin="28,0,0,0" IsVisible="{Binding AdvantageMetamagic}">
+                                <ComboBox ItemsSource="{Binding EligibleMetamagics}"
+                                          SelectedItem="{Binding SelectedMetamagic}"
+                                          HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate DataType="vm:MetamagicItem">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="{Binding Name}"/>
+                                                <TextBlock Text="{Binding BookPageDisplay}" FontSize="10"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{StaticResource InkMutedBrush}"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <TextBlock Text="{Binding SelectedMetamagic.Description}" FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Foreground="{StaticResource InkSecondaryBrush}"/>
+                                <TextBox Text="{Binding MetamagicNote}"
+                                         Watermark="Optional note (e.g. Centering skill area)"/>
+                            </StackPanel>
+
+                            <RadioButton GroupName="advantage" IsChecked="{Binding AdvantageSignature}"
+                                         Content="Magic +1 and alter astral signature"/>
+
+                            <RadioButton GroupName="advantage" IsChecked="{Binding AdvantageShedGeas}"
+                                         Content="Shed a geas (no Magic increase)"/>
+                            <StackPanel Spacing="4" Margin="28,0,0,0" IsVisible="{Binding AdvantageShedGeas}">
+                                <ComboBox ItemsSource="{Binding Geasa}"
+                                          SelectedItem="{Binding SelectedGeasToShed}"
+                                          HorizontalAlignment="Stretch">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate DataType="vm:GeasItem">
+                                            <TextBlock Text="{Binding Description}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button Classes="primary" HorizontalAlignment="Right"
+                                Content="{Binding NextGradeCost, StringFormat='Initiate ({0} Karma)'}"
+                                Command="{Binding InitiateCommand}"
+                                IsEnabled="{Binding CanInitiate}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Creation-mode placeholder -->
+                <Border Grid.Column="0" Classes="panel" IsVisible="{Binding !IsPlayMode}">
+                    <TextBlock Text="Initiation becomes available after the character is finalized."
+                               FontSize="12" Foreground="{StaticResource InkMutedBrush}"
+                               VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Border>
+
+                <!-- Geasa -->
+                <Border Grid.Column="2" Classes="panel">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="GEASA" Classes="section-header"/>
+                        <ListBox ItemsSource="{Binding Geasa}" SelectedItem="{Binding SelectedGeas}"
+                                 MaxHeight="260" Background="Transparent">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="vm:GeasItem">
+                                    <StackPanel Spacing="2">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding Description}" FontSize="12"
+                                                       Foreground="{StaticResource InkPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding SourceDisplay}" FontSize="9"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource InkMutedBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Note}" FontSize="10" TextWrapping="Wrap"
+                                                   IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                                   Foreground="{StaticResource InkMutedBrush}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <Button Classes="default" Content="Remove Selected" HorizontalAlignment="Right"
+                                Command="{Binding RemoveGeasCommand}"/>
+
+                        <Rectangle Height="1" Fill="{StaticResource BorderSubtleBrush}"/>
+
+                        <TextBlock Text="Add geas" Classes="micro-label"/>
+                        <TextBox Text="{Binding NewGeasDescription}" Watermark="Description"/>
+                        <TextBox Text="{Binding NewGeasNote}" Watermark="Optional note"/>
+                        <Button Classes="default" Content="Add" HorizontalAlignment="Right"
+                                Command="{Binding AddGeasCommand}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Grade history -->
+            <StackPanel Spacing="6">
+                <TextBlock Text="GRADE HISTORY" Classes="section-header"/>
+                <Border Classes="panel-inset" Padding="0">
+                    <ItemsControl ItemsSource="{Binding Initiations}" Padding="4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:InitiationItem">
+                                <Border Padding="10,8" Margin="0,0,0,2"
+                                        Background="{StaticResource Surface100Brush}"
+                                        CornerRadius="3">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="12">
+                                        <Border Grid.Column="0" VerticalAlignment="Center"
+                                                Background="{StaticResource Surface300Brush}"
+                                                CornerRadius="2" Padding="6,2">
+                                            <TextBlock Text="{Binding GradeDisplay}" FontSize="9" FontWeight="Bold"
+                                                       Foreground="{StaticResource AccentManaBrush}"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding AdvantageDisplay}" FontSize="12"
+                                                       Foreground="{StaticResource InkPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding Note}" FontSize="10" TextWrapping="Wrap"
+                                                       IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                                       Foreground="{StaticResource InkMutedBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="{Binding MethodDisplay}" FontSize="10"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{StaticResource InkSecondaryBrush}"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding CostDisplay}" VerticalAlignment="Center"
+                                                   Classes="stat-value" Foreground="{StaticResource AccentKarmaBrush}"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

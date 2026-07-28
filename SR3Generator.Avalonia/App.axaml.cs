@@ -128,6 +128,7 @@ public partial class App : Application
         services.AddTransient<SpellsViewModel>();
         services.AddTransient<SpiritsViewModel>();
         services.AddTransient<AdeptPowersViewModel>();
+        services.AddTransient<InitiationViewModel>();
         services.AddTransient<FociViewModel>();
         services.AddTransient<GearViewModel>();
         services.AddTransient<GearModsViewModel>();
