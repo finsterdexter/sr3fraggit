@@ -114,6 +114,7 @@
   <data name="ButtonRemove" xml:space="preserve"><value>Remove</value></data>
   <data name="ButtonRemoveSelected" xml:space="preserve"><value>Remove Selected</value></data>
   <data name="ButtonBuy" xml:space="preserve"><value>Buy</value></data>
+  <data name="ButtonBuyPowerPoint" xml:space="preserve"><value>Buy Power Point (20 Karma)</value></data>
   <data name="ButtonSell" xml:space="preserve"><value>Sell</value></data>
   <data name="ButtonMods" xml:space="preserve"><value>Mods</value></data>
   <data name="ButtonInstallCyberware" xml:space="preserve"><value>Install</value></data>

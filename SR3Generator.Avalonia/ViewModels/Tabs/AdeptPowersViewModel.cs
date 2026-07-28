@@ -7,6 +7,7 @@ using SR3Generator.Database;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using AttributeName = SR3Generator.Data.Character.Attribute.AttributeName;
 
 namespace SR3Generator.Avalonia.ViewModels.Tabs;
@@ -16,6 +17,7 @@ public partial class AdeptPowersViewModel : ViewModelBase
     private readonly ICharacterBuilderService _characterService;
     private readonly AdeptPowerDatabase _adeptPowerDatabase;
     private readonly IUserSettingsService _settings;
+    private readonly IDialogService _dialogService;
 
     [ObservableProperty]
     private ObservableCollection<AdeptPowerItem> _availablePowers = new();
@@ -47,16 +49,29 @@ public partial class AdeptPowersViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isAdept;
 
+    // Play mode (finalized): the allowance can exceed Magic via purchased points, and the
+    // buy-power-point affordance (SR3 p. 168) appears in the resource bar.
+    [ObservableProperty]
+    private bool _isPlayMode;
+
+    [ObservableProperty]
+    private bool _canBuyPowerPoint;
+
+    [ObservableProperty]
+    private string _powerPointsAllowanceDisplay = "0";
+
     public int[] AvailableLevels { get; } = Enumerable.Range(1, 6).ToArray();
 
     public AdeptPowersViewModel(
         ICharacterBuilderService characterService,
         AdeptPowerDatabase adeptPowerDatabase,
-        IUserSettingsService settings)
+        IUserSettingsService settings,
+        IDialogService dialogService)
     {
         _characterService = characterService;
         _adeptPowerDatabase = adeptPowerDatabase;
         _settings = settings;
+        _dialogService = dialogService;
         _characterService.CharacterChanged += OnCharacterChanged;
         _settings.SettingsChanged += OnSettingsChanged;
 
@@ -129,6 +144,16 @@ public partial class AdeptPowersViewModel : ViewModelBase
         _characterService.RemoveAdeptPower(SelectedPurchasedPower.PowerKey);
     }
 
+    [RelayCommand]
+    private async Task BuyPowerPointAsync()
+    {
+        if (!CanBuyPowerPoint) return;
+        var confirmed = await _dialogService.ConfirmAsync(
+            "Buy Power Point?",
+            $"Spend {_characterService.PowerPointCost} Good Karma for +1 power point? This cannot be undone.");
+        if (confirmed) _characterService.BuyPowerPoint();
+    }
+
     private void RefreshFromBuilder()
     {
         var builder = _characterService.Builder;
@@ -139,6 +164,11 @@ public partial class AdeptPowersViewModel : ViewModelBase
 
         PowerPointsSpentDisplay = builder.AdeptPowerPointsSpent.ToString("F2");
         PowerPointsRemainingDisplay = builder.AdeptPowerPointsRemaining.ToString("F2");
+        PowerPointsAllowanceDisplay = builder.AdeptPowerPointsAllowance.ToString("0.##");
+
+        IsPlayMode = character.IsFinalized;
+        CanBuyPowerPoint = IsPlayMode && IsAdept
+            && character.RemainingKarma >= _characterService.PowerPointCost;
 
         var previouslySelectedKey = SelectedPurchasedPower?.PowerKey;
         PurchasedPowers.Clear();

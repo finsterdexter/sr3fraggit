@@ -136,6 +136,23 @@ public interface ICharacterBuilderService
     /// replaying each step through the builder's improve methods and logging a Journal entry. </summary>
     void ApplyAdvancement(AdvancementPlan plan);
 
+    /// <summary>Karma cost of the character's next initiate grade (MitS p. 58). </summary>
+    int GetInitiationCost(bool isGroup, bool withOrdeal);
+
+    /// <summary>Initiate to the next grade, spending karma and applying the chosen advantage. </summary>
+    void Initiate(InitiationRequest request);
+
+    /// <summary>Record a geas (bookkeeping only, no karma). </summary>
+    void AddGeas(string description, GeasSource source, string? note);
+
+    void RemoveGeas(Guid id);
+
+    /// <summary>Buy one extra adept power point for 20 Good Karma (SR3 p. 168). </summary>
+    void BuyPowerPoint();
+
+    /// <summary>Karma price of one power point, for UI labels. </summary>
+    int PowerPointCost { get; }
+
     // Build and validation
     Character BuildCharacter();
     List<ValidationIssue> GetValidationIssues();

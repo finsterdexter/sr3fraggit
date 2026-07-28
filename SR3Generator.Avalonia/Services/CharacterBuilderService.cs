@@ -466,6 +466,35 @@ public class CharacterBuilderService : ICharacterBuilderService
         OnCharacterChanged();
     }
 
+    public int GetInitiationCost(bool isGroup, bool withOrdeal) =>
+        _builder.GetInitiationCost(isGroup, withOrdeal);
+
+    public void Initiate(InitiationRequest request)
+    {
+        _builder.Initiate(request);
+        OnCharacterChanged();
+    }
+
+    public void AddGeas(string description, GeasSource source, string? note)
+    {
+        _builder.AddGeas(description, source, note);
+        OnCharacterChanged();
+    }
+
+    public void RemoveGeas(Guid id)
+    {
+        _builder.RemoveGeas(id);
+        OnCharacterChanged();
+    }
+
+    public void BuyPowerPoint()
+    {
+        _builder.BuyPowerPoint();
+        OnCharacterChanged();
+    }
+
+    public int PowerPointCost => CharacterBuilder.PowerPointKarmaCost;
+
     public void ApplyAdvancement(AdvancementPlan plan)
     {
         // Apply attributes first so skill costs see any raised linked attribute (matching the

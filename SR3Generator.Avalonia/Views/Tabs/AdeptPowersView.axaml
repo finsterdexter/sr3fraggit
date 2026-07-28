@@ -30,7 +30,7 @@
                         <Run Text="{Binding PowerPointsRemainingDisplay}"
                              Foreground="{StaticResource AccentKarmaBrush}"/>
                         <Run Text=" / " Foreground="{StaticResource InkMutedBrush}"/>
-                        <Run Text="{Binding MagicRating}"
+                        <Run Text="{Binding PowerPointsAllowanceDisplay}"
                              Foreground="{StaticResource InkSecondaryBrush}"/>
                     </TextBlock>
                 </StackPanel>
@@ -39,6 +39,12 @@
                     <TextBlock Text="{Binding PowerPointsSpentDisplay}" Classes="stat-value"
                                Foreground="{StaticResource InkSecondaryBrush}"/>
                 </StackPanel>
+                <!-- SR3 p. 168: adepts may buy extra power points in play at 20 karma apiece. -->
+                <Button Classes="primary" VerticalAlignment="Center"
+                        Content="{x:Static res:Strings.ButtonBuyPowerPoint}"
+                        Command="{Binding BuyPowerPointCommand}"
+                        IsVisible="{Binding IsPlayMode}"
+                        IsEnabled="{Binding CanBuyPowerPoint}"/>
             </StackPanel>
         </Border>
 

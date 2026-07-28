@@ -116,6 +116,7 @@ public static class Strings
     public static string ButtonRemove => Get(nameof(ButtonRemove));
     public static string ButtonRemoveSelected => Get(nameof(ButtonRemoveSelected));
     public static string ButtonBuy => Get(nameof(ButtonBuy));
+    public static string ButtonBuyPowerPoint => Get(nameof(ButtonBuyPowerPoint));
     public static string ButtonSell => Get(nameof(ButtonSell));
     public static string ButtonMods => Get(nameof(ButtonMods));
     public static string ButtonInstallCyberware => Get(nameof(ButtonInstallCyberware));
