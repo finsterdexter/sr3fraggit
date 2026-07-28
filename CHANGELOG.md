@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file. New entries go at the top.
 
+## [0.11.0] — 2026-07-28
+
+### ✨ New Features
+- Add initiate grades and 20-karma power point purchase to builder
+- Add Buy Power Point button to Adept Powers tab in play mode
+- Add Initiation subtab to Magic tab
+
+### 🔧 Changes
+- Show initiate grade in journal, summary, and PDF export
+- Cap adept power levels at Magic rating
+- Show Finalized status after finalization in sidebar and Summary tab
+- Apply adept power and natural bioware mods across attributes, pools, and armor
+- Stop Magic tab from clobbering loaded character's aspect
+- Always confirm before starting a new character
+
 ## [0.10.1] — 2026-07-25
 
 ### ✨ New Features
@@ -74,6 +89,7 @@ This release adds a full in-play mode, an item modification workbench, new chara
 
 Initial pre-release of the SR3 character generator (Avalonia desktop app).
 
+[0.11.0]: https://github.com/finsterdexter/sr3fraggit/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/finsterdexter/sr3fraggit/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/finsterdexter/sr3fraggit/compare/v0.9.2...v0.10.0
 [0.9.2]: https://github.com/finsterdexter/sr3fraggit/compare/v0.9.1...v0.9.2
