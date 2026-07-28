@@ -13,23 +13,55 @@ namespace SR3Generator.Data.Character
         public int BaseValue { get; set; }
         public bool Stressed { get; set; }
 
+        /// <summary>All mod carriers on the character, with the multiplier each mod's value
+        /// scales by: 1 for gear and natural augmentations; the power level for leveled adept
+        /// powers, whose DB mods are per-level (e.g. Imp. Physical Attr. +1 per level). Non-
+        /// leveled powers (Imp. Reflexes Level 1–3 rows) carry pre-scaled values.</summary>
+        public static IEnumerable<(Mod Mod, int Multiplier)> EnumerateMods(Character character)
+        {
+            foreach (var gear in character.Gear.Values)
+            {
+                if (gear.Mods == null) continue;
+                foreach (var mod in gear.Mods) yield return (mod, 1);
+            }
+            foreach (var aug in character.NaturalAugmentations.Values)
+            {
+                if (aug.Mods == null) continue;
+                foreach (var mod in aug.Mods) yield return (mod, 1);
+            }
+            foreach (var power in character.AdeptPowers.Values)
+            {
+                if (power.Mods == null) continue;
+                var multiplier = power.IsLeveled ? power.Level : 1;
+                foreach (var mod in power.Mods) yield return (mod, multiplier);
+            }
+        }
+
+        /// <summary>Augmented value: base plus every attribute mod — augmented bonuses (cyberware,
+        /// Imp. Reflexes) and natural increases alike, since a natural increase raises everything.
+        /// Callers layer the racial modifier on top.</summary>
         public int GetAugmentedValue(Character character)
         {
             int modValue = 0;
-
-            // check gear mods
-            foreach (var mod in character.Gear.Values.Where(g => g.Mods != null).SelectMany(g => g.Mods.Where(m => m is AttributeMod a && a.AttributeName == Name)))
+            foreach (var (mod, multiplier) in EnumerateMods(character))
             {
-                modValue += mod.ModValue;
+                if (mod is AttributeMod a && a.AttributeName == Name)
+                    modValue += a.ModValue * multiplier;
             }
-
-            // check natural mods
-            foreach (var mod in character.NaturalAugmentations.Values.Where(g => g.Mods != null).SelectMany(g => g.Mods.Where(m => m is AttributeMod a && a.AttributeName == Name)))
-            {
-                modValue += mod.ModValue;
-            }
-
             return BaseValue + modValue;
+        }
+
+        /// <summary>Total of natural-rating increases (bioware per M&amp;M p. 77, Improved
+        /// Physical Attribute per SR3 p. 169) for this attribute.</summary>
+        public int GetNaturalModTotal(Character character)
+        {
+            int total = 0;
+            foreach (var (mod, multiplier) in EnumerateMods(character))
+            {
+                if (mod is NaturalAttributeMod n && n.AttributeName == Name)
+                    total += n.ModValue * multiplier;
+            }
+            return total;
         }
 
         /// <summary>Racial attribute modifier (e.g. troll Body +5); 0 when no race is set.</summary>
@@ -40,17 +72,26 @@ namespace SR3Generator.Data.Character
                 .Sum(m => m.ModValue) ?? 0;
         }
 
-        /// <summary>Natural attribute rating: bought points (BaseValue) plus the racial modifier.</summary>
+        /// <summary>Natural attribute rating: bought points (BaseValue) plus the racial modifier
+        /// plus natural increases (bioware, Improved Physical Attribute). Feeds skill costs,
+        /// karma improvement costs, and the derived pools.</summary>
         public int GetRacialModifiedValue(Character character)
         {
-            return BaseValue + GetRacialMod(character);
+            return BaseValue + GetRacialMod(character) + GetNaturalModTotal(character);
         }
 
         public int GetRacialModifiedLimit(Character character)
         {
             // SR3 Racial Modified Limit table (p. 245) = 6 + racial modifier. Natural augmentations
             // (troll dermal armor) are damage-resistance bonuses, not part of the limit table.
-            return 6 + GetRacialMod(character);
+            // Modified-limit-increase bioware (M&M physiological tailoring, X-codes) raises it.
+            int limitMods = 0;
+            foreach (var (mod, multiplier) in EnumerateMods(character))
+            {
+                if (mod is AttributeLimitMod l && l.AttributeName == Name)
+                    limitMods += l.ModValue * multiplier;
+            }
+            return 6 + GetRacialMod(character) + limitMods;
         }
 
         public int GetRacialAttributeMaximum(Character character)

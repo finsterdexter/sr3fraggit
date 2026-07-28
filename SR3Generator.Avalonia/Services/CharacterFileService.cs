@@ -11,6 +11,8 @@ public class CharacterFileService : ICharacterFileService
 {
     private readonly ICharacterBuilderService _builderService;
     private readonly SkillDatabase _skillDatabase;
+    private readonly AugmentationDatabase _augmentationDatabase;
+    private readonly AdeptPowerDatabase _adeptPowerDatabase;
     private readonly ILogger<CharacterBuilder> _builderLogger;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -25,10 +27,14 @@ public class CharacterFileService : ICharacterFileService
     public CharacterFileService(
         ICharacterBuilderService builderService,
         SkillDatabase skillDatabase,
+        AugmentationDatabase augmentationDatabase,
+        AdeptPowerDatabase adeptPowerDatabase,
         ILogger<CharacterBuilder> builderLogger)
     {
         _builderService = builderService;
         _skillDatabase = skillDatabase;
+        _augmentationDatabase = augmentationDatabase;
+        _adeptPowerDatabase = adeptPowerDatabase;
         _builderLogger = builderLogger;
     }
 
@@ -62,6 +68,10 @@ public class CharacterFileService : ICharacterFileService
         if (file is null) throw new InvalidDataException("Character file is empty or malformed.");
         if (file.Version > CharacterFile.CurrentVersion)
             throw new InvalidDataException($"Character file version {file.Version} is newer than supported ({CharacterFile.CurrentVersion}).");
+
+        // Saved Mods are install-time snapshots; re-derive them from the current catalogs so
+        // files from before the mod-classification fix pick up correct natural/armor/pool mods.
+        SavedModRefresher.Refresh(file.Character, _augmentationDatabase, _adeptPowerDatabase);
 
         var restored = new CharacterBuilder(
             _skillDatabase,

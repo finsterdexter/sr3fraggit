@@ -50,84 +50,16 @@ namespace SR3Generator.Database.Queries
                     bioware.Grade = BiowareGrade.Cultured;
                 }
 
-                // Parse attribute mods from the Mods string
+                // Parse attribute/pool/armor mods from the NSRCG shorthand.
                 if (!string.IsNullOrWhiteSpace(dto.Mods))
                 {
-                    bioware.Mods = ParseMods(dto.Mods);
+                    bioware.Mods = ModCodeParser.Parse(dto.Mods);
                 }
 
                 results.Add(bioware);
             }
 
             return results;
-        }
-
-        private static List<Mod> ParseMods(string modsString)
-        {
-            var mods = new List<Mod>();
-
-            // Format is like "+1BOD,+2STR,", "+1RTR,+1RCK," (RTR=Strength, RCK=Quickness for
-            // bioware), or pool shorthand like "+1TAS,".
-            var modPattern = new Regex(@"([+-]?\d+)([A-Z]+)", RegexOptions.IgnoreCase);
-            var matches = modPattern.Matches(modsString);
-
-            foreach (Match match in matches)
-            {
-                if (match.Groups.Count < 3) continue;
-
-                var value = int.Parse(match.Groups[1].Value);
-                var abbr = match.Groups[2].Value.ToUpper();
-
-                var poolType = MapAbbrToDicePoolType(abbr);
-                if (poolType.HasValue)
-                {
-                    mods.Add(new DicePoolMod(poolType.Value, value));
-                    continue;
-                }
-
-                var attrName = MapAbbrToAttributeName(abbr);
-                if (attrName.HasValue)
-                    mods.Add(new AttributeMod(attrName.Value, value));
-            }
-
-            return mods;
-        }
-
-        private static DicePoolType? MapAbbrToDicePoolType(string abbr)
-        {
-            return abbr switch
-            {
-                "HAC" => DicePoolType.Hacking,
-                "TAS" => DicePoolType.Task,
-                "SPL" => DicePoolType.Spell,
-                "CMB" => DicePoolType.Combat,
-                "CTR" => DicePoolType.Control,
-                "AST" => DicePoolType.AstralCombat,
-                "KRM" => DicePoolType.Karma,
-                _ => null
-            };
-        }
-
-        private static AttributeName? MapAbbrToAttributeName(string abbr)
-        {
-            return abbr switch
-            {
-                "BOD" => AttributeName.Body,
-                "QCK" or "RCK" => AttributeName.Quickness, // RCK appears in bioware data
-                "STR" or "RTR" => AttributeName.Strength,  // RTR appears in bioware data
-                "CHA" => AttributeName.Charisma,
-                "INT" => AttributeName.Intelligence,
-                "WIL" => AttributeName.Willpower,
-                "RCT" or "REA" or "NCT" => AttributeName.Reaction, // NCT appears in enhanced articulation
-                "INI" => AttributeName.Initiative,
-                "ESS" => AttributeName.Essence,
-                "MAG" => AttributeName.Magic,
-                // Armor stats - stored in Stats dictionary instead
-                "BAL" or "IMP" => null,
-                // Other non-attribute mods
-                "DGX" or "ROD" => null, // Special bioware-specific mods
-                _ => null
-            };
         }
 
         private static List<string> ParseCategoryTree(string? categoryTree)

@@ -39,60 +39,16 @@ namespace SR3Generator.Database.Queries
                     Mods = new List<Mod>()
                 };
 
-                // Parse attribute mods from the Mods string
+                // Parse attribute/pool/armor mods from the NSRCG shorthand.
                 if (!string.IsNullOrWhiteSpace(dto.Mods))
                 {
-                    power.Mods = ParseMods(dto.Mods);
+                    power.Mods = ModCodeParser.Parse(dto.Mods);
                 }
 
                 results.Add(power);
             }
 
             return results;
-        }
-
-        private static List<Mod> ParseMods(string modsString)
-        {
-            var mods = new List<Mod>();
-
-            // Format is like "+1BOD,+2STR,-1RCT," or "+1INI,"
-            var modPattern = new Regex(@"([+-]?\d+)([A-Z]+)", RegexOptions.IgnoreCase);
-            var matches = modPattern.Matches(modsString);
-
-            foreach (Match match in matches)
-            {
-                if (match.Groups.Count >= 3)
-                {
-                    var value = int.Parse(match.Groups[1].Value);
-                    var abbr = match.Groups[2].Value.ToUpper();
-
-                    var attrName = MapAbbrToAttributeName(abbr);
-                    if (attrName.HasValue)
-                    {
-                        mods.Add(new AttributeMod(attrName.Value, value));
-                    }
-                }
-            }
-
-            return mods;
-        }
-
-        private static AttributeName? MapAbbrToAttributeName(string abbr)
-        {
-            return abbr switch
-            {
-                "BOD" => AttributeName.Body,
-                "QCK" => AttributeName.Quickness,
-                "STR" => AttributeName.Strength,
-                "CHA" => AttributeName.Charisma,
-                "INT" => AttributeName.Intelligence,
-                "WIL" => AttributeName.Willpower,
-                "RCT" or "REA" => AttributeName.Reaction,
-                "INI" => AttributeName.Initiative,
-                "ESS" => AttributeName.Essence,
-                "MAG" => AttributeName.Magic,
-                _ => null
-            };
         }
 
         private static decimal ParseDecimal(string? value, decimal defaultValue = 0)

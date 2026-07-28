@@ -2093,12 +2093,14 @@ namespace SR3Generator.Creation
         /// (rating×2 at/under the Racial Modified Limit, rating×3 above it). Preview helper for the
         /// advancement UI; mirrors the cost logic in <see cref="ImproveAttribute"/>.
         /// <paramref name="newValue"/> is in bought-points space (BaseValue); the rating the cost
-        /// keys off includes the racial modifier. </summary>
+        /// keys off includes the racial modifier and natural increases — bioware (M&amp;M p. 77)
+        /// and Improved Physical Attribute (SR3 p. 169: karma cost "is based on the total
+        /// Attribute, including the magical improvements"). </summary>
         public int GetAttributeImproveCost(AttributeName name, int newValue)
         {
             var attribute = Character.Attributes[name];
             var limit = attribute.GetRacialModifiedLimit(Character);
-            var newRating = newValue + attribute.GetRacialMod(Character);
+            var newRating = newValue + attribute.GetRacialMod(Character) + attribute.GetNaturalModTotal(Character);
             return newRating <= limit ? newRating * 2 : newRating * 3;
         }
 
@@ -2107,7 +2109,7 @@ namespace SR3Generator.Creation
             // The racial maximum is in final-rating space; newValue is bought points (BaseValue).
             var attribute = Character.Attributes[name];
             var maximum = attribute.GetRacialAttributeMaximum(Character);
-            var newRating = newValue + attribute.GetRacialMod(Character);
+            var newRating = newValue + attribute.GetRacialMod(Character) + attribute.GetNaturalModTotal(Character);
             if (newRating > maximum)
             {
                 _logger.LogWarning("ImproveAttribute: {Attribute} rating {NewRating} exceeds racial maximum {Maximum}", name, newRating, maximum);
@@ -2433,6 +2435,19 @@ namespace SR3Generator.Creation
                 {
                     if (Character.DicePools.TryGetValue(mod.DicePoolType, out var pool))
                         pool.Value += mod.ModValue;
+                }
+            }
+
+            // Adept power pool bonuses (Combat Sense's extra Combat Pool dice, SR3 p. 169).
+            // Leveled (*) powers store per-level mod values; the Combat Sense +1/+2/+3 rows are
+            // pre-scaled, non-leveled entries.
+            foreach (var power in Character.AdeptPowers.Values)
+            {
+                var multiplier = power.IsLeveled ? power.Level : 1;
+                foreach (var mod in power.Mods.OfType<DicePoolMod>())
+                {
+                    if (Character.DicePools.TryGetValue(mod.DicePoolType, out var pool))
+                        pool.Value += mod.ModValue * multiplier;
                 }
             }
 

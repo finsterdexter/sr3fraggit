@@ -55,10 +55,10 @@ namespace SR3Generator.Database.Queries
                     if (vcrRating > 0) cyberware.Rating = vcrRating;
                 }
 
-                // Parse attribute mods from the Mods string
+                // Parse attribute/pool/armor mods from the NSRCG shorthand.
                 if (!string.IsNullOrWhiteSpace(dto.Mods))
                 {
-                    cyberware.Mods = ParseMods(dto.Mods);
+                    cyberware.Mods = ModCodeParser.Parse(dto.Mods);
                 }
 
                 // M&M placement code (E=Eye, R=Ear, A=Arm, L=Leg, T=Torso, H=Head, F=Foot,
@@ -83,76 +83,10 @@ namespace SR3Generator.Database.Queries
             return results;
         }
 
-        private static List<Mod> ParseMods(string modsString)
-        {
-            var mods = new List<Mod>();
-
-            // Format is like "+1BOD,+2STR,-1RCT,", "+1INI,", or "+1HAC,+1TAS,"
-            var modPattern = new Regex(@"([+-]?\d+)([A-Z]+)", RegexOptions.IgnoreCase);
-            var matches = modPattern.Matches(modsString);
-
-            foreach (Match match in matches)
-            {
-                if (match.Groups.Count < 3) continue;
-
-                var value = int.Parse(match.Groups[1].Value);
-                var abbr = match.Groups[2].Value.ToUpper();
-
-                // Pool abbrev wins over attribute abbrev — no collisions in SR3 shorthand.
-                var poolType = MapAbbrToDicePoolType(abbr);
-                if (poolType.HasValue)
-                {
-                    mods.Add(new DicePoolMod(poolType.Value, value));
-                    continue;
-                }
-
-                var attrName = MapAbbrToAttributeName(abbr);
-                if (attrName.HasValue)
-                    mods.Add(new AttributeMod(attrName.Value, value));
-            }
-
-            return mods;
-        }
-
         private static int ParseRatingFromName(string name)
         {
             var m = Regex.Match(name, @"\[(\d+)\]");
             return m.Success && int.TryParse(m.Groups[1].Value, out var r) ? r : 0;
-        }
-
-        private static AttributeName? MapAbbrToAttributeName(string abbr)
-        {
-            return abbr switch
-            {
-                "BOD" => AttributeName.Body,
-                "QCK" => AttributeName.Quickness,
-                "STR" => AttributeName.Strength,
-                "CHA" => AttributeName.Charisma,
-                "INT" => AttributeName.Intelligence,
-                "WIL" => AttributeName.Willpower,
-                "RCT" or "REA" => AttributeName.Reaction,
-                "INI" => AttributeName.Initiative,
-                "ESS" => AttributeName.Essence,
-                "MAG" => AttributeName.Magic,
-                // Armor stats - stored in Stats dictionary instead
-                "BAL" or "IMP" => null,
-                _ => null
-            };
-        }
-
-        private static DicePoolType? MapAbbrToDicePoolType(string abbr)
-        {
-            return abbr switch
-            {
-                "HAC" => DicePoolType.Hacking,
-                "TAS" => DicePoolType.Task,
-                "SPL" => DicePoolType.Spell,
-                "CMB" => DicePoolType.Combat,
-                "CTR" => DicePoolType.Control,
-                "AST" => DicePoolType.AstralCombat,
-                "KRM" => DicePoolType.Karma,
-                _ => null
-            };
         }
 
         private static List<string> ParseCategoryTree(string? categoryTree)

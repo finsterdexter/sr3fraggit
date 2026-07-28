@@ -127,6 +127,37 @@ public class CharacterSheetExporterTests
     }
 
     [Fact]
+    public void Factory_ArmorIncludesImplantAndAdeptPowerArmor()
+    {
+        var b = Populated();
+        b.AddGear(new Cyberware
+        {
+            Name = "Dermal Sheath [2]",
+            Book = "mm",
+            Availability = FreeAvail,
+            Mods =
+            {
+                new SR3Generator.Data.Character.AttributeMod(AttributeName.Body, 3),
+                new SR3Generator.Data.Character.ArmorMod(SR3Generator.Data.Character.ArmorClass.Impact, 1),
+            },
+        });
+        b.Character.AdeptPowers.Add("Mystic Armor*_2", new SR3Generator.Data.Magic.AdeptPower
+        {
+            Name = "Mystic Armor*",
+            Cost = 0.5m,
+            Level = 2,
+            Book = "sr3",
+            Mods = { new SR3Generator.Data.Character.ArmorMod(SR3Generator.Data.Character.ArmorClass.Impact, 1) },
+        });
+
+        var model = CharacterSheetModelFactory.Build(b);
+
+        Assert.Contains(model.Armor, a => a.Name == "Dermal Sheath [2]" && a.Ballistic == 0 && a.Impact == 1);
+        // Mystic Armor is leveled: +1 Impact per level (SR3 p. 169).
+        Assert.Contains(model.Armor, a => a.Name == "Mystic Armor" && a.Impact == 2);
+    }
+
+    [Fact]
     public void Factory_ActiveSkills_OrderedByRatingDescending()
     {
         var model = CharacterSheetModelFactory.Build(Populated());

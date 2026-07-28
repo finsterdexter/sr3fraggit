@@ -117,10 +117,7 @@ public static class CharacterSheetModelFactory
                 .OrderBy(w => w.Name)
                 .Select(BuildWeapon)
                 .ToList(),
-            Armor = c.Gear.Values.OfType<Armor>()
-                .OrderByDescending(a => a.Ballistic)
-                .Select(a => new ArmorLine(a.Name, a.Ballistic, a.Impact))
-                .ToList(),
+            Armor = BuildArmor(c),
             Cyberware = c.Gear.Values.OfType<Cyberware>()
                 .OrderBy(w => w.Name)
                 .Select(w => new AugmentationLine(
@@ -349,6 +346,40 @@ public static class CharacterSheetModelFactory
         if (c.AllySpirit is not null)
             list.Add("Ally spirit bonded");
         return list;
+    }
+
+    /// <summary>Worn armor pieces, followed by armor granted by implants and adept powers
+    /// (dermal plating's BAL/IMP mods, Mystic Armor's +1 Impact per level — cumulative with
+    /// worn armor per M&amp;M / SR3 p. 169).</summary>
+    private static List<ArmorLine> BuildArmor(Character c)
+    {
+        var lines = c.Gear.Values.OfType<Armor>()
+            .OrderByDescending(a => a.Ballistic)
+            .Select(a => new ArmorLine(a.Name, a.Ballistic, a.Impact))
+            .ToList();
+
+        foreach (var gear in c.Gear.Values.Where(g => g is not Armor))
+        {
+            var (bal, imp) = SumArmorMods(gear.Mods, 1);
+            if (bal != 0 || imp != 0) lines.Add(new ArmorLine(gear.Name, bal, imp));
+        }
+        foreach (var power in c.AdeptPowers.Values)
+        {
+            var (bal, imp) = SumArmorMods(power.Mods, power.IsLeveled ? power.Level : 1);
+            if (bal != 0 || imp != 0) lines.Add(new ArmorLine(power.Name.TrimEnd('*'), bal, imp));
+        }
+        return lines;
+    }
+
+    private static (int Ballistic, int Impact) SumArmorMods(IEnumerable<Mod>? mods, int multiplier)
+    {
+        int bal = 0, imp = 0;
+        foreach (var mod in (mods ?? Enumerable.Empty<Mod>()).OfType<ArmorMod>())
+        {
+            if (mod.ArmorClass == ArmorClass.Ballistic) bal += mod.ModValue * multiplier;
+            else imp += mod.ModValue * multiplier;
+        }
+        return (bal, imp);
     }
 
     private static string BuildTradition(Character c)

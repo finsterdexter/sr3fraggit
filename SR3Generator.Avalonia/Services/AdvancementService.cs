@@ -84,8 +84,11 @@ public class AdvancementService : IAdvancementService
     {
         var current = GetAttributeTarget(name);
         // The racial maximum is in final-rating space; targets are bought points (BaseValue).
+        // Natural increases (bioware, Imp. Physical Attribute) occupy rating headroom too,
+        // mirroring the ImproveAttribute guard.
         var attr = Character.Attributes[name];
-        var max = attr.GetRacialAttributeMaximum(Character) - attr.GetRacialMod(Character);
+        var max = attr.GetRacialAttributeMaximum(Character) - attr.GetRacialMod(Character)
+                  - attr.GetNaturalModTotal(Character);
         if (current >= max) return;
         SetAttrTarget(name, current + 1);
         PendingChanged?.Invoke(this, EventArgs.Empty);
@@ -202,9 +205,11 @@ public class AdvancementService : IAdvancementService
         if (skill is null) return 0;
         var builder = _characterService.Builder;
         // Use the staged (committed + pending) linked-attribute value, since Apply raises attributes
-        // before skills. Cost thresholds compare against the actual rating (racial mods included).
+        // before skills. Cost thresholds compare against the actual rating (racial mods and
+        // natural increases included, mirroring GetRacialModifiedValue in the builder).
         var attrValue = GetAttributeTarget(skill.Attribute)
-                        + Character.Attributes[skill.Attribute].GetRacialMod(Character);
+                        + Character.Attributes[skill.Attribute].GetRacialMod(Character)
+                        + Character.Attributes[skill.Attribute].GetNaturalModTotal(Character);
         var total = 0;
         for (var v = CommittedSkillBase(skillName) + 1; v <= target; v++)
             total += builder.GetImproveSkillCost(v, attrValue, skill.IsSpecialization, skill.Type);
