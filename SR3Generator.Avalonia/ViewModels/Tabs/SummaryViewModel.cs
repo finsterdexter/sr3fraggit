@@ -181,6 +181,10 @@ public partial class SummaryViewModel : ViewModelBase
         // Basic Info
         RaceName = character.Race?.Name.ToString() ?? "Not Selected";
         MagicAspect = character.MagicAspect?.Name.ToString() ?? "Mundane";
+        if (character.InitiateGrade > 0)
+        {
+            MagicAspect += $" (Initiate Grade {character.InitiateGrade})";
+        }
 
         // Attributes
         Body = GetAttributeTotal(character, AttributeName.Body);

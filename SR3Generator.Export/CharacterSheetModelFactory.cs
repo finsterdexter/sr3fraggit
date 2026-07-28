@@ -354,16 +354,28 @@ public static class CharacterSheetModelFactory
     private static string BuildTradition(Character c)
     {
         var parts = new List<string> { PrettyEnum(c.MagicAspect!.Name.ToString()) };
+        if (c.InitiateGrade > 0) parts.Add($"Grade {c.InitiateGrade} Initiate");
         if (c.Tradition is { } t) parts.Add(t.ToString());
         if (c.Totem is { } totem) parts.Add($"Totem: {totem.Name}");
         if (c.HermeticElement is { } el) parts.Add($"Element: {el}");
         return string.Join(" · ", parts);
     }
 
-    /// <summary>Descriptive detail for the tradition box — totem advantages/disadvantages and flavour.</summary>
+    /// <summary>Descriptive detail for the tradition box — metamagic, geasa, and totem
+    /// advantages/disadvantages and flavour.</summary>
     private static List<string> BuildMagicNotes(Character c)
     {
         var notes = new List<string>();
+        var metamagics = c.Initiations
+            .Where(i => i.MetamagicName is not null)
+            .Select(i => string.IsNullOrWhiteSpace(i.MetamagicNote)
+                ? i.MetamagicName!
+                : $"{i.MetamagicName} ({i.MetamagicNote})")
+            .ToList();
+        if (metamagics.Count > 0)
+            AddNote(notes, "Metamagic", string.Join(", ", metamagics));
+        if (c.Geasa.Count > 0)
+            AddNote(notes, "Geasa", string.Join("; ", c.Geasa.Select(g => g.Description)));
         if (c.Totem is { } totem)
         {
             AddNote(notes, "Advantages", totem.Advantages);

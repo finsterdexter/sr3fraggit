@@ -134,6 +134,7 @@ public class JournalEntryItem
             JournalEntryType.KarmaToNuyen => "KARMA→¥",
             JournalEntryType.NuyenToKarma => "¥→KARMA",
             JournalEntryType.Advancement => "ADVANCE",
+            JournalEntryType.Initiation => "INITIATE",
             _ => entry.Type.ToString().ToUpperInvariant(),
         };
         KarmaDisplay = entry.KarmaChange == 0 ? "—" : $"{entry.KarmaChange:+0;-0} K";
