@@ -231,6 +231,7 @@
   <data name="SummarySubtitle" xml:space="preserve"><value>Review and finalize character creation.</value></data>
   <data name="SummaryRemainingNuyen" xml:space="preserve"><value>Remaining Nuyen</value></data>
   <data name="SummaryReadyToFinalize" xml:space="preserve"><value>Ready to finalize</value></data>
+  <data name="SummaryFinalized" xml:space="preserve"><value>Finalized</value></data>
   <data name="SummaryEmptyValue" xml:space="preserve"><value>(None)</value></data>
 
   <!-- Priority reference table -->

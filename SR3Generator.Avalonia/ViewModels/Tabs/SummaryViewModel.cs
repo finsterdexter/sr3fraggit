@@ -23,6 +23,10 @@ public partial class SummaryViewModel : ViewModelBase
     /// <summary>Finalize is offered only for a valid, not-yet-finalized character. </summary>
     public bool CanFinalize => IsValid && !IsFinalized;
 
+    /// <summary>The sidebar's green "Ready to finalize" badge — once finalized, the
+    /// "Finalized" badge replaces it. </summary>
+    public bool ShowReadyBadge => IsValid && !IsFinalized;
+
     // Basic Info
     [ObservableProperty]
     private string _raceName = "Not Selected";
@@ -153,7 +157,11 @@ public partial class SummaryViewModel : ViewModelBase
         RefreshFromBuilder();
     }
 
-    partial void OnIsFinalizedChanged(bool value) => OnPropertyChanged(nameof(CanFinalize));
+    partial void OnIsFinalizedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanFinalize));
+        OnPropertyChanged(nameof(ShowReadyBadge));
+    }
 
     [RelayCommand]
     private async System.Threading.Tasks.Task FinalizeCharacter()
@@ -324,12 +332,16 @@ public partial class SummaryViewModel : ViewModelBase
         var warningCount = issues.Count(i => i.Level == ValidationIssueLevel.Warning);
         IsValid = errorCount == 0;
         OnPropertyChanged(nameof(CanFinalize));
+        OnPropertyChanged(nameof(ShowReadyBadge));
         HasIssues = issues.Count > 0;
+        var finalized = _characterService.Builder.Character.IsFinalized;
         ValidationStatus = errorCount > 0
             ? $"{errorCount} error(s) must be fixed"
-            : warningCount > 0
-                ? $"{warningCount} warning(s) — review before finalizing"
-                : "Character is valid and ready to finalize!";
+            : finalized
+                ? "Character is finalized and in play."
+                : warningCount > 0
+                    ? $"{warningCount} warning(s) — review before finalizing"
+                    : "Character is valid and ready to finalize!";
     }
 
     [RelayCommand]

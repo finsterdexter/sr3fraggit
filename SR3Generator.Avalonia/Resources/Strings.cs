@@ -233,6 +233,7 @@ public static class Strings
     public static string SummarySubtitle => Get(nameof(SummarySubtitle));
     public static string SummaryRemainingNuyen => Get(nameof(SummaryRemainingNuyen));
     public static string SummaryReadyToFinalize => Get(nameof(SummaryReadyToFinalize));
+    public static string SummaryFinalized => Get(nameof(SummaryFinalized));
     public static string SummaryEmptyValue => Get(nameof(SummaryEmptyValue));
 
     // Priority reference table

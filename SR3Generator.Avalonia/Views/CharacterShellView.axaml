@@ -320,8 +320,18 @@
                                     BorderThickness="1"
                                     CornerRadius="3"
                                     Padding="8,6"
-                                    IsVisible="{Binding SummaryVM.IsValid}">
+                                    IsVisible="{Binding SummaryVM.ShowReadyBadge}">
                                 <TextBlock Text="{x:Static res:Strings.SummaryReadyToFinalize}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource SuccessBrush}"/>
+                            </Border>
+                            <Border Background="#1522c55e"
+                                    BorderBrush="#3022c55e"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    Padding="8,6"
+                                    IsVisible="{Binding SummaryVM.IsFinalized}">
+                                <TextBlock Text="{x:Static res:Strings.SummaryFinalized}"
                                            FontSize="10"
                                            Foreground="{StaticResource SuccessBrush}"/>
                             </Border>
