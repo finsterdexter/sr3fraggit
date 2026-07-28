@@ -62,7 +62,11 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task NewCharacter()
     {
-        if (!await ConfirmDiscardIfDirtyAsync()) return;
+        // Always confirm — even a cleanly-saved character is silently replaced otherwise.
+        var message = _characterService.IsDirty
+            ? "Start a new character? The current character has unsaved changes that will be lost."
+            : "Start a new character? The current character will be closed.";
+        if (!await _dialogService.ConfirmAsync("New Character?", message)) return;
         _characterService.NewCharacter();
         _fileService.ClearCurrentFile();
         CharacterShell = _serviceProvider.GetRequiredService<CharacterShellViewModel>();
