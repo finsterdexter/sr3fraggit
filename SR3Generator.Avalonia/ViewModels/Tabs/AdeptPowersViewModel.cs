@@ -60,7 +60,10 @@ public partial class AdeptPowersViewModel : ViewModelBase
     [ObservableProperty]
     private string _powerPointsAllowanceDisplay = "0";
 
-    public int[] AvailableLevels { get; } = Enumerable.Range(1, 6).ToArray();
+    // SR3 p. 168: no power may have more levels than the Magic attribute, which initiation
+    // can push above 6. Recomputed alongside MagicRating.
+    [ObservableProperty]
+    private int[] _availableLevels = Enumerable.Range(1, 6).ToArray();
 
     public AdeptPowersViewModel(
         ICharacterBuilderService characterService,
@@ -161,6 +164,11 @@ public partial class AdeptPowersViewModel : ViewModelBase
 
         IsAdept = character.MagicAspect?.HasPhysicalAdept ?? false;
         MagicRating = character.Attributes[AttributeName.Magic].BaseValue;
+        if (AvailableLevels.Length != Math.Max(1, MagicRating))
+        {
+            AvailableLevels = Enumerable.Range(1, Math.Max(1, MagicRating)).ToArray();
+            if (SelectedLevel > AvailableLevels.Length) SelectedLevel = 1;
+        }
 
         PowerPointsSpentDisplay = builder.AdeptPowerPointsSpent.ToString("F2");
         PowerPointsRemainingDisplay = builder.AdeptPowerPointsRemaining.ToString("F2");
